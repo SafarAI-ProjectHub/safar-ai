@@ -1,0 +1,309 @@
+<?php
+
+namespace App\Http\Controllers;
+
+use Illuminate\Http\Request;
+use App\Models\Teacher;
+use App\Models\Course;
+use App\Models\Unit;
+use Illuminate\Support\Facades\Storage;
+use App\Models\CourseCategory;
+use Yajra\DataTables\DataTables;
+
+class AdminController extends Controller
+{
+
+    public function index()
+    {
+        return view('dashboard.index');
+    }
+
+    /* 
+     *
+     *
+     *Teacher functions 
+     *
+     *
+     */
+
+    public function applicationsIndex()
+    {
+        return view('dashboard.admin.applications');
+    }
+
+    public function getApplicationsIndex()
+    {
+        $pending = Teacher::with('user')
+            ->where("approval_status", 'pending')
+            ->get();
+
+        return DataTables::of($pending)
+            ->addColumn('full_name', function ($teacher) {
+                return $teacher->user->getFullNameAttribute();
+            })
+            ->addColumn('email', function ($teacher) {
+                return $teacher->user->email;
+            })
+            ->addColumn('position', function ($teacher) {
+                return 'Teacher'; // You can customize this as needed
+            })
+            ->addColumn('cv_link', function ($teacher) {
+                return '<a href="../' . $teacher->cv_link . '" target="_blank">CV Link</a>';
+            })
+            ->rawColumns(['cv_link'])
+            ->make(true);
+    }
+
+    public function updateTeacherStatus(Request $request)
+    {
+        $teacher = Teacher::find($request->teacher_id);
+        if ($teacher) {
+            $teacher->approval_status = $request->approval_status;
+            $teacher->save();
+            return response()->json(['success' => 'Status updated successfully']);
+        }
+        return response()->json(['error' => 'Teacher not found'], 404);
+    }
+    public function teachers()
+    {
+        return view('dashboard.admin.teachers');
+    }
+
+    public function getTeachers(Request $request)
+    {
+        if ($request->ajax()) {
+            $data = Teacher::with('user')
+                ->where('approval_status', 'approved')
+                ->get();
+
+            return DataTables::of($data)
+                ->addColumn('full_name', function ($row) {
+                    return $row->user->first_name . ' ' . $row->user->last_name;
+                })
+                ->addColumn('country_location', function ($row) {
+                    return $row->user->country_location;
+                })
+                ->addColumn('email', function ($row) {
+                    return $row->user->email;
+                })
+                ->addColumn('phone_number', function ($row) {
+                    return $row->user->phone_number;
+                })
+                ->addColumn('cv_link', function ($row) {
+                    return $row->cv_link ? '<a href="' . asset($row->cv_link) . '" target="_blank">View CV</a>' : 'No CV';
+                })
+                ->addColumn('actions', function ($row) {
+                    return '<button class="btn btn-primary btn-sm update-status" data-id="' . $row->id . '" data-status="' . $row->approval_status . '">Update Status</button>';
+                })
+                ->rawColumns(['cv_link', 'actions'])
+                ->make(true);
+        }
+
+        return null;
+    }
+
+    /* 
+     *
+     *
+     *Courses functions 
+     *
+     *
+     */
+
+    public function courses()
+    {
+        $categories = CourseCategory::all();
+        $teachers = Teacher::with('user')->get();
+        return view('dashboard.admin.courses', compact('categories', 'teachers'));
+    }
+
+    public function getCourses(Request $request)
+    {
+        if ($request->ajax()) {
+            $data = Course::with(['category', 'teacher.user'])->get();
+
+            return DataTables::of($data)
+                ->addColumn('category', function ($row) {
+                    return 'Age Range: ' . $row->category->age_group;
+                })
+                ->addColumn('level', function ($row) {
+                    return $row->level;
+                })
+                ->addColumn('type', function ($row) {
+                    return ucfirst($row->type);
+                })
+                ->addColumn('teacher', function ($row) {
+                    return $row->teacher ? $row->teacher->user->first_name . ' ' . $row->teacher->user->last_name : 'N/A';
+                })
+                ->addColumn('actions', function ($row) {
+                    $assignButton = '<a href="#" class="btn btn-primary btn-sm assign-teacher-btn" data-course-id="' . $row->id . '"><i class="bx bx-user-plus"></i> ' . ($row->teacher ? 'Change Teacher' : 'Assign Teacher') . '</a>';
+                    $showUnitsButton = '<a href="' . url('admin/courses') . '/' . $row->id . '/units" class="btn btn-primary btn-sm"><i class="bx bx-show-alt"></i> Show Units</a>';
+                    $viewCourseButton = '<a href="' . url('admin/courses') . '/' . $row->id . '/show" class="btn btn-primary btn-sm"><i class="bx bx-detail"></i> View Course</a>';
+                    return '<div class="d-flex justify-content-around gap-2">' . $assignButton . $showUnitsButton . $viewCourseButton . '</div>';
+                })
+                ->rawColumns(['actions'])
+                ->make(true);
+        }
+
+        return null;
+    }
+
+
+
+    public function storeCourse(Request $request)
+    {
+        $request->validate([
+            'title' => 'required|string|max:255',
+            'description' => 'required|string',
+            'category_id' => 'required|exists:course_categories,id',
+            'level' => 'required|integer|min:1|max:6',
+            'type' => 'required|in:weekly,intensive',
+        ]);
+
+        Course::create($request->all());
+
+        return response()->json(['success' => 'Course added successfully']);
+    }
+    // Function to get the list of teachers for the modal
+    public function getTeachersForAssignment()
+    {
+        $teachers = Teacher::with('user')->get();
+        return response()->json($teachers);
+    }
+
+    public function assignTeacherToCourse(Request $request)
+    {
+        $request->validate([
+            'course_id' => 'required|exists:courses,id',
+            'teacher_id' => 'required|exists:teachers,id',
+        ]);
+
+        $course = Course::find($request->course_id);
+        $course->teacher_id = $request->teacher_id;
+        $course->save();
+
+        return response()->json(['success' => 'Teacher assigned successfully!']);
+    }
+
+    public function showcourse($courseId)
+    {
+        $course = Course::with('units')->findOrFail($courseId);
+        return view('dashboard.admin.show_course', compact('course'));
+    }
+
+    /* 
+     *
+     *
+     *Units functions 
+     *
+     *
+     */
+
+    public function showUnits($courseId)
+    {
+        $course = Course::with('units')->findOrFail($courseId);
+        return view('dashboard.admin.units', compact('course'));
+    }
+
+    public function getUnits($courseId)
+    {
+        $units = Unit::where('course_id', $courseId)->get();
+
+        return DataTables::of($units)
+            ->addColumn('actions', function ($row) {
+                return '<button class="btn btn-primary btn-sm edit-unit" data-id="' . $row->id . '">Edit</button>' .
+                    '<button class="btn btn-primary btn-sm update-status" data-id="' . $row->id . '" data-status="' . $row->approval_status . '">Update Status</button> ' .
+                    '<button class="btn btn-danger btn-sm delete-unit" data-id="' . $row->id . '">Delete</button>';
+            })
+            ->rawColumns(['actions'])
+            ->make(true);
+    }
+
+    public function storeUnit(Request $request)
+    {
+        $request->validate([
+            'title' => 'required|string|max:255',
+            'subtitle' => 'nullable|string|max:255',
+            'content_type' => 'required|in:video,text',
+            'content' => 'required_if:content_type,text',
+            'video' => 'required_if:content_type,video|file|mimes:mp4,mov,ogg,qt|max:20000'
+        ]);
+
+        $unit = new Unit();
+        $unit->course_id = $request->course_id;
+        $unit->title = $request->title;
+        $unit->subtitle = $request->subtitle;
+        $unit->content_type = $request->content_type;
+
+        if ($request->content_type == 'text') {
+            $unit->content = $request->content;
+        } else if ($request->content_type == 'video' && $request->hasFile('video')) {
+            $file = $request->file('video');
+            $filename = uniqid() . '.' . $file->getClientOriginalExtension();
+            $path = $file->storeAs('uploads', $filename, 'public');
+            $unit->content = 'storage/' . $path;
+        }
+
+        $unit->save();
+
+        return response()->json(['success' => 'Unit added successfully']);
+    }
+
+
+    public function editUnit($id)
+    {
+        $unit = Unit::findOrFail($id);
+        return response()->json($unit);
+    }
+
+    public function updateUnit(Request $request, $id)
+    {
+        $request->validate([
+            'title' => 'required|string|max:255',
+            'subtitle' => 'nullable|string|max:255',
+            'content_type' => 'required|in:video,text',
+            'content' => 'required_if:content_type,text',
+            'video' => 'required_if:content_type,video|file|mimes:mp4,mov,ogg,qt|max:20000'
+        ]);
+
+        $unit = Unit::findOrFail($id);
+        $unit->title = $request->title;
+        $unit->subtitle = $request->subtitle;
+        $unit->content_type = $request->content_type;
+
+        if ($request->content_type == 'text') {
+            $unit->content = $request->content;
+        } else if ($request->content_type == 'video' && $request->hasFile('video')) {
+            // Delete the old video file if it exists
+            if ($unit->content && Storage::disk('public')->exists($unit->content)) {
+                Storage::disk('public')->delete($unit->content);
+            }
+
+            // Store the new video file
+            $file = $request->file('video');
+            $filename = uniqid() . '.' . $file->getClientOriginalExtension();
+            $path = $file->storeAs('uploads', $filename, 'public');
+            $unit->content = 'storage/' . $path;
+        }
+
+        $unit->save();
+
+        return response()->json(['success' => 'Unit updated successfully']);
+    }
+
+    public function destroyUnit(Request $request, $id)
+    {
+        try {
+            $unit = Unit::findOrFail($id);
+            $unit->delete(); // Deletes the unit
+
+            return response()->json(['success' => 'Unit deleted successfully']);
+        } catch (\Exception $e) {
+            return response()->json(['error' => 'Error deleting unit', 'message' => $e->getMessage()], 422);
+        }
+    }
+
+
+
+
+}

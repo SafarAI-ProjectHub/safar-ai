@@ -1,0 +1,86 @@
+<div class="sidebar-wrapper" data-simplebar="true">
+    <div class="sidebar-header">
+        <div>
+            <img src="{{ asset('assets/images/logo-icon.png') }}" class="logo-icon" alt="logo icon">
+        </div>
+        <div>
+            <h4 class="logo-text"><span style="color: #844DCD"><span style="color:#C45ACD">Safar</span> AI</span></h4>
+        </div>
+        <div class="toggle-icon ms-auto"><i class='bx bx-arrow-back'></i>
+        </div>
+    </div>
+    <!--navigation-->
+    <ul class="metismenu" id="menu">
+        <li>
+            <a href="{{ route('dashboard') }}">
+                <div class="parent-icon"><i class='bx bx-tachometer'></i></div>
+                <div class="menu-title">Dashboard</div>
+            </a>
+        </li>
+        <li>
+            <a href="javascript:;" class="has-arrow">
+                <div class="parent-icon"><i class='bx bx-user-circle'></i></div>
+                <div class="menu-title">Teachers</div>
+            </a>
+            <ul>
+                <li>
+                    <a href="{{ route('admin.applications') }}">
+                        <div class="parent-icon"><i class="bx bx-file"></i></div>
+                        <div class="menu-title">Applications Review</div>
+                    </a>
+                </li>
+                <li>
+                    <a href="{{ route('admin.teachers') }}">
+                        <div class="parent-icon"><i class="bx bx-check-circle"></i></div>
+                        <div class="menu-title">Approved Teachers</div>
+                    </a>
+                </li>
+                <li>
+                    <a href="{{ route('teacherTests.index') }}">
+                        <div class="parent-icon"><i class="bx bx-bar-chart-alt"></i></div>
+                        <div class="menu-title">Level Test</div>
+                    </a>
+                </li>
+                <li>
+                    <a href="{{ route('teacherTest.addPage') }}">
+                        <div class="parent-icon"><i class="bx bx-plus"></i></div>
+                        <div class="menu-title">Add Level Test</div>
+                    </a>
+                </li>
+            </ul>
+        </li>
+
+
+        <li>
+            <a href="javascript:;" class="has-arrow">
+                <div class="parent-icon"><i class='bx bx-book-open'></i>
+                </div>
+                <div class="menu-title">Courses</div>
+            </a>
+            <ul>
+                <li>
+                    <a href="{{ route('admin.courses') }}">
+                        <div class="parent-icon"><i class="bx bx-book"></i></div>
+                        <div class="menu-title">Courses</div>
+                    </a>
+                </li>
+                <li>
+                    <a href="{{ route('quizzes.index') }}">
+                        <div class="parent-icon"><i class="bx bx-brain"></i></div>
+                        <div class="menu-title">Quizzes</div>
+                    </a>
+                </li>
+                <li>
+                    <a href="{{ route('quiz.addPage') }}">
+                        <div class="parent-icon"><i class="bx bx-plus-circle"></i></div>
+                        <div class="menu-title">Add Quiz</div>
+                    </a>
+                </li>
+
+            </ul>
+        </li>
+
+    </ul>
+
+    <!--end navigation-->
+</div>
