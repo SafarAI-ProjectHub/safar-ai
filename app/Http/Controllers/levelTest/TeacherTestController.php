@@ -240,7 +240,7 @@ class TeacherTestController extends Controller
     {
         $levelTest = LevelTest::findOrFail($testId);
         LevelTest::where('exam_type', 'teacher')->update(['active' => false]);
-        $levelTest->update(['active' => $request->active]);
+        $levelTest->update(['active' => 1]);
 
         return response()->json(['message' => 'Test status updated successfully']);
     }

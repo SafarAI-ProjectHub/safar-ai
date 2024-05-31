@@ -79,7 +79,7 @@
             // Handle Edit button click
             $(document).on('click', '.edit-test', function() {
                 var testId = $(this).data('id');
-                window.location.href = '/level-test/teacher/' + testId + '/edit';
+                window.location.href = '/admin/teacher/' + testId + '/edit';
             });
 
             // Handle Delete button click
@@ -96,7 +96,7 @@
                 }).then((result) => {
                     if (result.isConfirmed) {
                         $.ajax({
-                            url: '/level-test/teacher/' + testId + '/delete',
+                            url: '/admin/teacher/' + testId + '/delete',
                             type: 'DELETE',
                             data: {
                                 _token: $('meta[name="csrf-token"]').attr('content')
@@ -126,7 +126,7 @@
                 var testId = $(this).data('id');
                 var isActive = $(this).is(':checked');
                 $.ajax({
-                    url: '/level-test/teacher/' + testId + '/activate',
+                    url: '/admin/teacher/' + testId + '/activate',
                     type: 'POST',
                     data: {
                         _token: $('meta[name="csrf-token"]').attr('content'),
@@ -134,11 +134,11 @@
                     },
                     success: function(response) {
                         table.ajax.reload(null,
-                        false); // Reload the table without resetting pagination
+                            false); // Reload the table without resetting pagination
                         Swal.fire(
                             'Success!',
                             'The test has been ' + (isActive ? 'activated' :
-                            'deactivated') + '.',
+                                'deactivated') + '.',
                             'success'
                         );
                     },
