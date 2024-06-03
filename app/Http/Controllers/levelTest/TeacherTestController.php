@@ -28,9 +28,6 @@ class TeacherTestController extends Controller
 
         if ($user->hasRole('Admin')) {
             $levelTests = LevelTest::where('exam_type', 'teacher')->get();
-        } else {
-            // Adjust this logic based on your requirement to fetch tests for teachers
-            $levelTests = LevelTest::where('exam_type', 'teacher')->get();
         }
 
         return view('dashboard.level_test.teacher_tests', compact('levelTests'));
@@ -62,9 +59,6 @@ class TeacherTestController extends Controller
         $user = Auth::user();
 
         if ($user->hasRole('Admin')) {
-            $levelTests = LevelTest::where('exam_type', 'teacher')->get();
-        } else {
-            // Adjust this logic based on your requirement to fetch tests for teachers
             $levelTests = LevelTest::where('exam_type', 'teacher')->get();
         }
 
@@ -174,7 +168,7 @@ class TeacherTestController extends Controller
         $levelTest->update([
             'title' => $request->title,
             'description' => $request->description,
-            'active' => $request->active,
+            'active' => $levelTest->active,
         ]);
 
         // Delete existing questions and choices

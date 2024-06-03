@@ -8,6 +8,7 @@ use App\Http\Controllers\QuizController;
 use App\Http\Controllers\TeacherController;
 use App\Http\Controllers\StudentController;
 use App\Http\Controllers\levelTest\TeacherTestController;
+use App\Http\Controllers\levelTest\StudentTestController;
 
 /*
 |--------------------------------------------------------------------------
@@ -42,12 +43,17 @@ Route::middleware(['auth', 'role:Admin|SuperAdmin'])->prefix('admin')->group(fun
     // Teachers Applications
     Route::get('applications', [AdminController::class, 'applicationsIndex'])->name('admin.applications');
     Route::get('applications/data', [AdminController::class, 'getApplicationsIndex'])->name('admin.getApplicationsIndex');
-    Route::post('admin/update-teacher-status', [AdminController::class, 'updateTeacherStatus'])->name('admin.updateTeacherStatus');
+    Route::post('update-teacher-status', [AdminController::class, 'updateTeacherStatus'])->name('admin.updateTeacherStatus');
 
     // Teachers
     Route::get('teachers', [AdminController::class, 'teachers'])->name('admin.teachers');
     Route::get('teachers/data', [AdminController::class, 'getTeachers'])->name('admin.getteachers');
-
+    // Students
+    Route::get('/students', [AdminController::class, 'showStudents'])->name('admin.students');
+    Route::get('students/data', [AdminController::class, 'getStudents'])->name('admin.students.data');
+    Route::get('student/{id}/edit', [AdminController::class, 'editStudent'])->name('admin.student.edit');
+    Route::put('student/{id}/update', [AdminController::class, 'updateStudent'])->name('admin.student.update');
+    Route::delete('student/{id}/delete', [AdminController::class, 'deleteStudent'])->name('admin.student.delete');
     // Courses
     Route::get('courses', [AdminController::class, 'courses'])->name('admin.courses');
     Route::get('courses/data', [AdminController::class, 'getCourses'])->name('admin.getCourses');
@@ -74,15 +80,23 @@ Route::middleware(['auth', 'role:Admin|SuperAdmin'])->prefix('admin')->group(fun
     Route::put('quizzes/{quizId}/update', [QuizController::class, 'updateQuiz'])->name('quiz.updateQuiz');
     Route::delete('quizzes/{quizId}/delete', [QuizController::class, 'deleteQuiz'])->name('quiz.deleteQuiz');
     // Teacher Level Tests
-    Route::get('teacher/add', [TeacherTestController::class, 'addTestPage'])->name('teacherTest.addPage');
-    Route::get('teacher', [TeacherTestController::class, 'index'])->name('teacherTests.index');
+    Route::get('level-test/teacher/add', [TeacherTestController::class, 'addTestPage'])->name('teacherTest.addPage');
+    Route::get('level-test-teacher', [TeacherTestController::class, 'index'])->name('teacherTests.index');
     Route::get('teacher/{testId}/edit', [TeacherTestController::class, 'editTest'])->name('teacherTest.editPage');
     Route::get('teacher/datatable', [TeacherTestController::class, 'dataTable'])->name('teacherTests.datatable');
     Route::post('teacher/store', [TeacherTestController::class, 'storeTest'])->name('teacherTest.store');
     Route::put('teacher/{testId}/update', [TeacherTestController::class, 'updateTest'])->name('teacherTest.update');
     Route::delete('teacher/{testId}/delete', [TeacherTestController::class, 'deleteTest'])->name('teacherTest.delete');
     Route::post('teacher/{testId}/activate', [TeacherTestController::class, 'activateTest'])->name('teacherTest.activate');
-
+    // Student Level Tests
+    Route::get('level-test/student/add', [StudentTestController::class, 'addTestPage'])->name('studentTest.addPage');
+    Route::get('level-test-student', [StudentTestController::class, 'index'])->name('studentTests.index');
+    Route::get('student/test/{testId}/edit', [StudentTestController::class, 'editTest'])->name('studentTest.editPage');
+    Route::get('studen/tests/datatable', [StudentTestController::class, 'dataTable'])->name('studentTests.datatable');
+    Route::post('student/test/store', [StudentTestController::class, 'storeTest'])->name('studentTest.store');
+    Route::put('student/test/{testId}/update', [StudentTestController::class, 'updateTest'])->name('studentTest.update');
+    Route::delete('student/test/{testId}/delete', [StudentTestController::class, 'deleteTest'])->name('studentTest.delete');
+    Route::post('student/test/{testId}/activate', [StudentTestController::class, 'activateTest'])->name('studentTest.activate');
     // uploud file routes
     Route::post('/upload', [FileUploadController::class, 'process'])->name('filepond.upload');
     Route::delete('/upload', [FileUploadController::class, 'revert'])->name('filepond.revert');

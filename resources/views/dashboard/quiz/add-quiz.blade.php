@@ -7,6 +7,10 @@
             padding: 20px;
         }
 
+        input.form-check-input.choice-correct {
+            width: 40px;
+        }
+
         .question,
         .choice {
             border: 1px solid #ddd;

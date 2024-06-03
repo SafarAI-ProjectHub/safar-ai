@@ -3,12 +3,12 @@
 @section('content')
     <div class="card">
         <div class="card-body">
-            <h5>Manage Teacher Level Tests</h5>
+            <h5>Manage Student Level Tests</h5>
             <div class="d-flex justify-content-end mb-3">
-                <a href="{{ route('teacherTest.addPage') }}" class="btn btn-primary">Add New Test</a>
+                <a href="{{ route('studentTest.addPage') }}" class="btn btn-primary">Add New Test</a>
             </div>
             <div class="table-responsive">
-                <table id="teacher-tests-table" class="table table-striped table-bordered">
+                <table id="student-tests-table" class="table table-striped table-bordered">
                     <thead>
                         <tr>
                             <th>Title</th>
@@ -27,10 +27,10 @@
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
     <script>
         $(document).ready(function() {
-            var table = $('#teacher-tests-table').DataTable({
+            var table = $('#student-tests-table').DataTable({
                 processing: true,
                 serverSide: true,
-                ajax: '{{ route('teacherTests.datatable') }}',
+                ajax: '{{ route('studentTests.datatable') }}',
                 columns: [{
                         data: 'title',
                         name: 'title'
@@ -83,7 +83,7 @@
             // Handle Edit button click
             $(document).on('click', '.edit-test', function() {
                 var testId = $(this).data('id');
-                window.location.href = '/admin/teacher/' + testId + '/edit';
+                window.location.href = '/admin/student/test/' + testId + '/edit';
             });
 
             // Handle Delete button click
@@ -100,7 +100,7 @@
                 }).then((result) => {
                     if (result.isConfirmed) {
                         $.ajax({
-                            url: '/admin/teacher' + testId + '/delete',
+                            url: '/admin/student/test/' + testId + '/delete',
                             type: 'DELETE',
                             data: {
                                 _token: $('meta[name="csrf-token"]').attr('content')
@@ -130,7 +130,7 @@
                 var testId = $(this).data('id');
                 var isActive = $(this).is(':checked');
                 $.ajax({
-                    url: '/admin/teacher/' + testId + '/activate',
+                    url: '/admin/student/test/' + testId + '/activate',
                     type: 'POST',
                     data: {
                         _token: $('meta[name="csrf-token"]').attr('content'),

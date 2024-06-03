@@ -54,7 +54,7 @@
 @section('content')
     <div class="card">
         <div class="card-body">
-            <h5>Edit Teacher Level Test : {{ $levelTest->title }}</h5>
+            <h5>Edit Student Level Test: {{ $levelTest->title }}</h5>
             <form id="editTestForm">
                 @csrf
                 @method('PUT')
@@ -149,21 +149,6 @@
                     Choice</button>
                 <div class="invalid-feedback"></div>
             </div>
-            {{-- <label>Mark</label>
-            <input type="number" class="form-control question-mark" name="questions[][mark]" required>
-            <div class="invalid-feedback"></div>
-            <label>Media URL</label>
-            <input type="text" class="form-control question-media-url" name="questions[][media_url]">
-            <div class="invalid-feedback"></div>
-            <label>Media Type</label>
-            <select class="form-select question-media-type" name="questions[][media_type]">
-                <option value="" disabled selected>Select Media Type</option>
-                <option value="image">Image</option>
-                <option value="video">Video</option>
-                <option value="audio">Audio</option>
-                <option value="document">Document</option>
-            </select>
-            <div class="invalid-feedback"></div> --}}
             <button type="button" class="btn btn-danger remove-question-button"><i class='bx bx-trash'></i></button>
         </div>
     </div>
@@ -253,6 +238,7 @@
                         $(this).hide();
                     }
                 } else {
+                    $(this).hide();
                     showAlert('danger', 'You cannot add more than 4 choices.', 'bx bxs-message-square-x');
                 }
             });
@@ -318,9 +304,6 @@
                         text: $(this).find('.question-text').val(),
                         sub_text: $(this).find('.question-sub-text').val(),
                         question_type: $(this).find('.question-type').val(),
-                        // mark: $(this).find('.question-mark').val(),
-                        // media_url: $(this).find('.question-media-url').val(),
-                        // media_type: $(this).find('.question-media-type').val(),
                         choices: []
                     };
 
@@ -353,14 +336,14 @@
                 }
 
                 $.ajax({
-                    url: '{{ route('teacherTest.update', $levelTest->id) }}',
+                    url: '{{ route('studentTest.update', $levelTest->id) }}',
                     method: 'POST',
                     data: JSON.stringify(formData),
                     contentType: 'application/json',
                     success: function(response) {
                         showAlert('success', 'Test and questions updated successfully',
                             'bxs-check-circle');
-                        window.location.href = "{{ route('teacherTests.index') }}";
+                        window.location.href = "{{ route('studentTests.index') }}";
                     },
                     error: function(response) {
                         if (response.responseJSON && response.responseJSON.errors) {
@@ -433,9 +416,6 @@
                 questionElement.find('.question-text').val(question.question_text);
                 questionElement.find('.question-sub-text').val(question.sub_text);
                 questionElement.find('.question-type').val(question.question_type);
-                // questionElement.find('.question-mark').val(question.mark);
-                // questionElement.find('.question-media-url').val(question.media_url);
-                // questionElement.find('.question-media-type').val(question.media_type);
 
                 questionElement.find('input').each(function() {
                     var nameAttr = $(this).attr('name');
@@ -486,7 +466,13 @@
                     choiceElement.find('.remove-choice-button').remove();
                 }
                 questionElement.find('.choices-container').append(choiceElement);
+
+                var choicesContainer = questionElement.find('.choices-container');
+                if (choicesContainer.children('.choice').length >= 4) {
+                    questionElement.find('.add-choice-button').hide();
+                }
             }
+
         });
     </script>
 @endsection

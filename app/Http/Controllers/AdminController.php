@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
 use App\Models\Teacher;
+use App\Models\Student;
 use App\Models\Course;
 use App\Models\Unit;
 use Illuminate\Support\Facades\Storage;
@@ -303,7 +304,105 @@ class AdminController extends Controller
         }
     }
 
+    /*
+     *
+     * Students functions
+     *
+     */
+    public function showStudents()
+    {
+        return view('dashboard.admin.students');
+    }
 
+    public function getStudents(Request $request)
+    {
+        if ($request->ajax()) {
+            $data = Student::with('user')->get();
 
+            return DataTables::of($data)
+                ->addColumn('student_id', function ($row) {
+                    return $row->id;
+                })
+                ->addColumn('user_id', function ($row) {
+                    return $row->user->id;
+                })
+                ->addColumn('full_name', function ($row) {
+                    return $row->user->first_name . ' ' . $row->user->last_name;
+                })
+                ->addColumn('country_location', function ($row) {
+                    return $row->user->country_location;
+                })
+                ->addColumn('email', function ($row) {
+                    return $row->user->email;
+                })
+                ->addColumn('english_proficiency_level', function ($row) {
+                    return $row->english_proficiency_level;
+                })
+                ->addColumn('subscription_status', function ($row) {
+                    return $row->subscription_status;
+                })
+                ->addColumn('phone_number', function ($row) {
+                    return $row->user->phone_number;
+                })
+                ->addColumn('age', function ($row) {
+                    return \Carbon\Carbon::parse($row->user->date_of_birth)->diffInYears(now());
+                })
+                ->addColumn('status', function ($row) {
+                    return $row->user->status;
+                })
+                ->addColumn('actions', function ($row) {
+                    return '<div class="d-flex justify-content-between">
+                                <button class="btn btn-primary btn-sm edit-student" data-id="' . $row->id . '">Edit</button>
+                                <button class="btn btn-danger btn-sm delete-student" data-id="' . $row->id . '">Delete</button>
+                            </div>';
+                })
+                ->rawColumns(['actions'])
+                ->make(true);
+        }
 
+        return null;
+    }
+
+    public function editStudent($id)
+    {
+        $student = Student::with('user')->findOrFail($id);
+        return response()->json($student->user);
+    }
+
+    public function updateStudent(Request $request, $id)
+    {
+        $validator = Validator::make($request->all(), [
+            'first_name' => 'required|string|max:255',
+            'last_name' => 'required|string|max:255',
+            'email' => 'required|string|email|max:255',
+            'phone_number' => 'required|string|max:15',
+            'country_location' => 'required|string|max:255',
+        ]);
+
+        if ($validator->fails()) {
+            return response()->json(['errors' => $validator->errors()], 422);
+        }
+
+        $student = Student::findOrFail($id);
+        $user = $student->user;
+
+        $user->update([
+            'first_name' => $request->first_name,
+            'last_name' => $request->last_name,
+            'email' => $request->email,
+            'phone_number' => $request->phone_number,
+            'country_location' => $request->country_location,
+        ]);
+
+        return response()->json(['message' => 'Student updated successfully']);
+    }
+
+    public function deleteStudent($id)
+    {
+        $student = Student::findOrFail($id);
+        $student->user()->delete();
+        $student->delete();
+
+        return response()->json(['message' => 'Student deleted successfully']);
+    }
 }

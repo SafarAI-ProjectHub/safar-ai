@@ -38,7 +38,7 @@
                 <li>
                     <a href="{{ route('teacherTests.index') }}">
                         <div class="parent-icon"><i class="bx bx-bar-chart-alt"></i></div>
-                        <div class="menu-title">Level Test</div>
+                        <div class="menu-title">Manage Level Tests</div>
                     </a>
                 </li>
                 <li>
@@ -49,12 +49,36 @@
                 </li>
             </ul>
         </li>
-
-
         <li>
             <a href="javascript:;" class="has-arrow">
-                <div class="parent-icon"><i class='bx bx-book-open'></i>
-                </div>
+                <div class="parent-icon"><i class='bx bx-user'></i></div>
+                <div class="menu-title">Students</div>
+            </a>
+            <ul>
+                <li>
+                    <a href="{{ route('admin.students') }}">
+                        <div class="parent-icon"><i class="bx bx-group"></i></div>
+                        <div class="menu-title">Students list</div>
+                    </a>
+                </li>
+
+                <li>
+                    <a href="{{ route('studentTests.index') }}">
+                        <div class="parent-icon"><i class="bx bx-bar-chart-alt"></i></div>
+                        <div class="menu-title">Manage Level Tests</div>
+                    </a>
+                </li>
+                <li>
+                    <a href="{{ route('studentTest.addPage') }}">
+                        <div class="parent-icon"><i class="bx bx-plus"></i></div>
+                        <div class="menu-title">Add Level Test</div>
+                    </a>
+                </li>
+            </ul>
+        </li>
+        <li>
+            <a href="javascript:;" class="has-arrow">
+                <div class="parent-icon"><i class='bx bx-book-open'></i></div>
                 <div class="menu-title">Courses</div>
             </a>
             <ul>
@@ -76,11 +100,8 @@
                         <div class="menu-title">Add Quiz</div>
                     </a>
                 </li>
-
             </ul>
         </li>
-
     </ul>
-
     <!--end navigation-->
 </div>
