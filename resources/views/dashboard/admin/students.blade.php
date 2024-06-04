@@ -61,8 +61,16 @@
                         </div>
                         <div class="mb-3">
                             <label for="english_proficiency_level" class="form-label">English Proficiency Level</label>
-                            <input type="text" class="form-control" id="english_proficiency_level"
-                                name="english_proficiency_level" required>
+                            <select class="form-select" id="english_proficiency_level" name="english_proficiency_level"
+                                required>
+                                <option value="0">0</option>
+                                <option value="1">1</option>
+                                <option value="2">2</option>
+                                <option value="3">3</option>
+                                <option value="4">4</option>
+                                <option value="5">5</option>
+                                <option value="6">6</option>
+                            </select>
                         </div>
                         <div class="mb-3">
                             <label for="subscription_status" class="form-label">Subscription Status</label>
@@ -88,7 +96,18 @@
 @endsection
 
 @section('scripts')
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/intl-tel-input@23.0.10/build/css/intlTelInput.css">
+    <script src="https://cdn.jsdelivr.net/npm/intl-tel-input@23.0.10/build/js/intlTelInput.min.js"></script>
+    <script>
+        const input = document.querySelector("#phone_number");
+        const iti = window.intlTelInput(input, {
+            utilsScript: "https://cdn.jsdelivr.net/npm/intl-tel-input@23.0.10/build/js/utils.js",
+        });
+    </script>
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <script class="iti-load-utils" async="" src="https://cdnjs.cloudflare.com/ajax/libs/intl-tel-input/17.0.13/js/utils.js">
+    </script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/intl-tel-input/17.0.13/js/intlTelInput.min.js"></script>
     <script>
         $(document).ready(function() {
             var table = $('#students-table').DataTable({
@@ -155,23 +174,7 @@
                 lengthChange: false
             });
 
-            // Handle Edit button click
-            $(document).on('click', '.edit-student', function() {
-                var studentId = $(this).data('id');
-                $.get('/admin/student/' + studentId + '/edit', function(data) {
-                    $('#editStudentForm').attr('action', '/admin/student/' + studentId + '/update');
-                    $('#first_name').val(data.first_name);
-                    $('#last_name').val(data.last_name);
-                    $('#email').val(data.email);
-                    $('#phone_number').val(data.phone_number);
-                    $('#country_code').val(data.country_code);
-                    $('#country_location').val(data.country_location);
-                    $('#english_proficiency_level').val(data.english_proficiency_level);
-                    $('#subscription_status').val(data.subscription_status);
-                    $('#status').val(data.status);
-                    $('#editStudentModal').modal('show');
-                });
-            });
+
 
             // Handle Edit form submission
             $('#editStudentForm').on('submit', function(e) {
@@ -188,7 +191,7 @@
                     },
                     error: function(response) {
                         Swal.fire('Error!', 'There was an error updating the student.',
-                        'error');
+                            'error');
                     }
                 });
             });
@@ -232,18 +235,19 @@
             const countryLocationInput = document.querySelector("#country_location");
             const phoneError = document.querySelector("#phone_error");
 
-            const iti = window.intlTelInput(phoneInput, {
-                initialCountry: "auto",
-                geoIpLookup: function(callback) {
-                    fetch('https://ipinfo.io?token=f77be74db12b48')
-                        .then(response => response.json())
-                        .then(data => {
-                            const countryCode = (data && data.country) ? data.country : "us";
-                            callback(countryCode);
-                        });
-                },
-                utilsScript: "https://cdnjs.cloudflare.com/ajax/libs/intl-tel-input/17.0.13/js/utils.js"
-            });
+            // const iti = window.intlTelInput(phoneInput, {
+            //     initialCountry: "auto",
+            //     geoIpLookup: function(callback) {
+            //         fetch('https://ipinfo.io?token=f77be74db12b48')
+            //             .then(response => response.json())
+            //             .then(data => {
+            //                 const countryCode = (data && data.country) ? data.country : "us";
+            //                 callback(countryCode);
+            //             });
+            //     },
+            //     utilsScript: "https://cdnjs.cloudflare.com/ajax/libs/intl-tel-input/17.0.13/js/utils.js"
+            // });
+            // $("#phone_number").intlTelInput();
 
             function validatePhoneNumber() {
                 const isValid = iti.isValidNumber();
@@ -278,6 +282,26 @@
                 countryCodeInput.value = "+" + countryData.dialCode;
                 countryLocationInput.value = countryData.name.split(" (")[0];
                 validatePhoneNumber();
+            });
+            // Handle Edit button click
+            $(document).on('click', '.edit-student', function() {
+                var studentId = $(this).data('id');
+                $.get('/admin/student/' + studentId + '/edit', function(data) {
+
+                    $('#editStudentForm').attr('action', '/admin/student/' + studentId + '/update');
+                    $('#first_name').val(data.user.first_name);
+                    $('#last_name').val(data.user.last_name);
+                    $('#email').val(data.user.email);
+                    $('#phone_number').val(data.user.phone_number);
+                    $('#country_location').val(data.user.country_location);
+                    $('#english_proficiency_level').val(data.english_proficiency_level);
+                    $('#subscription_status').val(data.subscription_status);
+                    $('#status').val(data.user.status);
+                    iti.formatOnDisplay = true;
+                    iti.setNumber(data.user.phone_number)
+
+                    $('#editStudentModal').modal('show');
+                });
             });
         });
     </script>

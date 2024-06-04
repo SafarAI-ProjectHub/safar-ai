@@ -88,6 +88,18 @@ class User extends Authenticatable
         return $this->hasMany(Subscription::class);
     }
 
+    // Student's relation 
+    public function student()
+    {
+        return $this->hasOne(Student::class);
+    }
+
+    //teacher's relation
+    public function teacher()
+    {
+        return $this->hasOne(Teacher::class);
+    }
+
     // Payments made by the user through their subscriptions
     public function payments()
     {

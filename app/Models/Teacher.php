@@ -29,6 +29,15 @@ class Teacher extends Model
     }
 
     /**
+     * Relationship to manage the Zoom Meeting for the Coureses is assigned to.
+     */
+
+    public function zoomMeetings()
+    {
+        return $this->hasMany(ZoomMeeting::class);
+    }
+
+    /**
      * Function to assign a course to a teacher.
      */
     public function assignCourse($courseId)

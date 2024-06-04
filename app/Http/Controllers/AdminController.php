@@ -10,6 +10,7 @@ use App\Models\Unit;
 use Illuminate\Support\Facades\Storage;
 use App\Models\CourseCategory;
 use Yajra\DataTables\DataTables;
+use Illuminate\Support\Facades\Validator;
 
 class AdminController extends Controller
 {
@@ -227,7 +228,7 @@ class AdminController extends Controller
             'subtitle' => 'nullable|string|max:255',
             'content_type' => 'required|in:video,text',
             'content' => 'required_if:content_type,text',
-            'video' => 'required_if:content_type,video|file|mimes:mp4,mov,ogg,qt|max:20000'
+            // 'video' => 'required_if:content_type,video|file|mimes:mp4,mov,ogg,qt,avi|max:20000'
         ]);
 
         $unit = new Unit();
@@ -366,7 +367,8 @@ class AdminController extends Controller
     public function editStudent($id)
     {
         $student = Student::with('user')->findOrFail($id);
-        return response()->json($student->user);
+
+        return response()->json($student);
     }
 
     public function updateStudent(Request $request, $id)
@@ -377,6 +379,10 @@ class AdminController extends Controller
             'email' => 'required|string|email|max:255',
             'phone_number' => 'required|string|max:15',
             'country_location' => 'required|string|max:255',
+            'country_code' => 'required|string|max:5',
+            'english_proficiency_level' => 'required|string|max:255',
+            'subscription_status' => 'required|string|max:255',
+            'status' => 'required|string|max:255',
         ]);
 
         if ($validator->fails()) {
@@ -384,14 +390,20 @@ class AdminController extends Controller
         }
 
         $student = Student::findOrFail($id);
+
+        $student->update([
+            'english_proficiency_level' => $request->english_proficiency_level,
+            'subscription_status' => $request->subscription_status,
+        ]);
         $user = $student->user;
 
         $user->update([
             'first_name' => $request->first_name,
             'last_name' => $request->last_name,
             'email' => $request->email,
-            'phone_number' => $request->phone_number,
+            'phone_number' => $request->country_code . ltrim($request->phone_number, '0'),
             'country_location' => $request->country_location,
+            'status' => $request->status,
         ]);
 
         return response()->json(['message' => 'Student updated successfully']);

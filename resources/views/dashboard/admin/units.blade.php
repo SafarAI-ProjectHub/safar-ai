@@ -6,6 +6,15 @@
     <!-- FilePond CSS -->
     <link href="https://unpkg.com/filepond/dist/filepond.css" rel="stylesheet">
     <link href="https://unpkg.com/filepond-plugin-image-preview/dist/filepond-plugin-image-preview.css" rel="stylesheet">
+    <link href="https://cdn.quilljs.com/1.3.6/quill.snow.css" rel="stylesheet">
+    <link href="https://unpkg.com/filepond/dist/filepond.css" rel="stylesheet">
+    <link href="https://unpkg.com/filepond-plugin-image-preview/dist/filepond-plugin-image-preview.css" rel="stylesheet">
+    <style>
+        .modal-content {
+
+            overflow-y: auto;
+        }
+    </style>
 @endsection
 
 @section('content')
@@ -142,6 +151,8 @@
     <script src="https://unpkg.com/filepond-plugin-file-validate-size/dist/filepond-plugin-file-validate-size.js"></script>
     <script src="https://unpkg.com/filepond-plugin-image-edit/dist/filepond-plugin-image-edit.js"></script>
     <script src="https://unpkg.com/filepond-plugin-file-validate-type/dist/filepond-plugin-file-validate-type.js"></script>
+    <!-- Image Resize Module JS -->
+    <script src="https://cdn.jsdelivr.net/npm/quill-image-resize-module@3.0.0/image-resize.min.js"></script>
     <script>
         $(document).ready(function() {
             var table = $('#units-table').DataTable({
@@ -225,7 +236,6 @@
 
             table.buttons().container().appendTo('#units-table_wrapper .col-md-6:eq(0)');
 
-            // Initialize Quill Editor for Add Unit
             var quillAdd = new Quill('#editor', {
                 theme: 'snow',
                 modules: {
@@ -258,9 +268,17 @@
                         }, {
                             'background': []
                         }],
-                        ['link'],
+                        ['link', 'image'], // Added 'image' button
                         ['clean']
-                    ]
+                    ],
+                    imageResize: {
+                        displayStyles: {
+                            backgroundColor: 'black',
+                            border: 'none',
+                            color: 'white'
+                        },
+                        modules: ['Resize', 'DisplaySize', 'Toolbar']
+                    }
                 }
             });
 
@@ -297,12 +315,35 @@
                         }, {
                             'background': []
                         }],
-                        ['link'],
+                        ['link', 'image'], // Added 'image' button
                         ['clean']
-                    ]
+                    ],
+                    imageResize: {
+                        displayStyles: {
+                            backgroundColor: 'black',
+                            border: 'none',
+                            color: 'white'
+                        },
+                        modules: ['Resize', 'DisplaySize', 'Toolbar']
+                    }
                 }
             });
 
+            function imageHandler() {
+                var input = document.createElement('input');
+                input.setAttribute('type', 'file');
+                input.setAttribute('accept', 'image/*');
+                input.click();
+
+                input.onchange = function() {
+                    var file = input.files[0];
+                    if (/^image\//.test(file.type)) {
+                        saveToServer(file);
+                    } else {
+                        console.warn('You could only upload images.');
+                    }
+                };
+            }
             // Handle content type selection for Add Unit
             $('#content_type').on('change', function() {
                 var selectedType = $(this).val();
@@ -330,6 +371,19 @@
                 } else {
                     $('#edit-text-content').hide();
                     $('#edit-video-content').hide();
+                }
+            });
+            const contentTypeSelect = document.getElementById('content_type');
+            contentTypeSelect.addEventListener('change', function() {
+                if (this.value === 'text') {
+                    textContentDiv.style.display = 'block';
+                    videoContentDiv.style.display = 'none';
+                } else if (this.value === 'video') {
+                    textContentDiv.style.display = 'none';
+                    videoContentDiv.style.display = 'block';
+                } else {
+                    textContentDiv.style.display = 'none';
+                    videoContentDiv.style.display = 'none';
                 }
             });
 
@@ -384,7 +438,9 @@
 
                 for (var pair of originalFormData.entries()) {
                     if (pair[0] !== 'video') {
-                        newFormData.append(pair[0], pair[1]);
+                        if (pair[0] !== 'content') {
+                            newFormData.append(pair[0], pair[1]);
+                        }
                     }
                 }
 
