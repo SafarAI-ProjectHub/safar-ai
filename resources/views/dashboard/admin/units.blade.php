@@ -216,7 +216,7 @@
                 var unitId = $(this).data('id');
                 if (confirm('Are you sure you want to delete this unit?')) {
                     $.ajax({
-                        url: '/admin/units/delete/' + unitId,
+                        url: '/courses/units/delete/' + unitId,
                         type: 'DELETE',
                         data: {
                             _token: $('meta[name="csrf-token"]').attr(
@@ -495,7 +495,7 @@
 
                 // AJAX request to server
                 $.ajax({
-                    url: '/admin/units/' + $('#edit-unit-id').val(),
+                    url: '/units/' + $('#edit-unit-id').val(),
                     method: 'POST',
                     data: newFormData,
                     processData: false,
@@ -514,7 +514,7 @@
             $(document).on('click', '.edit-unit', function() {
                 var unitId = $(this).data('id');
                 $.ajax({
-                    url: '/admin/units/' + unitId + '/edit',
+                    url: '/units/' + unitId + '/edit',
                     method: 'GET',
                     success: function(data) {
                         $('#edit-unit-id').val(data.id);

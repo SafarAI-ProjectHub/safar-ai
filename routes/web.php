@@ -27,7 +27,7 @@ Route::get('/', function () {
 
 Route::get('/dashboard', function () {
     return view('dashboard.index');
-})->middleware(['auth', 'verified', 'role:Admin'])->name('dashboard');
+})->middleware(['auth', 'verified', 'role:Admin|Super Admin'])->name('dashboard');
 
 Route::middleware('auth')->group(function () {
     Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');
@@ -38,8 +38,10 @@ Route::middleware('auth')->group(function () {
 require __DIR__ . '/auth.php';
 
 
+// Allowed for Admin and Super Admin
 
-Route::middleware(['auth', 'role:Admin|SuperAdmin'])->prefix('admin')->group(function () {
+// Routes for Admin and Super Admin only
+Route::middleware(['auth', 'role:Admin|Super Admin'])->prefix('admin')->group(function () {
     // Teachers Applications
     Route::get('applications', [AdminController::class, 'applicationsIndex'])->name('admin.applications');
     Route::get('applications/data', [AdminController::class, 'getApplicationsIndex'])->name('admin.getApplicationsIndex');
@@ -48,69 +50,84 @@ Route::middleware(['auth', 'role:Admin|SuperAdmin'])->prefix('admin')->group(fun
     // Teachers
     Route::get('teachers', [AdminController::class, 'teachers'])->name('admin.teachers');
     Route::get('teachers/data', [AdminController::class, 'getTeachers'])->name('admin.getteachers');
+
     // Students
     Route::get('/students', [AdminController::class, 'showStudents'])->name('admin.students');
     Route::get('students/data', [AdminController::class, 'getStudents'])->name('admin.students.data');
     Route::get('student/{id}/edit', [AdminController::class, 'editStudent'])->name('admin.student.edit');
     Route::put('student/{id}/update', [AdminController::class, 'updateStudent'])->name('admin.student.update');
     Route::delete('student/{id}/delete', [AdminController::class, 'deleteStudent'])->name('admin.student.delete');
+
     // Courses
-    Route::get('courses', [AdminController::class, 'courses'])->name('admin.courses');
-    Route::get('courses/data', [AdminController::class, 'getCourses'])->name('admin.getCourses');
     Route::post('courses/store', [AdminController::class, 'storeCourse'])->name('admin.storeCourse');
-    Route::get('/courses/{id}/show', [AdminController::class, 'showcourse'])->name('courses.units');
     Route::get('/teachers/for-assignment', [AdminController::class, 'getTeachersForAssignment'])->name('admin.getTeachersForAssignment');
     Route::post('/courses/assign-teacher', [AdminController::class, 'assignTeacherToCourse'])->name('admin.assignTeacherToCourse');
+
+    // Quizzes
+    Route::get('courses/quiz/add', [QuizController::class, 'addQuizPage'])->name('quiz.addPage');
+    Route::get('courses/quiz', [QuizController::class, 'index'])->name('quizzes.index');
+    Route::get('courses/quiz/edit', [QuizController::class, 'editQuizPage'])->name('quiz.editPage');
+    Route::get('quizzes/datatable', [QuizController::class, 'dataTable'])->name('quizzes.datatable');
+    Route::post('quizzes/store', [QuizController::class, 'storeQuiz'])->name('quiz.storeQuiz');
+    Route::get('quizzes/{quizId}/edit', [QuizController::class, 'editQuiz'])->name('quiz.editQuiz');
+    Route::put('quizzes/{quizId}/update', [QuizController::class, 'updateQuiz'])->name('quiz.updateQuiz');
+    Route::delete('quizzes/{quizId}/delete', [QuizController::class, 'deleteQuiz'])->name('quiz.deleteQuiz');
+
+    // Teacher Level Tests
+    Route::get('level-test/teacher/add', [TeacherTestController::class, 'addTestPage'])->name('teacherTest.addPage');
+    Route::get('level-test-teacher', [TeacherTestController::class, 'index'])->name('teacherTests.index');
+    Route::get('teacher/{testId}/edit', [TeacherTestController::class, 'editTest'])->name('teacherTest.editPage');
+    Route::post('teacher/store', [TeacherTestController::class, 'storeTest'])->name('teacherTest.store');
+    Route::put('teacher/{testId}/update', [TeacherTestController::class, 'updateTest'])->name('teacherTest.update');
+    Route::delete('teacher/{testId}/delete', [TeacherTestController::class, 'deleteTest'])->name('teacherTest.delete');
+    Route::post('teacher/{testId}/activate', [TeacherTestController::class, 'activateTest'])->name('teacherTest.activate');
+
+    // Student Level Tests
+    Route::get('level-test/student/add', [StudentTestController::class, 'addTestPage'])->name('studentTest.addPage');
+    Route::get('level-test-student', [StudentTestController::class, 'index'])->name('studentTests.index');
+    Route::get('student/test/{testId}/edit', [StudentTestController::class, 'editTest'])->name('studentTest.editPage');
+    Route::post('student/test/store', [StudentTestController::class, 'storeTest'])->name('studentTest.store');
+    Route::put('student/test/{testId}/update', [StudentTestController::class, 'updateTest'])->name('studentTest.update');
+    Route::delete('student/test/{testId}/delete', [StudentTestController::class, 'deleteTest'])->name('studentTest.delete');
+    Route::post('student/test/{testId}/activate', [StudentTestController::class, 'activateTest'])->name('studentTest.activate');
+
+    // File Uploads
+    Route::post('/upload', [FileUploadController::class, 'process'])->name('filepond.upload');
+    Route::delete('/upload', [FileUploadController::class, 'revert'])->name('filepond.revert');
+    Route::get('/upload/{id}', [FileUploadController::class, 'load'])->name('filepond.load');
+});
+
+// Routes for Super Admin, Admin, and Teacher
+Route::middleware(['auth', 'role:Super Admin|Admin|Teacher'])->group(function () {
+    // Courses
+    Route::get('courses', [AdminController::class, 'courses'])->name('admin.courses');
+    Route::get('courses/{courseId}/show', [AdminController::class, 'showcourse'])->name('admin.showcourse');
+    Route::get('courses/data', [AdminController::class, 'getCourses'])->name('admin.getCourses');
+
     // Units
     Route::get('courses/{courseId}/units', [AdminController::class, 'showUnits'])->name('admin.showUnits');
     Route::get('courses/{courseId}/units/data', [AdminController::class, 'getUnits'])->name('admin.getUnits');
     Route::post('units/store', [AdminController::class, 'storeUnit'])->name('admin.storeUnit');
     Route::get('units/{id}/edit', [AdminController::class, 'editUnit'])->name('admin.units.edit');
     Route::put('units/{id}', [AdminController::class, 'updateUnit'])->name('admin.units.update');
-    Route::delete('/units/delete/{id}', [AdminController::class, 'destroyUnit'])->name('units.destroy');
-    Route::get('getUnits/{courseId}', [QuizController::class, 'getUnits'])->name('admin.getUnits');
-    // quizzes
-    Route::get('courses/quiz/add', [QuizController::class, 'addQuizPage'])->name('quiz.addPage');
-    Route::get('courses/quiz', [QuizController::class, 'index'])->name('quizzes.index');
-    Route::get('courses/quiz/edit', [QuizController::class, 'editQuizPage'])->name('quiz.editPage');
-    Route::get('getUnits/{courseId}', [QuizController::class, 'getUnits'])->name('quiz.getUnits');
-    Route::get('quizzes/datatable', [QuizController::class, 'dataTable'])->name('quizzes.datatable');
-    Route::post('quizzes/store', [QuizController::class, 'storeQuiz'])->name('quiz.storeQuiz');
-    Route::get('quizzes/{quizId}/edit', [QuizController::class, 'editQuiz'])->name('quiz.editQuiz');
-    Route::put('quizzes/{quizId}/update', [QuizController::class, 'updateQuiz'])->name('quiz.updateQuiz');
-    Route::delete('quizzes/{quizId}/delete', [QuizController::class, 'deleteQuiz'])->name('quiz.deleteQuiz');
-    // Teacher Level Tests
-    Route::get('level-test/teacher/add', [TeacherTestController::class, 'addTestPage'])->name('teacherTest.addPage');
-    Route::get('level-test-teacher', [TeacherTestController::class, 'index'])->name('teacherTests.index');
-    Route::get('teacher/{testId}/edit', [TeacherTestController::class, 'editTest'])->name('teacherTest.editPage');
-    Route::get('teacher/datatable', [TeacherTestController::class, 'dataTable'])->name('teacherTests.datatable');
-    Route::post('teacher/store', [TeacherTestController::class, 'storeTest'])->name('teacherTest.store');
-    Route::put('teacher/{testId}/update', [TeacherTestController::class, 'updateTest'])->name('teacherTest.update');
-    Route::delete('teacher/{testId}/delete', [TeacherTestController::class, 'deleteTest'])->name('teacherTest.delete');
-    Route::post('teacher/{testId}/activate', [TeacherTestController::class, 'activateTest'])->name('teacherTest.activate');
-    // Student Level Tests
-    Route::get('level-test/student/add', [StudentTestController::class, 'addTestPage'])->name('studentTest.addPage');
-    Route::get('level-test-student', [StudentTestController::class, 'index'])->name('studentTests.index');
-    Route::get('student/test/{testId}/edit', [StudentTestController::class, 'editTest'])->name('studentTest.editPage');
-    Route::get('studen/tests/datatable', [StudentTestController::class, 'dataTable'])->name('studentTests.datatable');
-    Route::post('student/test/store', [StudentTestController::class, 'storeTest'])->name('studentTest.store');
-    Route::put('student/test/{testId}/update', [StudentTestController::class, 'updateTest'])->name('studentTest.update');
-    Route::delete('student/test/{testId}/delete', [StudentTestController::class, 'deleteTest'])->name('studentTest.delete');
-    Route::post('student/test/{testId}/activate', [StudentTestController::class, 'activateTest'])->name('studentTest.activate');
-    // uploud file routes
-    Route::post('/upload', [FileUploadController::class, 'process'])->name('filepond.upload');
-    Route::delete('/upload', [FileUploadController::class, 'revert'])->name('filepond.revert');
-    Route::get('/upload/{id}', [FileUploadController::class, 'load'])->name('filepond.load');
+    Route::delete('courses/units/delete/{id}', [AdminController::class, 'destroyUnit'])->name('units.destroy');
 });
 
+// Routes for Teacher and Super Admin
+Route::middleware(['auth', 'role:Teacher|Super Admin'])->prefix('teacher')->group(function () {
+    Route::get('dashboard', [TeacherController::class, 'index'])->name('teacher.dashboard');
+    Route::get('courses', [TeacherController::class, 'getCourses'])->name('teacher.courses');
+    Route::get('quiz-results/{courseId}', [TeacherController::class, 'getStudentQuizResults'])->name('teacher.quizResults');
+    Route::post('schedule-zoom-meeting', [TeacherController::class, 'scheduleZoomMeeting'])->name('teacher.scheduleZoomMeeting');
+    Route::get('student-profiles', [TeacherController::class, 'getStudentProfiles'])->name('teacher.getStudentProfiles');
+    Route::get('student-profiles/{id}', [TeacherController::class, 'showStudentProfile'])->name('teacher.showStudentProfile');
+});
 
-
-
-
+// Routes for Admin access only
 Route::middleware(['auth', 'role:Admin'])->get('/admin', [AdminController::class, 'index'])->name('admin.uploadVideo');
 
-// Teacher dashboard
+// Routes for Teacher access only
 Route::middleware(['auth', 'role:Teacher'])->get('/teacher', [TeacherController::class, 'index'])->name('teacher.dashboard');
 
-// Student dashboard
+// Routes for Student access only
 Route::middleware(['auth', 'role:Student'])->get('/student', [StudentController::class, 'index'])->name('student.dashboard');

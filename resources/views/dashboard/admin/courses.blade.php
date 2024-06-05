@@ -8,9 +8,11 @@
 @section('content')
     <div class="card">
         <div class="card-body">
-            <div class="d-flex justify-content-end mb-3">
-                <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#addCourseModal">Add New Course</button>
-            </div>
+            @hasanyrole('Super Admin|Admin')
+                <div class="d-flex justify-content-end mb-3">
+                    <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#addCourseModal">Add New Course</button>
+                </div>
+            @endhasanyrole
             <div class="table-responsive">
                 <table id="courses-table" class="table table-striped table-bordered">
                     <thead>
@@ -29,88 +31,92 @@
         </div>
     </div>
 
-    <!-- Add Course Modal -->
-    <div class="modal fade" id="addCourseModal" tabindex="-1" aria-hidden="true">
-        <div class="modal-dialog modal-dialog-scrollable">
-            <div class="modal-content">
-                <form id="addCourseForm">
-                    @csrf
-                    <div class="modal-header">
-                        <h5 class="modal-title" id="addCourseModalLabel">Add New Course</h5>
-                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-                    </div>
-                    <div class="modal-body">
-                        <div class="mb-3">
-                            <label for="title" class="form-label">Course Title</label>
-                            <input type="text" class="form-control" id="title" name="title" required>
+    @hasanyrole('Super Admin|Admin')
+        <!-- Add Course Modal -->
+        <div class="modal fade" id="addCourseModal" tabindex="-1" aria-hidden="true">
+            <div class="modal-dialog modal-dialog-scrollable">
+                <div class="modal-content">
+                    <form id="addCourseForm">
+                        @csrf
+                        <div class="modal-header">
+                            <h5 class="modal-title" id="addCourseModalLabel">Add New Course</h5>
+                            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                         </div>
-                        <div class="mb-3">
-                            <label for="description" class="form-label">Description</label>
-                            <textarea class="form-control" id="description" name="description" required></textarea>
+                        <div class="modal-body">
+                            <div class="mb-3">
+                                <label for="title" class="form-label">Course Title</label>
+                                <input type="text" class="form-control" id="title" name="title" required>
+                            </div>
+                            <div class="mb-3">
+                                <label for="description" class="form-label">Description</label>
+                                <textarea class="form-control" id="description" name="description" required></textarea>
+                            </div>
+                            <div class="mb-3">
+                                <label for="category_id" class="form-label">Category</label>
+                                <select class="form-select" id="category_id" name="category_id" required>
+                                    <option value="" disabled selected>Select Category</option>
+                                    @foreach ($categories as $category)
+                                        <option value="{{ $category->id }}">{{ $category->age_group }}</option>
+                                    @endforeach
+                                </select>
+                            </div>
+                            <div class="mb-3">
+                                <label for="level" class="form-label">Level</label>
+                                <select class="form-select" id="level" name="level" required>
+                                    <option value="" disabled selected>Select Level</option>
+                                    @for ($i = 1; $i <= 6; $i++)
+                                        <option value="{{ $i }}">Level {{ $i }}</option>
+                                    @endfor
+                                </select>
+                            </div>
+                            <div class="mb-3">
+                                <label for="type" class="form-label">Type</label>
+                                <select class="form-select" id="type" name="type" required>
+                                    <option value="" disabled selected>Select Type</option>
+                                    <option value="weekly">Weekly</option>
+                                    <option value="intensive">Intensive</option>
+                                </select>
+                            </div>
                         </div>
-                        <div class="mb-3">
-                            <label for="category_id" class="form-label">Category</label>
-                            <select class="form-select" id="category_id" name="category_id" required>
-                                <option value="" disabled selected>Select Category</option>
-                                @foreach ($categories as $category)
-                                    <option value="{{ $category->id }}">{{ $category->age_group }}</option>
-                                @endforeach
-                            </select>
+                        <div class="modal-footer">
+                            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                            <button type="submit" class="btn btn-primary">Add Course</button>
                         </div>
-                        <div class="mb-3">
-                            <label for="level" class="form-label">Level</label>
-                            <select class="form-select" id="level" name="level" required>
-                                <option value="" disabled selected>Select Level</option>
-                                @for ($i = 1; $i <= 6; $i++)
-                                    <option value="{{ $i }}">Level {{ $i }}</option>
-                                @endfor
-                            </select>
-                        </div>
-                        <div class="mb-3">
-                            <label for="type" class="form-label">Type</label>
-                            <select class="form-select" id="type" name="type" required>
-                                <option value="" disabled selected>Select Type</option>
-                                <option value="weekly">Weekly</option>
-                                <option value="intensive">Intensive</option>
-                            </select>
-                        </div>
-                    </div>
-                    <div class="modal-footer">
-                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
-                        <button type="submit" class="btn btn-primary">Add Course</button>
-                    </div>
-                </form>
+                    </form>
+                </div>
             </div>
         </div>
-    </div>
+    @endhasanyrole
 
-    <!-- Assign Teacher Modal -->
-    <div class="modal fade" id="assignTeacherModal" tabindex="-1" aria-hidden="true">
-        <div class="modal-dialog modal-dialog-scrollable">
-            <div class="modal-content">
-                <form id="assignTeacherForm">
-                    @csrf
-                    <div class="modal-header">
-                        <h5 class="modal-title" id="assignTeacherModalLabel">Assign Teacher to Course</h5>
-                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-                    </div>
-                    <div class="modal-body">
-                        <input type="hidden" id="assignCourseId" name="course_id">
-                        <div class="mb-3">
-                            <label for="teacher_id" class="form-label">Select Teacher</label>
-                            <select class="form-select" id="teacher_id" name="teacher_id" required style="width: 100%;">
-                                <option value="" disabled selected>Select Teacher</option>
-                            </select>
+    @hasanyrole('Super Admin|Admin')
+        <!-- Assign Teacher Modal -->
+        <div class="modal fade" id="assignTeacherModal" tabindex="-1" aria-hidden="true">
+            <div class="modal-dialog modal-dialog-scrollable">
+                <div class="modal-content">
+                    <form id="assignTeacherForm">
+                        @csrf
+                        <div class="modal-header">
+                            <h5 class="modal-title" id="assignTeacherModalLabel">Assign Teacher to Course</h5>
+                            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                         </div>
-                    </div>
-                    <div class="modal-footer">
-                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
-                        <button type="submit" class="btn btn-primary">Assign Teacher</button>
-                    </div>
-                </form>
+                        <div class="modal-body">
+                            <input type="hidden" id="assignCourseId" name="course_id">
+                            <div class="mb-3">
+                                <label for="teacher_id" class="form-label">Select Teacher</label>
+                                <select class="form-select" id="teacher_id" name="teacher_id" required style="width: 100%;">
+                                    <option value="" disabled selected>Select Teacher</option>
+                                </select>
+                            </div>
+                        </div>
+                        <div class="modal-footer">
+                            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                            <button type="submit" class="btn btn-primary">Assign Teacher</button>
+                        </div>
+                    </form>
+                </div>
             </div>
         </div>
-    </div>
+    @endhasanyrole
 @endsection
 
 @section('scripts')

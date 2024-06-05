@@ -6,6 +6,7 @@ use Illuminate\Http\Request;
 use App\Models\Teacher;
 use App\Models\Student;
 use App\Models\Course;
+use Illuminate\Support\Facades\Auth;
 use App\Models\Unit;
 use Illuminate\Support\Facades\Storage;
 use App\Models\CourseCategory;
@@ -122,7 +123,14 @@ class AdminController extends Controller
     public function getCourses(Request $request)
     {
         if ($request->ajax()) {
-            $data = Course::with(['category', 'teacher.user'])->get();
+            $query = Course::with(['category', 'teacher.user']);
+
+            if (Auth::user()->hasRole('Teacher')) {
+                $techerid = Teacher::where('teacher_id', Auth::id())->first()->id;
+                $query->where('teacher_id', $techerid);
+            }
+
+            $data = $query->get();
 
             return DataTables::of($data)
                 ->addColumn('category', function ($row) {
@@ -138,10 +146,22 @@ class AdminController extends Controller
                     return $row->teacher ? $row->teacher->user->first_name . ' ' . $row->teacher->user->last_name : 'N/A';
                 })
                 ->addColumn('actions', function ($row) {
-                    $assignButton = '<a href="#" class="btn btn-primary btn-sm assign-teacher-btn" data-course-id="' . $row->id . '"><i class="bx bx-user-plus"></i> ' . ($row->teacher ? 'Change Teacher' : 'Assign Teacher') . '</a>';
-                    $showUnitsButton = '<a href="' . url('admin/courses') . '/' . $row->id . '/units" class="btn btn-primary btn-sm"><i class="bx bx-show-alt"></i> Show Units</a>';
-                    $viewCourseButton = '<a href="' . url('admin/courses') . '/' . $row->id . '/show" class="btn btn-primary btn-sm"><i class="bx bx-detail"></i> View Course</a>';
-                    return '<div class="d-flex justify-content-around gap-2">' . $assignButton . $showUnitsButton . $viewCourseButton . '</div>';
+                    $actions = '';
+
+                    if (Auth::user()->hasAnyRole(['Super Admin', 'Admin'])) {
+                        $assignButton = '<a href="#" class="btn btn-primary btn-sm assign-teacher-btn" data-course-id="' . $row->id . '"><i class="bx bx-user-plus"></i> ' . ($row->teacher ? 'Change Teacher' : 'Assign Teacher') . '</a>';
+                        $showUnitsButton = '<a href="' . url('courses') . '/' . $row->id . '/units" class="btn btn-primary btn-sm"><i class="bx bx-show-alt"></i> Show Units</a>';
+                        $viewCourseButton = '<a href="' . url('courses') . '/' . $row->id . '/show" class="btn btn-primary btn-sm"><i class="bx bx-detail"></i> View Course</a>';
+                        $actions = '<div class="d-flex justify-content-around gap-2">' . $assignButton . $showUnitsButton . $viewCourseButton . '</div>';
+                    }
+
+                    if (Auth::user()->hasRole('Teacher')) {
+                        $viewCourseButton = '<a href="' . url('/courses') . '/' . $row->id . '/show" class="btn btn-primary btn-sm"><i class="bx bx-detail"></i> View Course</a>';
+                        $showUnitsButton = '<a href="' . url('courses') . '/' . $row->id . '/units" class="btn btn-primary btn-sm"><i class="bx bx-show-alt"></i> Show Units</a>';
+                        $actions = '<div class="d-flex justify-content-around gap-2">' . $viewCourseButton . $showUnitsButton . '</div>';
+                    }
+
+                    return $actions;
                 })
                 ->rawColumns(['actions'])
                 ->make(true);
@@ -149,8 +169,6 @@ class AdminController extends Controller
 
         return null;
     }
-
-
 
     public function storeCourse(Request $request)
     {
@@ -166,7 +184,7 @@ class AdminController extends Controller
 
         return response()->json(['success' => 'Course added successfully']);
     }
-    // Function to get the list of teachers for the modal
+
     public function getTeachersForAssignment()
     {
         $teachers = Teacher::with('user')->get();
@@ -203,7 +221,14 @@ class AdminController extends Controller
 
     public function showUnits($courseId)
     {
+
         $course = Course::with('units')->findOrFail($courseId);
+        if (Auth::user()->hasAnyRole(['Teacher'])) {
+            if (Auth::id() != $course->teacher->teacher_id) {
+                abort(403, 'Unauthorized action.');
+            }
+        }
+
         return view('dashboard.admin.units', compact('course'));
     }
 

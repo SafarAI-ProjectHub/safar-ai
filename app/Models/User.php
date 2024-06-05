@@ -143,4 +143,12 @@ class User extends Authenticatable
         return $this->hasMany(LevelTestAssessment::class);
     }
 
+    // courses that the user is enrolled in
+    public function courses()
+    {
+        return $this->belongsToMany(Course::class, 'course_student', 'student_id', 'course_id')
+            ->withPivot('enrollment_date', 'progress')
+            ->withTimestamps();
+    }
+
 }
