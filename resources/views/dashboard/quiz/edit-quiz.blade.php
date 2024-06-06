@@ -102,7 +102,7 @@
                                     aria-labelledby="stepper3trigger1">
                                     <div class="mb-3">
                                         <label for="course-select" class="form-label">Select Course</label>
-                                        <select class="form-select" id="course-select">
+                                        <select class="form-select" id="course-select" disabled>
                                             <option value="" disabled>Select a course</option>
                                             @foreach ($courses as $course)
                                                 <option value="{{ $course->id }}"
@@ -114,7 +114,7 @@
                                     </div>
                                     <div class="mb-3" id="units-container">
                                         <label for="unit-select" class="form-label">Select Unit</label>
-                                        <select class="form-select" id="unit-select">
+                                        <select class="form-select" id="unit-select" disabled>
                                             <option value="" disabled>Select a unit</option>
                                             @foreach ($quiz->unit->course->units as $unit)
                                                 <option value="{{ $unit->id }}"

@@ -97,7 +97,7 @@ class User extends Authenticatable
     //teacher's relation
     public function teacher()
     {
-        return $this->hasOne(Teacher::class);
+        return $this->hasOne(Teacher::class, 'teacher_id');
     }
 
     // Payments made by the user through their subscriptions
@@ -150,5 +150,11 @@ class User extends Authenticatable
             ->withPivot('enrollment_date', 'progress')
             ->withTimestamps();
     }
+
+    public function zoomMeetings()
+    {
+        return $this->hasMany(ZoomMeeting::class);
+    }
+
 
 }

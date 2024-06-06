@@ -7,6 +7,7 @@ use App\Http\Controllers\AdminController;
 use App\Http\Controllers\QuizController;
 use App\Http\Controllers\TeacherController;
 use App\Http\Controllers\StudentController;
+use App\Http\Controllers\ZoomMeetingController;
 use App\Http\Controllers\levelTest\TeacherTestController;
 use App\Http\Controllers\levelTest\StudentTestController;
 
@@ -64,14 +65,14 @@ Route::middleware(['auth', 'role:Admin|Super Admin'])->prefix('admin')->group(fu
     Route::post('/courses/assign-teacher', [AdminController::class, 'assignTeacherToCourse'])->name('admin.assignTeacherToCourse');
 
     // Quizzes
-    Route::get('courses/quiz/add', [QuizController::class, 'addQuizPage'])->name('quiz.addPage');
-    Route::get('courses/quiz', [QuizController::class, 'index'])->name('quizzes.index');
-    Route::get('courses/quiz/edit', [QuizController::class, 'editQuizPage'])->name('quiz.editPage');
-    Route::get('quizzes/datatable', [QuizController::class, 'dataTable'])->name('quizzes.datatable');
-    Route::post('quizzes/store', [QuizController::class, 'storeQuiz'])->name('quiz.storeQuiz');
-    Route::get('quizzes/{quizId}/edit', [QuizController::class, 'editQuiz'])->name('quiz.editQuiz');
-    Route::put('quizzes/{quizId}/update', [QuizController::class, 'updateQuiz'])->name('quiz.updateQuiz');
-    Route::delete('quizzes/{quizId}/delete', [QuizController::class, 'deleteQuiz'])->name('quiz.deleteQuiz');
+    // Route::get('courses/quiz/add', [QuizController::class, 'addQuizPage'])->name('quiz.addPage');
+    // Route::get('courses/quiz', [QuizController::class, 'index'])->name('quizzes.index');
+    // Route::get('courses/quiz/edit', [QuizController::class, 'editQuizPage'])->name('quiz.editPage');
+    // Route::get('quizzes/datatable', [QuizController::class, 'dataTable'])->name('quizzes.datatable');
+    // Route::post('quizzes/store', [QuizController::class, 'storeQuiz'])->name('quiz.storeQuiz');
+    // Route::get('quizzes/{quizId}/edit', [QuizController::class, 'editQuiz'])->name('quiz.editQuiz');
+    // Route::put('quizzes/{quizId}/update', [QuizController::class, 'updateQuiz'])->name('quiz.updateQuiz');
+    // Route::delete('quizzes/{quizId}/delete', [QuizController::class, 'deleteQuiz'])->name('quiz.deleteQuiz');
 
     // Teacher Level Tests
     Route::get('level-test/teacher/add', [TeacherTestController::class, 'addTestPage'])->name('teacherTest.addPage');
@@ -111,6 +112,28 @@ Route::middleware(['auth', 'role:Super Admin|Admin|Teacher'])->group(function ()
     Route::get('units/{id}/edit', [AdminController::class, 'editUnit'])->name('admin.units.edit');
     Route::put('units/{id}', [AdminController::class, 'updateUnit'])->name('admin.units.update');
     Route::delete('courses/units/delete/{id}', [AdminController::class, 'destroyUnit'])->name('units.destroy');
+    Route::get('courses/getUnits/{courseId}', [QuizController::class, 'getUnits'])->name('quiz.getUnits');
+
+    // Quizzes
+    Route::post('quizzes/store', [QuizController::class, 'storeQuiz'])->name('quiz.storeQuiz');
+    Route::get('courses/quiz', [QuizController::class, 'index'])->name('quizzes.index');
+    Route::get('quizzes/datatable', [QuizController::class, 'dataTable'])->name('quizzes.datatable');
+    Route::get('quizzes/{quizId}/edit', [QuizController::class, 'editQuiz'])->name('quiz.editQuiz');
+    Route::put('quizzes/{quizId}/update', [QuizController::class, 'updateQuiz'])->name('quiz.updateQuiz');
+    Route::delete('quizzes/{quizId}/delete', [QuizController::class, 'deleteQuiz'])->name('quiz.deleteQuiz');
+    Route::get('courses/quiz/add', [QuizController::class, 'addQuizPage'])->name('quiz.addPage');
+    Route::get('courses/quiz/edit', [QuizController::class, 'editQuizPage'])->name('quiz.editPage');
+
+    // Zoom Meetings
+    Route::get('zoom-meetings', [ZoomMeetingController::class, 'index'])->name('zoom-meetings.index');
+    Route::get('zoom-meetings/datatable', [ZoomMeetingController::class, 'getMeetings'])->name('zoom-meetings.datatable');
+    Route::get('zoom-meetings/create', [ZoomMeetingController::class, 'create'])->name('zoom-meetings.create');
+    Route::post('zoom-meetings', [ZoomMeetingController::class, 'store'])->name('zoom-meetings.store');
+    Route::get('zoom-meetings/{zoomMeeting}', [ZoomMeetingController::class, 'show'])->name('zoom-meetings.show');
+    Route::get('zoom-meetings/{zoomMeeting}/edit', [ZoomMeetingController::class, 'edit'])->name('zoom-meetings.edit');
+    Route::put('zoom-meetings/{zoomMeeting}', [ZoomMeetingController::class, 'update'])->name('zoom-meetings.update');
+    Route::delete('zoom-meetings/{zoomMeeting}', [ZoomMeetingController::class, 'destroy'])->name('zoom-meetings.destroy');
+
 });
 
 // Routes for Teacher and Super Admin
@@ -118,9 +141,9 @@ Route::middleware(['auth', 'role:Teacher|Super Admin'])->prefix('teacher')->grou
     Route::get('dashboard', [TeacherController::class, 'index'])->name('teacher.dashboard');
     Route::get('courses', [TeacherController::class, 'getCourses'])->name('teacher.courses');
     Route::get('quiz-results/{courseId}', [TeacherController::class, 'getStudentQuizResults'])->name('teacher.quizResults');
-    Route::post('schedule-zoom-meeting', [TeacherController::class, 'scheduleZoomMeeting'])->name('teacher.scheduleZoomMeeting');
     Route::get('student-profiles', [TeacherController::class, 'getStudentProfiles'])->name('teacher.getStudentProfiles');
     Route::get('student-profiles/{id}', [TeacherController::class, 'showStudentProfile'])->name('teacher.showStudentProfile');
+
 });
 
 // Routes for Admin access only

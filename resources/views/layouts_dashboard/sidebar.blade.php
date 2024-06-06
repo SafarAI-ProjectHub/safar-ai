@@ -59,7 +59,6 @@
                     <div class="menu-title">Courses</div>
                 </a>
                 <ul>
-
                     <li>
                         <a href="{{ route('admin.courses') }}">
                             <div class="parent-icon"><i class="bx bx-book"></i></div>
@@ -72,7 +71,6 @@
                             </div>
                         </a>
                     </li>
-
                     <li>
                         <a href="{{ route('quizzes.index') }}">
                             <div class="parent-icon"><i class="bx bx-brain"></i></div>
@@ -85,7 +83,6 @@
                             <div class="menu-title">Add Quiz</div>
                         </a>
                     </li>
-
                 </ul>
             </li>
         @endhasanyrole
@@ -129,17 +126,23 @@
             </li>
         @endhasanyrole
 
-        @hasanyrole('Super Admin|Teacher')
+        @hasanyrole('Super Admin|Admin|Teacher')
             <li>
                 <a href="javascript:;" class="has-arrow">
                     <div class="parent-icon"><i class='bx bx-video'></i></div>
-                    <div class="menu-title">Zoom Meetings</div>
+                    <div class="menu-title">Zoom</div>
                 </a>
                 <ul>
                     <li>
-                        <a href="{{ route('teacher.scheduleZoomMeeting') }}">
-                            <div class="parent-icon"><i class="bx bx-video"></i></div>
-                            <div class="menu-title">Schedule Zoom Meeting</div>
+                        <a href="{{ route('zoom-meetings.index') }}">
+                            <div class="parent-icon"><i class="bx bx-calendar"></i></div>
+                            <div class="menu-title">Zoom Meetings</div>
+                        </a>
+                    </li>
+                    <li>
+                        <a href="{{ route('zoom-meetings.create') }}">
+                            <div class="parent-icon"><i class="bx bx-plus"></i></div>
+                            <div class="menu-title">Schedule Meeting</div>
                         </a>
                     </li>
                 </ul>

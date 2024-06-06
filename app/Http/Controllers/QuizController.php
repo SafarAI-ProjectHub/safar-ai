@@ -26,10 +26,13 @@ class QuizController extends Controller
             return response()->json(['message' => 'Not authenticated'], 401);
         }
 
-        if ($user->hasRole('Admin')) {
+        if ($user->hasRole('Admin|Super Admin')) {
             $courses = Course::all();
-        } else {
+        } elseif ($user->hasRole('Teacher')) {
             $courses = Course::where('teacher_id', $user->id)->get();
+        } else {
+            // abort 
+            abort(403, 'Unauthorized action.');
         }
 
         return view('dashboard.quiz.quizzes', compact('courses'));
@@ -49,10 +52,13 @@ class QuizController extends Controller
             return response()->json(['message' => 'Not authenticated'], 401);
         }
 
-        if ($user->hasRole('Admin')) {
+        if ($user->hasRole('Admin|Super Admin')) {
             $courses = Course::all();
+        } elseif ($user->hasRole('Teacher')) {
+            $courses = Course::where('teacher_id', $user->teacher->id)->get();
         } else {
-            $courses = Course::where('teacher_id', $user->id)->get();
+            // abort 
+            abort(403, 'Unauthorized action.');
         }
 
         return view('dashboard.quiz.add-quiz', compact('courses'));
@@ -86,11 +92,12 @@ class QuizController extends Controller
     {
         $user = Auth::user();
 
-        if ($user->hasRole('Admin')) {
+        if ($user->hasRole('Admin|Super Admin')) {
             $quizzes = Quiz::with('unit.course')->get();
         } else {
+
             $quizzes = Quiz::whereHas('unit.course', function ($query) use ($user) {
-                $query->where('teacher_id', $user->id);
+                $query->where('teacher_id', $user->teacher->id);
             })->with('unit.course')->get();
         }
 
@@ -171,10 +178,13 @@ class QuizController extends Controller
             return response()->json(['message' => 'Not authenticated'], 401);
         }
 
-        if ($user->hasRole('Admin')) {
+        if ($user->hasRole('Admin|Super Admin')) {
             $courses = Course::all();
+        } elseif ($user->hasRole('Teacher')) {
+            $courses = Course::where('teacher_id', $user->teacher->id)->get();
         } else {
-            $courses = Course::where('teacher_id', $user->id)->get();
+            // abort 
+            abort(403, 'Unauthorized action.');
         }
 
         return view('dashboard.quiz.edit-quiz', compact('quiz', 'courses'));

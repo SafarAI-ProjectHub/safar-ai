@@ -39,4 +39,9 @@ class Course extends Model
         $this->category_id = $categoryId;
         $this->save();
     }
+
+    public function zoomMeetings()
+    {
+        return $this->hasMany(ZoomMeeting::class);
+    }
 }

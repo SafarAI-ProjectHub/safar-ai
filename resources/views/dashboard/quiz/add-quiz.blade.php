@@ -102,11 +102,19 @@
                                     <div class="mb-3">
                                         <label for="course-select" class="form-label">Select Course</label>
                                         <select class="form-select" id="course-select">
-                                            <option value="" disabled selected>Select a course</option>
-                                            @foreach ($courses as $course)
-                                                <option value="{{ $course->id }}">{{ $course->title }}</option>
-                                            @endforeach
+                                            @if ($courses->isEmpty())
+                                                <option value="" disabled>No courses available</option>
+                                            @else
+                                                <option value="" disabled selected>Select a course</option>
+
+                                                @foreach ($courses as $course)
+                                                    <option value="{{ $course->id }}">{{ $course->title }}</option>
+                                                @endforeach
+                                            @endif
                                         </select>
+                                    </div>
+                                    <div id="no-units-message" class="p-3" style="display: none;">
+                                        All units in this course have been assigned quizzes or there are no units available.
                                     </div>
                                     <div class="mb-3" id="units-container" style="display:none;">
                                         <label for="unit-select" class="form-label">Select Unit</label>
@@ -212,7 +220,7 @@
             $('#course-select').on('change', function() {
                 var courseId = $(this).val();
                 $.ajax({
-                    url: '/admin/getUnits/' + courseId,
+                    url: '/courses/getUnits/' + courseId,
                     method: 'GET',
                     success: function(units) {
                         $('#unit-select').empty().append(

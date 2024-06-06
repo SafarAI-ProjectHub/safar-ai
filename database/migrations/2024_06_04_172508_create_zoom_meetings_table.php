@@ -10,7 +10,8 @@ class CreateZoomMeetingsTable extends Migration
     {
         Schema::create('zoom_meetings', function (Blueprint $table) {
             $table->id();
-            $table->unsignedBigInteger('teacher_id');
+            $table->unsignedBigInteger('user_id');
+            $table->unsignedBigInteger('course_id')->nullable();
             $table->string('meeting_id');
             $table->string('topic');
             $table->text('agenda')->nullable();
@@ -19,8 +20,6 @@ class CreateZoomMeetingsTable extends Migration
             $table->string('password')->nullable();
             $table->string('join_url');
             $table->timestamps();
-
-
         });
     }
 

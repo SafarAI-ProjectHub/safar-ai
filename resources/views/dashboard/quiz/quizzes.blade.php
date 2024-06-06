@@ -78,7 +78,7 @@
             // Handle Edit button click
             $(document).on('click', '.edit-quiz', function() {
                 var quizId = $(this).data('id');
-                window.location.href = '/admin/quizzes/' + quizId + '/edit';
+                window.location.href = '/quizzes/' + quizId + '/edit';
             });
 
             // Handle Delete button click
@@ -95,7 +95,7 @@
                 }).then((result) => {
                     if (result.isConfirmed) {
                         $.ajax({
-                            url: '/admin/quizzes/' + quizId + '/delete',
+                            url: '/quizzes/' + quizId + '/delete',
                             type: 'DELETE',
                             data: {
                                 _token: $('meta[name="csrf-token"]').attr('content')

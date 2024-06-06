@@ -10,18 +10,24 @@ class ZoomMeeting extends Model
     use HasFactory;
 
     protected $fillable = [
-        'teacher_id',
+        'user_id',
         'meeting_id',
+        'course_id',
         'topic',
         'agenda',
         'start_time',
         'duration',
         'password',
-        'join_url'
+        'join_url',
     ];
-
-    public function teacher()
+    public function user()
     {
-        return $this->belongsTo(Teacher::class);
+        return $this->belongsTo(User::class);
+    }
+
+
+    public function course()
+    {
+        return $this->belongsTo(Course::class);
     }
 }
