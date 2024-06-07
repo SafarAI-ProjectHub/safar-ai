@@ -13,6 +13,7 @@
         "laravel/sanctum": "^3.3",
         "laravel/tinker": "^2.8",
         "pbmedia/laravel-ffmpeg": "^8.5",
+        "pusher/pusher-php-server": "^7.2",
         "spatie/laravel-permission": "^6.7",
         "yajra/laravel-datatables": "^10.0"
     },

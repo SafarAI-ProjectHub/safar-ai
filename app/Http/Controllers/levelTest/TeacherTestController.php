@@ -26,8 +26,10 @@ class TeacherTestController extends Controller
             return response()->json(['message' => 'Not authenticated'], 401);
         }
 
-        if ($user->hasRole('Admin')) {
+        if ($user->hasRole('Super Admin| Admin')) {
             $levelTests = LevelTest::where('exam_type', 'teacher')->get();
+        } else {
+            abort(403, 'Unauthorized action.');
         }
 
         return view('dashboard.level_test.teacher_tests', compact('levelTests'));
@@ -58,8 +60,10 @@ class TeacherTestController extends Controller
     {
         $user = Auth::user();
 
-        if ($user->hasRole('Admin')) {
+        if ($user->hasRole('Super Admin| Admin')) {
             $levelTests = LevelTest::where('exam_type', 'teacher')->get();
+        } else {
+            abort(403, 'Unauthorized action.');
         }
 
         return DataTables::of($levelTests)

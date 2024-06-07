@@ -64,7 +64,7 @@
                     data: $(this).serialize(),
                     success: function(response) {
                         alert('Zoom meeting created successfully.');
-                        window.location.href = "{{ route('zoom-meetings.index') }}";
+                        // window.location.href = "{{ route('zoom-meetings.index') }}";
                     },
                     error: function(xhr) {
                         let errors = xhr.responseJSON.errors;
@@ -73,6 +73,12 @@
                             errorMessages += errors[error] + '\n';
                         }
                         alert('Failed to create Zoom meeting: \n' + errorMessages);
+
+                        // Check if user needs to authorize Zoom
+                        if (xhr.responseJSON.url) {
+                            window.location.href = xhr.responseJSON.url;
+                            // console.log(xhr);
+                        }
                     }
                 });
             });

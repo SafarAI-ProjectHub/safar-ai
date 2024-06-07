@@ -51,9 +51,30 @@
             </div>
         </div>
     </div>
+
+    <!-- View CV Modal -->
+    <div class="modal fade" id="viewCvModal" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog modal-lg modal-dialog-scrollable">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">View CV</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <iframe id="cvFrame" src="" width="100%" height="500px"></iframe>
+                </div>
+            </div>
+        </div>
+    </div>
 @endsection
 
 @section('scripts')
+    <!-- Include SweetAlert2 CSS -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/sweetalert2@10/dist/sweetalert2.min.css">
+
+    <!-- Include SweetAlert2 JS -->
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@10"></script>
+
     <script>
         $(document).ready(function() {
             var table = $('#applications-table').DataTable({
@@ -121,8 +142,7 @@
                 lengthChange: false
             });
 
-            table.buttons().container()
-                .appendTo('#applications-table_wrapper .col-md-6:eq(0)');
+            table.buttons().container().appendTo('#applications-table_wrapper .col-md-6:eq(0)');
 
             $('#applications-table').on('click', '.update-status', function() {
                 var teacherId = $(this).data('id');
@@ -152,21 +172,39 @@
                 });
             });
 
+            $('#applications-table').on('click', '.view-cv', function(event) {
+                event.preventDefault();
+                var cvLink = $(this).attr('href');
+                var extension = cvLink.split('.').pop().toLowerCase();
+
+                if (extension === 'pdf') {
+                    $('#cvFrame').attr('src', cvLink);
+                } else if (extension === 'docx') {
+                    $('#cvFrame').attr('src', 'https://docs.google.com/gview?url=' + encodeURIComponent(
+                        cvLink) + '&embedded=true');
+                } else {
+                    $('#cvFrame').attr('src', '');
+                    alert('Unsupported file type.');
+                }
+
+                $('#viewCvModal').modal('show');
+            });
+
             function showAlert(type, message, icon) {
                 var alertHtml = `
-            <div class="alert alert-${type} border-0 bg-${type} alert-dismissible fade show py-2 position-fixed top-0 end-0 m-3" role="alert">
-                <div class="d-flex align-items-center">
-                    <div class="font-35 text-white">
-                        <i class="bx ${icon}"></i>
+                    <div class="alert alert-${type} border-0 bg-${type} alert-dismissible fade show py-2 position-fixed top-0 end-0 m-3" role="alert">
+                        <div class="d-flex align-items-center">
+                            <div class="font-35 text-white">
+                                <i class="bx ${icon}"></i>
+                            </div>
+                            <div class="ms-3">
+                                <h6 class="mb-0 text-white">${type.charAt(0).toUpperCase() + type.slice(1)}</h6>
+                                <div class="text-white">${message}</div>
+                            </div>
+                        </div>
+                        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
                     </div>
-                    <div class="ms-3">
-                        <h6 class="mb-0 text-white">${type.charAt(0).toUpperCase() + type.slice(1)}</h6>
-                        <div class="text-white">${message}</div>
-                    </div>
-                </div>
-                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
-            </div>
-        `;
+                `;
                 $('body').append(alertHtml);
                 setTimeout(function() {
                     $('.alert').alert('close');

@@ -100,7 +100,7 @@
                 }).then((result) => {
                     if (result.isConfirmed) {
                         $.ajax({
-                            url: '/admin/teacher' + testId + '/delete',
+                            url: '/admin/teacher/' + testId + '/delete',
                             type: 'DELETE',
                             data: {
                                 _token: $('meta[name="csrf-token"]').attr('content')

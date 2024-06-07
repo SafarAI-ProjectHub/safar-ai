@@ -8,6 +8,7 @@
 @section('content')
     <div class="card">
         <div class="card-body">
+            <h5>Courses List</h5>
             @hasanyrole('Super Admin|Admin')
                 <div class="d-flex justify-content-end mb-3">
                     <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#addCourseModal">Add New Course</button>
@@ -120,6 +121,7 @@
 @endsection
 
 @section('scripts')
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.12.9/umd/popper.min.js"></script>
     <script src="{{ asset('assets/plugins/select2/js/select2.min.js') }}"></script>
     <script>
         $(document).ready(function() {
@@ -133,7 +135,13 @@
                     },
                     {
                         data: 'description',
-                        name: 'description'
+                        name: 'description',
+                        render: function(data, type, row) {
+                            var truncated = data.length > 100 ? data.substring(0, 50) + '...' :
+                                data;
+                            return '<span class="description" data-toggle="tooltip" data-placement="top" data-original-title="' +
+                                data + '">' + truncated + '</span>';
+                        }
                     },
                     {
                         data: 'category',
@@ -179,6 +187,8 @@
                 ],
                 lengthChange: false
             });
+            // Initialize tooltips
+            $('[data-toggle="tooltip"]').tooltip()
 
             table.buttons().container()
                 .appendTo('#courses-table_wrapper .col-md-6:eq(0)');

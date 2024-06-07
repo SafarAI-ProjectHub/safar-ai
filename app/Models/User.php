@@ -52,6 +52,9 @@ class User extends Authenticatable
         'date_of_birth' => 'date',
     ];
 
+    protected $dates = [
+        'zoom_token_expires_at',
+    ];
     /**
      * Get the user's full name by concatenating first and last names.
      *

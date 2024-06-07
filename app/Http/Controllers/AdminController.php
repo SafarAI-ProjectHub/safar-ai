@@ -51,7 +51,7 @@ class AdminController extends Controller
                 return 'Teacher'; // You can customize this as needed
             })
             ->addColumn('cv_link', function ($teacher) {
-                return '<a href="../' . $teacher->cv_link . '" target="_blank">CV Link</a>';
+                return '<a href="../' . $teacher->cv_link . '" class="view-cv" target="_blank">CV Link</a>';
             })
             ->rawColumns(['cv_link'])
             ->make(true);
@@ -75,9 +75,7 @@ class AdminController extends Controller
     public function getTeachers(Request $request)
     {
         if ($request->ajax()) {
-            $data = Teacher::with('user')
-                ->where('approval_status', 'approved')
-                ->get();
+            $data = Teacher::with('user')->where('approval_status', 'approved')->get();
 
             return DataTables::of($data)
                 ->addColumn('full_name', function ($row) {
@@ -93,10 +91,11 @@ class AdminController extends Controller
                     return $row->user->phone_number;
                 })
                 ->addColumn('cv_link', function ($row) {
-                    return $row->cv_link ? '<a href="' . asset($row->cv_link) . '" target="_blank">View CV</a>' : 'No CV';
+                    return $row->cv_link ? '<a href="' . asset($row->cv_link) . '" class="view-cv" target="_blank">View CV</a>' : 'No CV';
                 })
                 ->addColumn('actions', function ($row) {
-                    return '<button class="btn btn-primary btn-sm update-status" data-id="' . $row->id . '" data-status="' . $row->approval_status . '">Update Status</button>';
+                    return '<div class="d-flex justify-content-around gap-2" ><button class="btn btn-primary btn-sm edit-teacher" data-id="' . $row->id . '">Edit</button>' .
+                        '<button class="btn btn-danger btn-sm delete-teacher" data-id="' . $row->id . '">Delete</button> </div>';
                 })
                 ->rawColumns(['cv_link', 'actions'])
                 ->make(true);
@@ -104,6 +103,60 @@ class AdminController extends Controller
 
         return null;
     }
+
+    public function editTeacher($id)
+    {
+        $teacher = Teacher::with('user')->findOrFail($id);
+        return response()->json($teacher);
+    }
+
+    public function updateTeacher(Request $request, $id)
+    {
+        $validator = Validator::make($request->all(), [
+            'first_name' => 'required|string|max:255',
+            'last_name' => 'required|string|max:255',
+            'email' => 'required|string|email|max:255',
+            'phone_number' => 'required|string|max:15',
+            'country_location' => 'required|string|max:255',
+            // 'cv_link' => 'nullable|string|max:255',
+        ]);
+
+        if ($validator->fails()) {
+            return response()->json(['errors' => $validator->errors()], 422);
+        }
+
+        $teacher = Teacher::findOrFail($id);
+        $user = $teacher->user;
+
+        $user->update([
+            'first_name' => $request->first_name,
+            'last_name' => $request->last_name,
+            'email' => $request->email,
+            'phone_number' => $request->phone_number,
+            'country_location' => $request->country_location,
+        ]);
+
+        // $teacher->update([
+        //     'cv_link' => $request->cv_link,
+        // ]);
+
+        return response()->json(['message' => 'Teacher updated successfully']);
+    }
+
+    public function deleteTeacher($id)
+    {
+        try {
+            $teacher = Teacher::findOrFail($id);
+            $teacher->user()->delete(); // Assuming the user relationship is defined in the Teacher model
+            $teacher->delete(); // Deletes the teacher
+
+            return response()->json(['message' => 'Teacher deleted successfully']);
+        } catch (\Exception $e) {
+            return response()->json(['error' => 'Error deleting teacher', 'message' => $e->getMessage()], 422);
+        }
+    }
+
+
 
     /* 
      *
@@ -205,11 +258,6 @@ class AdminController extends Controller
         return response()->json(['success' => 'Teacher assigned successfully!']);
     }
 
-    public function showcourse($courseId)
-    {
-        $course = Course::with('units')->findOrFail($courseId);
-        return view('dashboard.admin.show_course', compact('course'));
-    }
 
     /* 
      *

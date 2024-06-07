@@ -10,12 +10,14 @@
     </div>
     <!--navigation-->
     <ul class="metismenu" id="menu">
-        <li>
-            <a href="{{ route('dashboard') }}">
-                <div class="parent-icon"><i class='bx bx-tachometer'></i></div>
-                <div class="menu-title">Dashboard</div>
-            </a>
-        </li>
+        @hasanyrole('Super Admin|Admin')
+            <li>
+                <a href="{{ route('dashboard') }}">
+                    <div class="parent-icon"><i class='bx bx-tachometer'></i></div>
+                    <div class="menu-title">Dashboard</div>
+                </a>
+            </li>
+        @endhasanyrole
 
         @hasanyrole('Super Admin|Admin')
             <li>
