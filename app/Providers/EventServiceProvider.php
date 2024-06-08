@@ -6,6 +6,8 @@ use Illuminate\Auth\Events\Registered;
 use Illuminate\Auth\Listeners\SendEmailVerificationNotification;
 use Illuminate\Foundation\Support\Providers\EventServiceProvider as ServiceProvider;
 use Illuminate\Support\Facades\Event;
+use App\Events\NotificationEvent;
+use App\Listeners\NotificationListener;
 
 class EventServiceProvider extends ServiceProvider
 {
@@ -18,14 +20,20 @@ class EventServiceProvider extends ServiceProvider
         Registered::class => [
             SendEmailVerificationNotification::class,
         ],
+        NotificationEvent::class => [
+            NotificationListener::class,
+        ],
+        'App\Events\NotificationEvent' => [
+            'App\Listeners\NotificationListener',
+        ],
     ];
 
     /**
      * Register any events for your application.
      */
-    public function boot(): void
+    public function boot()
     {
-        //
+        parent::boot();
     }
 
     /**

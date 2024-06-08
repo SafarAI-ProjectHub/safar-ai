@@ -4,9 +4,13 @@ namespace App\Http\Controllers;
 
 use App\Models\ZoomMeeting;
 use App\Models\Course;
+use App\Models\User;
+use App\Models\Notification;
+use App\Events\NotificationEvent;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Yajra\DataTables\DataTables;
+use Zoom;
 
 class ZoomMeetingController extends Controller
 {
@@ -42,20 +46,80 @@ class ZoomMeetingController extends Controller
             'duration' => 'required|integer',
             'invite_option' => 'required|in:all,teachers,course_specific',
             'course_id' => 'required_if:invite_option,course_specific|exists:courses,id',
-            'url' => 'required|url',
+            'agenda' => 'nullable|string',
         ]);
 
-        ZoomMeeting::create([
-            'user_id' => Auth::id(),
-            'course_id' => $request->course_id,
-            'topic' => $request->topic,
-            'agenda' => $request->agenda,
-            'start_time' => $request->start_time,
-            'duration' => $request->duration,
-            'url' => $request->url,
-        ]);
+        try {
+            // Create Zoom meeting
+            $meeting = Zoom::createMeeting([
+                'agenda' => $request->input('agenda'),
+                'topic' => $request->input('topic'),
+                'type' => 2, // Scheduled meeting
+                'duration' => $request->input('duration'),
+                'timezone' => config('app.timezone'), // Set your timezone
+                'password' => '123456',
+                'start_time' => $request->input('start_time'),
+                'settings' => [
+                    'join_before_host' => false,
+                    'host_video' => false,
+                    'participant_video' => false,
+                    'mute_upon_entry' => false,
+                    'waiting_room' => false,
+                    'audio' => 'both',
+                    'auto_recording' => 'none',
+                    'approval_type' => 0, // Automatically Approve
+                ],
+            ]);
 
-        return response()->json(['message' => 'Meeting URL created successfully.']);
+            $meetingData = $meeting['data'];
+
+            // Store meeting in database
+            $zoomMeeting = ZoomMeeting::create([
+                'user_id' => Auth::id(),
+                'course_id' => $request->course_id,
+                'topic' => $request->topic,
+                'agenda' => $request->agenda,
+                'start_time' => $request->start_time,
+                'duration' => $request->duration,
+                'meeting_id' => $meetingData['id'],
+                'join_url' => $meetingData['join_url'],
+            ]);
+
+            $inviteOption = $request->input('invite_option');
+            $invitedUsers = collect();
+
+            if ($inviteOption == 'all') {
+                $invitedUsers = User::whereHas('roles', function ($q) {
+                    $q->where('name', 'student');
+                })->get();
+            } elseif ($inviteOption == 'teachers') {
+                $invitedUsers = User::whereHas('roles', function ($q) {
+                    $q->where('name', 'teacher');
+                })->get();
+            } elseif ($inviteOption == 'course_specific') {
+                $course = Course::findOrFail($request->course_id);
+                $invitedUsers = $course->students()->with('user')->get()->pluck('user');
+            }
+
+            foreach ($invitedUsers as $invitedUser) {
+                $notification = Notification::create([
+                    'user_id' => $invitedUser->id,
+                    'title' => 'New Zoom Meeting',
+                    'message' => "You have been invited to a Zoom meeting: " . $request->input('topic'),
+                    'icon' => 'bx bx-video',
+                    'type' => 'meeting',
+                    'is_seen' => false,
+                    'reminder' => false,
+                    'reminder_time' => null,
+                ]);
+
+                event(new NotificationEvent($notification));
+            }
+
+            return response()->json(['message' => 'Meeting created successfully.']);
+        } catch (\Exception $e) {
+            return response()->json(['error' => 'Failed to create meeting: ' . $e->getMessage()], 500);
+        }
     }
 
     public function show(ZoomMeeting $zoomMeeting)
@@ -65,7 +129,16 @@ class ZoomMeetingController extends Controller
 
     public function edit(ZoomMeeting $zoomMeeting)
     {
-        return view('dashboard.teacher.create_zoom_meetings', ['zoomMeeting' => $zoomMeeting, 'courses' => Course::all()]);
+        $user = Auth::user();
+        $courses = [];
+
+        if ($user->hasAnyRole(['Super Admin', 'Admin'])) {
+            $courses = Course::all();
+        } elseif ($user->hasRole('Teacher')) {
+            $courses = $user->teacher->courses;
+        }
+
+        return view('dashboard.teacher.create_zoom_meetings', ['zoomMeeting' => $zoomMeeting, 'courses' => $courses]);
     }
 
     public function update(Request $request, ZoomMeeting $zoomMeeting)
@@ -76,29 +149,105 @@ class ZoomMeetingController extends Controller
             'duration' => 'required|integer',
             'invite_option' => 'required|in:all,teachers,course_specific',
             'course_id' => 'required_if:invite_option,course_specific|exists:courses,id',
-            'url' => 'required|url',
+            'agenda' => 'nullable|string',
         ]);
 
-        $zoomMeeting->update($request->all());
+        try {
+            // Update Zoom meeting
+            $meeting = Zoom::updateMeeting($zoomMeeting->meeting_id, [
+                'agenda' => $request->input('agenda'),
+                'topic' => $request->input('topic'),
+                'type' => 2, // Scheduled meeting
+                'duration' => $request->input('duration'),
+                'timezone' => config('app.timezone'), // Set your timezone
+                'password' => '123456',
+                'start_time' => $request->input('start_time'),
+                'settings' => [
+                    'join_before_host' => false,
+                    'host_video' => false,
+                    'participant_video' => false,
+                    'mute_upon_entry' => false,
+                    'waiting_room' => false,
+                    'audio' => 'both',
+                    'auto_recording' => 'none',
+                    'approval_type' => 0, // Automatically Approve
+                ],
+            ]);
 
-        return response()->json(['message' => 'Meeting URL updated successfully.']);
+            // Update meeting in database
+            $zoomMeeting->update([
+                'course_id' => $request->course_id,
+                'topic' => $request->topic,
+                'agenda' => $request->agenda,
+                'start_time' => $request->start_time,
+                'duration' => $request->duration,
+                // 'join_url' => $meeting['data']['join_url'],
+            ]);
+
+            $inviteOption = $request->input('invite_option');
+            $invitedUsers = collect();
+
+            if ($inviteOption == 'all') {
+                $invitedUsers = User::whereHas('roles', function ($q) {
+                    $q->where('name', 'student');
+                })->get();
+            } elseif ($inviteOption == 'teachers') {
+                $invitedUsers = User::whereHas('roles', function ($q) {
+                    $q->where('name', 'teacher');
+                })->get();
+            } elseif ($inviteOption == 'course_specific') {
+                $course = Course::findOrFail($request->course_id);
+                $invitedUsers = $course->students()->with('user')->get()->pluck('user');
+            }
+
+            foreach ($invitedUsers as $invitedUser) {
+                $notification = Notification::create([
+                    'user_id' => $invitedUser->id,
+                    'title' => 'Updated Zoom Meeting',
+                    'message' => "The Zoom meeting has been updated: " . $request->input('topic'),
+                    'icon' => 'bx bx-video',
+                    'type' => 'meeting',
+                    'is_seen' => false,
+                    'reminder' => false,
+                    'reminder_time' => null,
+                ]);
+
+                event(new NotificationEvent($notification));
+            }
+
+            return response()->json(['message' => 'Meeting updated successfully.']);
+        } catch (\Exception $e) {
+            return response()->json(['error' => 'Failed to update meeting: ' . $e->getMessage()], 500);
+        }
     }
 
     public function destroy(ZoomMeeting $zoomMeeting)
     {
-        $zoomMeeting->delete();
+        try {
+            // Delete Zoom meeting
+            Zoom::deleteMeeting($zoomMeeting->meeting_id);
 
-        return response()->json(['message' => 'Meeting URL deleted successfully.']);
+            // Delete meeting from database
+            $zoomMeeting->delete();
+
+            return response()->json(['message' => 'Meeting deleted successfully.']);
+        } catch (\Exception $e) {
+            return response()->json(['error' => 'Failed to delete meeting: ' . $e->getMessage()], 500);
+        }
     }
-
     public function getMeetings(Request $request)
     {
         try {
             $zoomMeetings = ZoomMeeting::with(['user', 'course'])->get();
             return DataTables::of($zoomMeetings)
                 ->addColumn('actions', function ($row) {
-                    return view('dashboard.teacher.zoom_meetings.actions', compact('row'))->render();
+                    return '
+                        <a href="#" class="btn btn-sm btn-primary view-meeting" data-id="' . $row->id . '">View</a>
+                        <a href="' . route('zoom-meetings.edit', $row->id) . '" class="btn btn-sm btn-warning">Edit</a>
+                        <button class="btn btn-sm btn-danger delete-meeting" data-id="' . $row->id . '">Delete</button>
+                    ';
                 })
+                ->rawColumns(['actions'])
                 ->make(true);
         } catch (\Exception $e) {
             return response()->json(['error' => 'Failed to load meetings: ' . $e->getMessage()], 500);

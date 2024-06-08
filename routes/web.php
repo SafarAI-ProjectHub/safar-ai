@@ -11,6 +11,10 @@ use App\Http\Controllers\ZoomMeetingController;
 use App\Http\Controllers\CourseController;
 use App\Http\Controllers\levelTest\TeacherTestController;
 use App\Http\Controllers\levelTest\StudentTestController;
+use App\Http\Controllers\NotificationController;
+use Illuminate\Support\Facades\Broadcast;
+
+Broadcast::routes(['middleware' => ['auth']]);
 
 /*
 |--------------------------------------------------------------------------
@@ -139,6 +143,7 @@ Route::middleware(['auth', 'role:Super Admin|Admin|Teacher'])->group(function ()
     Route::put('zoom-meetings/{zoomMeeting}', [ZoomMeetingController::class, 'update'])->name('zoom-meetings.update');
     Route::delete('zoom-meetings/{zoomMeeting}', [ZoomMeetingController::class, 'destroy'])->name('zoom-meetings.destroy');
 
+
 });
 
 // Routes for Teacher and Super Admin
@@ -164,4 +169,7 @@ Route::middleware(['auth', 'role:Student'])->get('/student', [StudentController:
 Route::middleware(['auth'])->group(function () {
     // courses
     Route::get('courses/{courseId}/show', [CourseController::class, 'showcourse'])->name('admin.showcourse');
+
+    // Notifications
+    Route::get('/notifications', [NotificationController::class, 'getNotifications'])->name('notifications.get');
 });

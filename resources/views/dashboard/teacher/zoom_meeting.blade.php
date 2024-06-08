@@ -46,6 +46,7 @@
 @endsection
 
 @section('scripts')
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
     <script>
         $(document).ready(function() {
             var table = $('#zoom-meetings-table').DataTable({
@@ -66,7 +67,10 @@
                     },
                     {
                         data: 'join_url',
-                        name: 'join_url'
+                        name: 'join_url',
+                        render: function(data, type, row) {
+                            return '<a href="' + data + '" target="_blank">Join Meeting</a>';
+                        }
                     },
                     {
                         data: 'actions',
@@ -86,6 +90,44 @@
                     $('#meetingDuration').text(data.duration);
                     $('#meetingJoinUrl').text(data.join_url).attr('href', data.join_url);
                     $('#zoomMeetingModal').modal('show');
+                });
+            });
+
+            $('#zoom-meetings-table').on('click', '.delete-meeting', function() {
+                var meetingId = $(this).data('id');
+                Swal.fire({
+                    title: 'Are you sure?',
+                    text: "You won't be able to revert this!",
+                    icon: 'warning',
+                    showCancelButton: true,
+                    confirmButtonColor: '#3085d6',
+                    cancelButtonColor: '#d33',
+                    confirmButtonText: 'Yes, delete it!'
+                }).then((result) => {
+                    if (result.isConfirmed) {
+                        $.ajax({
+                            url: '/zoom-meetings/' + meetingId,
+                            type: 'DELETE',
+                            data: {
+                                _token: '{{ csrf_token() }}',
+                            },
+                            success: function(response) {
+                                Swal.fire(
+                                    'Deleted!',
+                                    'Your meeting has been deleted.',
+                                    'success'
+                                );
+                                table.ajax.reload();
+                            },
+                            error: function(xhr) {
+                                Swal.fire(
+                                    'Error!',
+                                    'Failed to delete the meeting.',
+                                    'error'
+                                );
+                            }
+                        });
+                    }
                 });
             });
         });

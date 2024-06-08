@@ -94,7 +94,7 @@ class AdminController extends Controller
                     return $row->cv_link ? '<a href="' . asset($row->cv_link) . '" class="view-cv" target="_blank">View CV</a>' : 'No CV';
                 })
                 ->addColumn('actions', function ($row) {
-                    return '<div class="d-flex justify-content-around gap-2" ><button class="btn btn-primary btn-sm edit-teacher" data-id="' . $row->id . '">Edit</button>' .
+                    return '<div class="d-flex justify-content-around gap-2" ><button class="btn btn-warning btn-sm edit-teacher" data-id="' . $row->id . '">Edit</button>' .
                         '<button class="btn btn-danger btn-sm delete-teacher" data-id="' . $row->id . '">Delete</button> </div>';
                 })
                 ->rawColumns(['cv_link', 'actions'])
@@ -286,7 +286,7 @@ class AdminController extends Controller
 
         return DataTables::of($units)
             ->addColumn('actions', function ($row) {
-                return '<button class="btn btn-primary btn-sm edit-unit" data-id="' . $row->id . '">Edit</button>' .
+                return '<button class="btn btn-warning btn-sm edit-unit" data-id="' . $row->id . '">Edit</button>' .
                     '<button class="btn btn-primary btn-sm update-status" data-id="' . $row->id . '" data-status="' . $row->approval_status . '">Update Status</button> ' .
                     '<button class="btn btn-danger btn-sm delete-unit" data-id="' . $row->id . '">Delete</button>';
             })
@@ -426,7 +426,7 @@ class AdminController extends Controller
                 })
                 ->addColumn('actions', function ($row) {
                     return '<div class="d-flex justify-content-between">
-                                <button class="btn btn-primary btn-sm edit-student" data-id="' . $row->id . '">Edit</button>
+                                <button class="btn btn-warning btn-sm edit-student" data-id="' . $row->id . '">Edit</button>
                                 <button class="btn btn-danger btn-sm delete-student" data-id="' . $row->id . '">Delete</button>
                             </div>';
                 })

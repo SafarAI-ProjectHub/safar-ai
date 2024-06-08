@@ -17,7 +17,7 @@
                         </a>
                     </li>
 
-                    <li class="nav-item dropdown dropdown-laungauge d-none d-sm-flex">
+                    {{-- <li class="nav-item dropdown dropdown-laungauge d-none d-sm-flex">
                         <a class="nav-link dropdown-toggle dropdown-toggle-nocaret" href="avascript:;"
                             data-bs-toggle="dropdown"><img src="{{ asset('assets/images/county/02.png') }}"
                                 width="22" alt="">
@@ -73,14 +73,14 @@
                             </li>
                         </ul>
 
-                    </li>
+                    </li> --}}
 
                     <li class="nav-item dark-mode d-none d-sm-flex">
                         <a class="nav-link dark-mode-icon" href="javascript:;"><i class='bx bx-moon'></i>
                         </a>
                     </li>
 
-                    <li class="nav-item dropdown dropdown-app">
+                    {{-- <li class="nav-item dropdown dropdown-app">
                         <a class="nav-link dropdown-toggle dropdown-toggle-nocaret" data-bs-toggle="dropdown"
                             href="javascript:;">
                             <i class='bx bx-grid-alt'></i>
@@ -362,133 +362,24 @@
                                 <!--end row-->
                             </div>
                         </div>
-                    </li>
+                    </li> --}}
 
 
                     <li class="nav-item dropdown dropdown-large">
                         <a class="nav-link dropdown-toggle dropdown-toggle-nocaret position-relative" href="#"
                             data-bs-toggle="dropdown">
-                            <span class="alert-count">7</span>
+                            <span class="alert-count">0</span>
                             <i class='bx bx-bell'></i>
                         </a>
                         <div class="dropdown-menu dropdown-menu-end">
                             <a href="javascript:;">
                                 <div class="msg-header">
                                     <p class="msg-header-title">Notifications</p>
-                                    <p class="msg-header-badge">8 New</p>
+                                    <p class="msg-header-badge"><span id="unread-count">0</span> New</p>
                                 </div>
                             </a>
-                            <div class="header-notifications-list app-container">
-                                <a class="dropdown-item" href="javascript:;">
-                                    <div class="d-flex align-items-center">
-                                        <div class="user-online">
-                                            <img src="{{ asset('assets/images/avatars/avatar-1.png') }}"
-                                                class="msg-avatar" alt="user avatar">
-                                        </div>
-                                        <div class="flex-grow-1">
-                                            <h6 class="msg-name">Daisy Anderson<span class="msg-time float-end">5 sec
-                                                    ago</span></h6>
-                                            <p class="msg-info">The standard chunk of lorem</p>
-                                        </div>
-                                    </div>
-                                </a>
-                                <a class="dropdown-item" href="javascript:;">
-                                    <div class="d-flex align-items-center">
-                                        <div class="notify bg-light-danger text-danger">dc</div>
-                                        <div class="flex-grow-1">
-                                            <h6 class="msg-name">New Orders<span class="msg-time float-end">2 min
-                                                    ago</span></h6>
-                                            <p class="msg-info">You have received new orders</p>
-                                        </div>
-                                    </div>
-                                </a>
-                                <a class="dropdown-item" href="javascript:;">
-                                    <div class="d-flex align-items-center">
-                                        <div class="user-online">
-                                            <img src="{{ asset('assets/images/avatars/avatar-2.png') }}"
-                                                class="msg-avatar" alt="user avatar">
-                                        </div>
-                                        <div class="flex-grow-1">
-                                            <h6 class="msg-name">Althea Cabardo<span class="msg-time float-end">14 sec
-                                                    ago</span></h6>
-                                            <p class="msg-info">Many desktop publishing packages</p>
-                                        </div>
-                                    </div>
-                                </a>
-                                <a class="dropdown-item" href="javascript:;">
-                                    <div class="d-flex align-items-center">
-                                        <div class="notify bg-light-success text-success">
-                                            <img src="{{ asset('assets/images/app/outlook.png') }}" width="25"
-                                                alt="user avatar">
-                                        </div>
-                                        <div class="flex-grow-1">
-                                            <h6 class="msg-name">Account Created<span class="msg-time float-end">28
-                                                    min ago</span></h6>
-                                            <p class="msg-info">Successfully created new email</p>
-                                        </div>
-                                    </div>
-                                </a>
-                                <a class="dropdown-item" href="javascript:;">
-                                    <div class="d-flex align-items-center">
-                                        <div class="notify bg-light-info text-info">Ss</div>
-                                        <div class="flex-grow-1">
-                                            <h6 class="msg-name">New Product Approved<span
-                                                    class="msg-time float-end">2 hrs ago</span></h6>
-                                            <p class="msg-info">Your new product has approved</p>
-                                        </div>
-                                    </div>
-                                </a>
-                                <a class="dropdown-item" href="javascript:;">
-                                    <div class="d-flex align-items-center">
-                                        <div class="user-online">
-                                            <img src="{{ asset('assets/images/avatars/avatar-4.png') }}"
-                                                class="msg-avatar" alt="user avatar">
-                                        </div>
-                                        <div class="flex-grow-1">
-                                            <h6 class="msg-name">Katherine Pechon<span class="msg-time float-end">15
-                                                    min ago</span></h6>
-                                            <p class="msg-info">Making this the first true generator</p>
-                                        </div>
-                                    </div>
-                                </a>
-                                <a class="dropdown-item" href="javascript:;">
-                                    <div class="d-flex align-items-center">
-                                        <div class="notify bg-light-success text-success">
-                                            <i class='bx bx-check-square'></i>
-                                        </div>
-                                        <div class="flex-grow-1">
-                                            <h6 class="msg-name">Your item is shipped<span
-                                                    class="msg-time float-end">5 hrs ago</span></h6>
-                                            <p class="msg-info">Successfully shipped your item</p>
-                                        </div>
-                                    </div>
-                                </a>
-                                <a class="dropdown-item" href="javascript:;">
-                                    <div class="d-flex align-items-center">
-                                        <div class="notify bg-light-primary">
-                                            <img src="{{ asset('assets/images/app/github.png') }}" width="25"
-                                                alt="user avatar">
-                                        </div>
-                                        <div class="flex-grow-1">
-                                            <h6 class="msg-name">New 24 authors<span class="msg-time float-end">1 day
-                                                    ago</span></h6>
-                                            <p class="msg-info">24 new authors joined last week</p>
-                                        </div>
-                                    </div>
-                                </a>
-                                <a class="dropdown-item" href="javascript:;">
-                                    <div class="d-flex align-items-center">
-                                        <div class="user-online">
-                                            <img src="{{ asset('assets/images/avatars/avatar-8.png') }}"
-                                                class="msg-avatar" alt="user avatar">
-                                        </div>
-                                        <div class="flex-grow-1">
-                                            <h6 class="msg-name">Peter Costanzo<span class="msg-time float-end">6 hrs
-                                                    ago</span></h6>
-                                            <p class="msg-info">It was popularised in the 1960s</p>
-                                        </div>
-                                    </div>
-                                </a>
+                            <div class="header-notifications-list app-container" id="notification-list">
+                                <!-- Notifications will be appended here -->
                             </div>
                             <a href="javascript:;">
                                 <div class="text-center msg-footer">
@@ -499,7 +390,7 @@
                     </li>
 
 
-                    <li class="nav-item dropdown dropdown-large">
+                    {{-- <li class="nav-item dropdown dropdown-large">
                         <a class="nav-link dropdown-toggle dropdown-toggle-nocaret position-relative" href="#"
                             role="button" data-bs-toggle="dropdown" aria-expanded="false">
                             <span class="alert-count">8</span>
@@ -704,7 +595,7 @@
                                 </div>
                             </a>
                         </div>
-                    </li>
+                    </li> --}}
 
 
                 </ul>
@@ -761,3 +652,100 @@
         </nav>
     </div>
 </header>
+
+<script>
+    // Initialize Pusher
+    Pusher.logToConsole = true;
+
+    window.Echo = new Echo({
+        broadcaster: 'pusher',
+        key: '{{ env('PUSHER_APP_KEY') }}',
+        cluster: '{{ env('PUSHER_APP_CLUSTER') }}',
+        forceTLS: true,
+        authEndpoint: '/broadcasting/auth',
+        auth: {
+            headers: {
+                Authorization: 'Bearer:' + '{{ csrf_token() }}',
+            },
+        },
+    });
+
+    function truncateMessage(message, maxLength) {
+        if (message.length > maxLength) {
+            return message.substring(0, maxLength) + '...';
+        }
+        return message;
+    }
+
+    function timeAgo(date) {
+        const now = new Date();
+        const seconds = Math.floor((now - new Date(date)) / 1000);
+        let interval = Math.floor(seconds / 31536000);
+
+        if (interval > 1) {
+            return interval + ' years ago';
+        }
+        interval = Math.floor(seconds / 2592000);
+        if (interval > 1) {
+            return interval + ' months ago';
+        }
+        interval = Math.floor(seconds / 604800);
+        if (interval > 1) {
+            return interval + ' weeks ago';
+        }
+        interval = Math.floor(seconds / 86400);
+        if (interval > 1) {
+            return interval + ' days ago';
+        }
+        interval = Math.floor(seconds / 3600);
+        if (interval > 1) {
+            return interval + ' hours ago';
+        }
+        interval = Math.floor(seconds / 60);
+        if (interval > 1) {
+            return interval + ' minutes ago';
+        }
+        return Math.floor(seconds) + ' seconds ago';
+    }
+
+    $(document).ready(function() {
+        function fetchNotifications() {
+            $.ajax({
+                url: "{{ route('notifications.get') }}",
+                method: "GET",
+                success: function(response) {
+                    $('.alert-count').text(response.unread_count);
+                    $('.msg-header-badge').text(response.unread_count + ' New');
+                    $('#notification-list').empty();
+                    response.notifications.forEach(function(notification) {
+                        let truncatedMessage = truncateMessage(notification.message, 30);
+                        let notificationItem = `
+                            <a class="dropdown-item" href="javascript:;">
+                                <div class="d-flex align-items-center">
+                                    <div class="notify bg-light-primary p-2 fs-4">
+                                        <i class='bx ${notification.icon}'></i>
+                                    </div>
+                                    <div class="flex-grow-1">
+                                        <h6 class="msg-name">${notification.title}<span class="msg-time float-end">${timeAgo(notification.created_at)}</span></h6>
+                                        <p class="msg-info">${truncatedMessage}</p>
+                                    </div>
+                                </div>
+                            </a>
+                        `;
+                        $('#notification-list').append(notificationItem);
+                    });
+                },
+                error: function(xhr, status, error) {
+                    console.error('Error fetching notifications:', error);
+                }
+            });
+        }
+
+        fetchNotifications();
+
+        Echo.private('notifications.' + '{{ Auth::id() }}')
+            .listen('NotificationEvent', (e) => {
+                fetchNotifications();
+            });
+    });
+</script>

@@ -20,6 +20,9 @@ class ZoomMeeting extends Model
         'password',
         'join_url',
     ];
+    protected $casts = [
+        'start_time' => 'datetime',
+    ];
     public function user()
     {
         return $this->belongsTo(User::class);

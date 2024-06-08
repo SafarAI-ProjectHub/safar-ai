@@ -104,7 +104,7 @@ class QuizController extends Controller
         return DataTables::of($quizzes)
             ->addColumn('actions', function ($quiz) {
                 return '<div class="d-flex justify-content-around">
-                <button class="btn btn-primary btn-sm edit-quiz" data-id="' . $quiz->id . '">Edit</button>
+                <button class="btn btn-warning btn-sm edit-quiz" data-id="' . $quiz->id . '">Edit</button>
                 <button class="btn btn-danger btn-sm delete-quiz" data-id="' . $quiz->id . '">Delete</button>
             </div>';
             })
