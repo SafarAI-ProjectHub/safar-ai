@@ -156,6 +156,15 @@ Route::middleware(['auth', 'role:Teacher|Super Admin'])->prefix('teacher')->grou
 
 });
 
+// Routes for Students and Super Admin
+Route::middleware(['auth', 'role:Student'])->prefix('student')->group(function () {
+    // meetings
+    Route::get('student/meetings', [StudentController::class, 'myMeetings'])->name('student.meetings.index');
+    Route::get('student/meetings/datatable', [StudentController::class, 'getMeetings'])->name('student.meetings.datatable');
+    Route::get('student/meetings/{id}', [StudentController::class, 'showMeeting'])->name('student.meetings.show');
+
+});
+
 // Routes for Admin access only
 Route::middleware(['auth', 'role:Admin'])->get('/admin', [AdminController::class, 'index'])->name('admin.uploadVideo');
 
@@ -171,5 +180,8 @@ Route::middleware(['auth'])->group(function () {
     Route::get('courses/{courseId}/show', [CourseController::class, 'showcourse'])->name('admin.showcourse');
 
     // Notifications
-    Route::get('/notifications', [NotificationController::class, 'getNotifications'])->name('notifications.get');
+    Route::get('/notifications/get', [NotificationController::class, 'getNotifications'])->name('notifications.get');
+    Route::get('/notifications', [NotificationController::class, 'index'])->name('notifications.index');
+    Route::get('/notifications/mark-as-seen', [NotificationController::class, 'markAsSeen'])->name('notifications.markAsSeen');
+
 });

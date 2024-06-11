@@ -159,5 +159,9 @@ class User extends Authenticatable
         return $this->hasMany(ZoomMeeting::class);
     }
 
+    public function meetings()
+    {
+        return $this->hasMany(UserMeeting::class);
+    }
 
 }

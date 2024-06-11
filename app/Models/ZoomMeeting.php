@@ -33,4 +33,8 @@ class ZoomMeeting extends Model
     {
         return $this->belongsTo(Course::class);
     }
+    public function userMeetings()
+    {
+        return $this->hasMany(UserMeeting::class);
+    }
 }

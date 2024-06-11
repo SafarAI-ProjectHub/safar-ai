@@ -381,7 +381,7 @@
                             <div class="header-notifications-list app-container" id="notification-list">
                                 <!-- Notifications will be appended here -->
                             </div>
-                            <a href="javascript:;">
+                            <a href="{{ route('notifications.index') }}">
                                 <div class="text-center msg-footer">
                                     <button class="btn btn-primary w-100">View All Notifications</button>
                                 </div>

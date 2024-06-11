@@ -36,9 +36,11 @@
                         <option value="all"
                             {{ isset($zoomMeeting) && $zoomMeeting->invite_option == 'all' ? 'selected' : '' }}>All Students
                         </option>
-                        <option value="teachers"
-                            {{ isset($zoomMeeting) && $zoomMeeting->invite_option == 'teachers' ? 'selected' : '' }}>All
-                            Teachers</option>
+                        @hasrole('Admin|Super Admin')
+                            <option value="teachers"
+                                {{ isset($zoomMeeting) && $zoomMeeting->invite_option == 'teachers' ? 'selected' : '' }}>All
+                                Teachers</option>
+                        @endhasrole
                         <option value="course_specific"
                             {{ isset($zoomMeeting) && $zoomMeeting->invite_option == 'course_specific' ? 'selected' : '' }}>
                             Specific Course</option>

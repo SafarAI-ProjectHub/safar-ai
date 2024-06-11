@@ -6,6 +6,7 @@ use App\Models\ZoomMeeting;
 use App\Models\Course;
 use App\Models\User;
 use App\Models\Notification;
+use App\Models\UserMeeting;
 use App\Events\NotificationEvent;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -89,9 +90,21 @@ class ZoomMeetingController extends Controller
             $invitedUsers = collect();
 
             if ($inviteOption == 'all') {
-                $invitedUsers = User::whereHas('roles', function ($q) {
-                    $q->where('name', 'student');
-                })->get();
+                if (Auth::user()->hasRole('Teacher')) {
+                    $courses = Auth::user()->teacher->courses;
+
+
+                    foreach ($courses as $course) {
+                        $invitedUsers = $course->students()->with('user')->get()->pluck('user');
+                    }
+
+                } elseif (Auth::user()->hasRole('Admin|Super Admin')) {
+                    $invitedUsers = User::whereHas('roles', function ($q) {
+                        $q->where('name', 'student');
+                    })->get();
+                } else {
+                    abort(403);
+                }
             } elseif ($inviteOption == 'teachers') {
                 $invitedUsers = User::whereHas('roles', function ($q) {
                     $q->where('name', 'teacher');
@@ -102,6 +115,9 @@ class ZoomMeetingController extends Controller
             }
 
             foreach ($invitedUsers as $invitedUser) {
+
+
+
                 $notification = Notification::create([
                     'user_id' => $invitedUser->id,
                     'title' => 'New Zoom Meeting',
@@ -109,8 +125,17 @@ class ZoomMeetingController extends Controller
                     'icon' => 'bx bx-video',
                     'type' => 'meeting',
                     'is_seen' => false,
+                    'model_id' => $zoomMeeting->id,
                     'reminder' => false,
                     'reminder_time' => null,
+                ]);
+
+                UserMeeting::create([
+                    'user_id' => $invitedUser->id,
+                    'meeting_id' => $zoomMeeting->id,
+                    'meeting_title' => $request->input('topic'),
+                    'meeting_description' => $request->input('agenda'),
+                    'meeting_time' => $request->input('start_time'),
                 ]);
 
                 event(new NotificationEvent($notification));
@@ -118,7 +143,7 @@ class ZoomMeetingController extends Controller
 
             return response()->json(['message' => 'Meeting created successfully.']);
         } catch (\Exception $e) {
-            return response()->json(['error' => 'Failed to create meeting: ' . $e->getMessage()], 500);
+            return response()->json(['error' => 'Failed to create meeting wertgr: ' . $e->getMessage()], 500);
         }
     }
 
@@ -188,13 +213,29 @@ class ZoomMeetingController extends Controller
             $invitedUsers = collect();
 
             if ($inviteOption == 'all') {
-                $invitedUsers = User::whereHas('roles', function ($q) {
-                    $q->where('name', 'student');
-                })->get();
+                if (Auth::user()->hasRole('Teacher')) {
+                    $courses = Auth::user()->teacher->courses;
+
+
+                    foreach ($courses as $course) {
+                        $invitedUsers = $course->students()->with('user')->get()->pluck('user');
+                    }
+
+                } elseif (Auth::user()->hasRole('Admin|Super Admin')) {
+                    $invitedUsers = User::whereHas('roles', function ($q) {
+                        $q->where('name', 'student');
+                    })->get();
+                } else {
+                    abort(403);
+                }
             } elseif ($inviteOption == 'teachers') {
-                $invitedUsers = User::whereHas('roles', function ($q) {
-                    $q->where('name', 'teacher');
-                })->get();
+                if (Auth::user()->hasRole('Admin|Super Admin')) {
+                    $invitedUsers = User::whereHas('roles', function ($q) {
+                        $q->where('name', 'teacher');
+                    })->get();
+                } else {
+                    abort(403);
+                }
             } elseif ($inviteOption == 'course_specific') {
                 $course = Course::findOrFail($request->course_id);
                 $invitedUsers = $course->students()->with('user')->get()->pluck('user');
@@ -207,9 +248,18 @@ class ZoomMeetingController extends Controller
                     'message' => "The Zoom meeting has been updated: " . $request->input('topic'),
                     'icon' => 'bx bx-video',
                     'type' => 'meeting',
+                    'model_id' => $zoomMeeting->id,
                     'is_seen' => false,
                     'reminder' => false,
                     'reminder_time' => null,
+                ]);
+
+                UserMeeting::create([
+                    'user_id' => $invitedUser->id,
+                    'meeting_id' => $zoomMeeting->id,
+                    'meeting_title' => $request->input('topic'),
+                    'meeting_description' => $request->input('agenda'),
+                    'meeting_time' => $request->input('start_time'),
                 ]);
 
                 event(new NotificationEvent($notification));
@@ -238,19 +288,47 @@ class ZoomMeetingController extends Controller
     public function getMeetings(Request $request)
     {
         try {
-            $zoomMeetings = ZoomMeeting::with(['user', 'course'])->get();
-            return DataTables::of($zoomMeetings)
+            $user = Auth::user();
+            $zoomMeetings = [];
+
+            if ($user->hasRole('Admin|Super Admin')) {
+                $zoomMeetings = ZoomMeeting::with(['user', 'course'])->get();
+            } elseif ($user->hasRole('Teacher')) {
+                $zoomMeetings = ZoomMeeting::where('user_id', $user->id)->with(['user', 'course'])->get();
+            } else {
+                abort(403);
+            }
+
+            $dataTable = DataTables::of($zoomMeetings)
+                ->editColumn('start_time', function ($row) {
+                    return \Carbon\Carbon::parse($row->start_time)->format('d-m-Y / h:i A');
+                })
+                ->editColumn('duration', function ($row) {
+                    $hours = intdiv($row->duration, 60);
+                    $minutes = $row->duration % 60;
+                    return $hours > 0
+                        ? ($hours . ' hour' . ($hours > 1 ? 's' : '') . ($minutes > 0 ? ' ' . $minutes . ' minute' . ($minutes > 1 ? 's' : '') : ''))
+                        : $row->duration . ' minute' . ($row->duration > 1 ? 's' : '');
+                })
                 ->addColumn('actions', function ($row) {
                     return '
-                        <a href="#" class="btn btn-sm btn-primary view-meeting" data-id="' . $row->id . '">View</a>
-                        <a href="' . route('zoom-meetings.edit', $row->id) . '" class="btn btn-sm btn-warning">Edit</a>
-                        <button class="btn btn-sm btn-danger delete-meeting" data-id="' . $row->id . '">Delete</button>
-                    ';
+                <a href="#" class="btn btn-sm btn-primary view-meeting" data-id="' . $row->id . '">View</a>
+                <a href="' . route('zoom-meetings.edit', $row->id) . '" class="btn btn-sm btn-warning">Edit</a>
+                <button class="btn btn-sm btn-danger delete-meeting" data-id="' . $row->id . '">Delete</button>
+            ';
                 })
-                ->rawColumns(['actions'])
-                ->make(true);
+                ->rawColumns(['actions']);
+
+            if ($user->hasRole('Admin|Super Admin')) {
+                $dataTable->addColumn('teacher_name', function ($row) {
+                    return $row->user->full_name;
+                });
+            }
+
+            return $dataTable->make(true);
         } catch (\Exception $e) {
             return response()->json(['error' => 'Failed to load meetings: ' . $e->getMessage()], 500);
         }
     }
+
 }

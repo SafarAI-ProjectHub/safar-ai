@@ -128,25 +128,35 @@
             </li>
         @endhasanyrole
 
-        @hasanyrole('Super Admin|Admin|Teacher')
+        @hasanyrole('Super Admin|Admin|Teacher|Student')
             <li>
                 <a href="javascript:;" class="has-arrow">
                     <div class="parent-icon"><i class='bx bx-video'></i></div>
                     <div class="menu-title">Zoom</div>
                 </a>
                 <ul>
-                    <li>
-                        <a href="{{ route('zoom-meetings.index') }}">
-                            <div class="parent-icon"><i class="bx bx-calendar"></i></div>
-                            <div class="menu-title">Zoom Meetings</div>
-                        </a>
-                    </li>
-                    <li>
-                        <a href="{{ route('zoom-meetings.create') }}">
-                            <div class="parent-icon"><i class="bx bx-plus"></i></div>
-                            <div class="menu-title">Schedule Meeting</div>
-                        </a>
-                    </li>
+                    @hasanyrole('Super Admin|Admin|Teacher')
+                        <li>
+                            <a href="{{ route('zoom-meetings.index') }}">
+                                <div class="parent-icon"><i class="bx bx-calendar"></i></div>
+                                <div class="menu-title">Zoom Meetings</div>
+                            </a>
+                        </li>
+                        <li>
+                            <a href="{{ route('zoom-meetings.create') }}">
+                                <div class="parent-icon"><i class="bx bx-plus"></i></div>
+                                <div class="menu-title">Schedule Meeting</div>
+                            </a>
+                        </li>
+                    @endhasanyrole
+                    @hasanyrole('Student')
+                        <li>
+                            <a href="{{ route('student.meetings.index') }}">
+                                <div class="parent-icon"><i class="bx bx-meeting"></i></div>
+                                <div class="menu-title">My Zoom Meetings</div>
+                            </a>
+                        </li>
+                    @endhasanyrole
                 </ul>
             </li>
         @endhasanyrole

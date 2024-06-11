@@ -10,6 +10,9 @@
                 <table id="zoom-meetings-table" class="table table-striped table-bordered">
                     <thead>
                         <tr>
+                            @if (Auth::user()->hasRole('Admin|Super Admin'))
+                                <th>Teacher Name</th>
+                            @endif
                             <th>Topic</th>
                             <th>Start Time</th>
                             <th>Duration</th>
@@ -31,6 +34,9 @@
                     <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                 </div>
                 <div class="modal-body">
+                    @if (Auth::user()->hasRole('Admin|Super Admin'))
+                        <p><strong>Teacher Name:</strong> <span id="teacherName"></span></p>
+                    @endif
                     <p><strong>Topic:</strong> <span id="meetingTopic"></span></p>
                     <p><strong>Agenda:</strong> <span id="meetingAgenda"></span></p>
                     <p><strong>Start Time:</strong> <span id="meetingStartTime"></span></p>
@@ -53,7 +59,13 @@
                 processing: true,
                 serverSide: true,
                 ajax: "{{ route('zoom-meetings.datatable') }}",
-                columns: [{
+                columns: [
+                    @if (Auth::user()->hasRole('Admin|Super Admin'))
+                        {
+                            data: 'teacher_name',
+                            name: 'teacher_name'
+                        },
+                    @endif {
                         data: 'topic',
                         name: 'topic'
                     },
@@ -68,7 +80,7 @@
                     {
                         data: 'join_url',
                         name: 'join_url',
-                        render: function(data, type, row) {
+                        render: function(data) {
                             return '<a href="' + data + '" target="_blank">Join Meeting</a>';
                         }
                     },
@@ -84,6 +96,9 @@
             $('#zoom-meetings-table').on('click', '.view-meeting', function() {
                 var meetingId = $(this).data('id');
                 $.get('/zoom-meetings/' + meetingId, function(data) {
+                    @if (Auth::user()->hasRole('Admin|Super Admin'))
+                        $('#teacherName').text(data.teacher_name);
+                    @endif
                     $('#meetingTopic').text(data.topic);
                     $('#meetingAgenda').text(data.agenda);
                     $('#meetingStartTime').text(data.start_time);
@@ -112,19 +127,13 @@
                                 _token: '{{ csrf_token() }}',
                             },
                             success: function(response) {
-                                Swal.fire(
-                                    'Deleted!',
-                                    'Your meeting has been deleted.',
-                                    'success'
-                                );
+                                Swal.fire('Deleted!', 'Your meeting has been deleted.',
+                                    'success');
                                 table.ajax.reload();
                             },
                             error: function(xhr) {
-                                Swal.fire(
-                                    'Error!',
-                                    'Failed to delete the meeting.',
-                                    'error'
-                                );
+                                Swal.fire('Error!', 'Failed to delete the meeting.',
+                                    'error');
                             }
                         });
                     }

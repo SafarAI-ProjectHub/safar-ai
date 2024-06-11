@@ -5,20 +5,16 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 
-class Notification extends Model
+class UserMeeting extends Model
 {
     use HasFactory;
 
     protected $fillable = [
         'user_id',
-        'title',
-        'message',
-        'icon',
-        'type',
-        'is_seen',
-        'reminder',
-        'reminder_time',
-        'model_id',
+        'meeting_id',
+        'meeting_title',
+        'meeting_description',
+        'meeting_time',
     ];
 
     public function user()
@@ -26,8 +22,8 @@ class Notification extends Model
         return $this->belongsTo(User::class);
     }
 
-    public function userMeeting()
+    public function meeting()
     {
-        return $this->belongsTo(UserMeeting::class, 'model_id');
+        return $this->belongsTo(Meeting::class);
     }
 }
