@@ -714,13 +714,17 @@
                 url: "{{ route('notifications.get') }}",
                 method: "GET",
                 success: function(response) {
+                    console.log('Notifications:', response);
                     $('.alert-count').text(response.unread_count);
                     $('.msg-header-badge').text(response.unread_count + ' New');
                     $('#notification-list').empty();
                     response.notifications.forEach(function(notification) {
                         let truncatedMessage = truncateMessage(notification.message, 30);
+                        if (notification.type === 'meeting') {
+                        notificationUrl = `/student/meetings/${notification.model_id}`;
+                    }
                         let notificationItem = `
-                            <a class="dropdown-item" href="javascript:;">
+                            <a class="dropdown-item" href="${notificationUrl}">
                                 <div class="d-flex align-items-center">
                                     <div class="notify bg-light-primary p-2 fs-4">
                                         <i class='bx ${notification.icon}'></i>

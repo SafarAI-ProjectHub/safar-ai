@@ -159,9 +159,9 @@ Route::middleware(['auth', 'role:Teacher|Super Admin'])->prefix('teacher')->grou
 // Routes for Students and Super Admin
 Route::middleware(['auth', 'role:Student'])->prefix('student')->group(function () {
     // meetings
-    Route::get('student/meetings', [StudentController::class, 'myMeetings'])->name('student.meetings.index');
-    Route::get('student/meetings/datatable', [StudentController::class, 'getMeetings'])->name('student.meetings.datatable');
-    Route::get('student/meetings/{id}', [StudentController::class, 'showMeeting'])->name('student.meetings.show');
+    Route::get('/meetings', [StudentController::class, 'myMeetings'])->name('student.meetings.index');
+    Route::get('/meetings/datatable', [StudentController::class, 'getMeetings'])->name('student.meetings.datatable');
+    Route::get('/meetings/{id}', [StudentController::class, 'showMeeting'])->name('student.meetings.show');
 
 });
 
@@ -185,3 +185,11 @@ Route::middleware(['auth'])->group(function () {
     Route::get('/notifications/mark-as-seen', [NotificationController::class, 'markAsSeen'])->name('notifications.markAsSeen');
 
 });
+
+
+
+// routes/web.php
+
+Route::get('/level-test', [StudentController::class, 'levelTest'])->name('student.level_test');
+Route::post('/level-test/submit', [StudentController::class, 'submit'])->name('level-test.submit');
+Route::get('/level-test', [StudentController::class, 'index'])->name('student.level_test');

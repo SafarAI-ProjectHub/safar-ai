@@ -101,7 +101,7 @@
                                 <p class="text">{{ $notification->message }}</p>
                                 <p class="text"><small>{{ $notification->created_at->diffForHumans() }}</small></p>
                                 @if ($notification->type == 'meeting')
-                                    <a href="">See Details</a>
+                                    <a href="{{ route('student.meetings.show' ,$notification->model_id ) }}">See Details</a>
                                 @endif
                             </div>
                         </div>

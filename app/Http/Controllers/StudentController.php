@@ -7,14 +7,36 @@ use App\Models\Course;
 use App\Models\UserMeeting;
 use Yajra\DataTables\Facades\DataTables;
 use Illuminate\Support\Facades\Auth;
+use App\Models\LevelTestAssessment;
+use App\Models\LevelTest;
+use App\Models\LevelTestQuestion;
+
 
 class StudentController extends Controller
-{
+{   
     public function index()
-    {
-        $courses = Course::all();
-        return view('dashboard.student.dashboard', compact('courses'));
+{
+    // Check if the user is a student and has a pending status
+    if (Auth::user()->hasRole('Student') && Auth::user()->status === 'pending') {
+        // Check if the user has already completed the level test
+        $completedLevelTest = LevelTestAssessment::where('user_id', Auth::id())->exists();
+
+        // If the user hasn't completed the level test, show the level test form
+        if (!$completedLevelTest) {
+            // Fetch the level test questions
+            $levelTestQuestions = LevelTestQuestion::whereHas('levelTest', function ($query) {
+                $query->where('exam_type', 'student')->where('active', true);
+            })->get();
+
+            return view('dashboard.student.level_test', compact('levelTestQuestions'));
+        }
     }
+
+    // Render the default student dashboard if the user doesn't need to take the level test
+    $courses = Course::all();
+    return view('dashboard.student.dashboard', compact('courses'));
+}
+    
 
     public function myMeetings()
     {
@@ -25,7 +47,10 @@ class StudentController extends Controller
     {
         try {
             $user = Auth::user();
-            $userMeetings = UserMeeting::where('user_id', $user->id)->with(['meeting', 'meeting.user'])->get();
+            $userMeetings = UserMeeting::where('user_id', $user->id)->with(['meeting', 'meeting.user'])->whereHas('meeting', function ($query) {
+                $query->where('start_time', '>=', now());
+            })
+            ->get();
 
             $dataTable = DataTables::of($userMeetings)
                 ->editColumn('meeting.start_time', function ($row) {
@@ -60,5 +85,24 @@ class StudentController extends Controller
         $userMeeting = UserMeeting::where('user_id', Auth::id())->where('meeting_id', $id)->with(['meeting', 'meeting.user'])->firstOrFail();
 
         return view('dashboard.student.meeting-details', compact('userMeeting'));
+    }
+
+
+    /* 
+    *
+    *
+    *level test functions
+    *
+    *
+    */
+   
+
+    public function submit(Request $request)
+    {
+        // Validate the form data
+
+        // Store the assessment in the database
+
+        // Redirect the user after submission
     }
 }

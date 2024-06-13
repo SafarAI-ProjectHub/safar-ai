@@ -134,7 +134,7 @@
             <div class="invalid-feedback"></div>
             <label>Question Type</label>
             <select class="form-select question-type" name="questions[][type]" required>
-                <option value="" disabled>Select Type</option>
+                <option value="" disabled selected>Select Type</option>
                 <option value="choice">Multiple Choice</option>
                 <option value="text">Writing</option>
                 <option value="voice">Voice Recorded</option>

@@ -18,6 +18,14 @@
                 </a>
             </li>
         @endhasanyrole
+        @hasanyrole('Student')
+        <li>
+            <a href="{{ route('student.dashboard') }}">
+                <div class="parent-icon"><i class='bx bx-home'></i></div>
+                <div class="menu-title">Home</div>
+            </a>
+        </li>
+    @endhasanyrole
 
         @hasanyrole('Super Admin|Admin')
             <li>
@@ -46,7 +54,7 @@
                     </li>
                     <li>
                         <a href="{{ route('teacherTest.addPage') }}">
-                            <div class="parent-icon"><i class="bx bx-plus"></i></div>
+                            <div class="parent-icon"><i class="bx bx-plus-circle"></i></div>
                             <div class="menu-title">Add Level Test</div>
                         </a>
                     </li>
@@ -111,7 +119,7 @@
                         </li>
                         <li>
                             <a href="{{ route('studentTest.addPage') }}">
-                                <div class="parent-icon"><i class="bx bx-plus"></i></div>
+                                <div class="parent-icon"><i class="bx bx-plus-circle"></i></div>
                                 <div class="menu-title">Add Level Test</div>
                             </a>
                         </li>
@@ -144,7 +152,7 @@
                         </li>
                         <li>
                             <a href="{{ route('zoom-meetings.create') }}">
-                                <div class="parent-icon"><i class="bx bx-plus"></i></div>
+                                <div class="parent-icon"><i class="bx bx-plus-circle"></i></div>
                                 <div class="menu-title">Schedule Meeting</div>
                             </a>
                         </li>

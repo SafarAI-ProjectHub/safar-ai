@@ -24,6 +24,6 @@ class UserMeeting extends Model
 
     public function meeting()
     {
-        return $this->belongsTo(Meeting::class);
+        return $this->belongsTo(ZoomMeeting::class);
     }
 }
