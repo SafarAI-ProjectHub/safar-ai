@@ -10,33 +10,41 @@ use Illuminate\Support\Facades\Auth;
 use App\Models\LevelTestAssessment;
 use App\Models\LevelTest;
 use App\Models\LevelTestQuestion;
-
+use OpenAI\Laravel\Facades\OpenAI;
+use Illuminate\Support\Facades\Storage;
 
 class StudentController extends Controller
-{   
-    public function index()
 {
-    // Check if the user is a student and has a pending status
-    if (Auth::user()->hasRole('Student') && Auth::user()->status === 'pending') {
-        // Check if the user has already completed the level test
-        $completedLevelTest = LevelTestAssessment::where('user_id', Auth::id())->exists();
+    public function index()
+    {
+        if (Auth::user()->hasRole('Student') && Auth::user()->status === 'pending') {
+            $completedLevelTest = LevelTestAssessment::where('user_id', Auth::id())->exists();
 
-        // If the user hasn't completed the level test, show the level test form
-        if (!$completedLevelTest) {
-            // Fetch the level test questions
-            $levelTestQuestions = LevelTestQuestion::whereHas('levelTest', function ($query) {
-                $query->where('exam_type', 'student')->where('active', true);
-            })->get();
-
-            return view('dashboard.student.level_test', compact('levelTestQuestions'));
+            if (!$completedLevelTest) {
+                $levelTestQuestions = LevelTestQuestion::with('levelTest')->whereHas('levelTest', function ($query) {
+                    $query->where('exam_type', 'student')->where('active', true);
+                })->get();
+                return view('dashboard.student.level_test', compact('levelTestQuestions'));
+            }
         }
-    }
 
-    // Render the default student dashboard if the user doesn't need to take the level test
-    $courses = Course::all();
-    return view('dashboard.student.dashboard', compact('courses'));
-}
-    
+        $user = Auth::user();
+        $ageGroup = $user->getAgeGroup();
+
+        $category = \DB::table('course_category')
+            ->where('age_group', $ageGroup)
+            ->first();
+
+        if ($category) {
+            $courses = \App\Models\Course::where('level', $user->english_proficiency_level)
+                ->where('category_id', $category->id)
+                ->get();
+        } else {
+            $courses = collect(); // Empty collection
+        }
+
+        return view('dashboard.student.dashboard', compact('courses'));
+    }
 
     public function myMeetings()
     {
@@ -87,22 +95,219 @@ class StudentController extends Controller
         return view('dashboard.student.meeting-details', compact('userMeeting'));
     }
 
-
     /* 
     *
     *
-    *level test functions
+    * Level test functions
     *
     *
     */
-   
 
     public function submit(Request $request)
+{
+    $user = Auth::user();
+    $data = $request->all();
+    $assessments = [];
+    $openAiRequests = [];
+    $audioTranscriptions = [];
+
+    // Map question keys to question IDs
+    $questions = LevelTestQuestion::all()->keyBy('id');
+
+    foreach ($data as $key => $value) {
+        if (strpos($key, 'question_') !== false) {
+            $questionId = explode('_', $key)[1];
+            $question = $questions->get($questionId);
+
+            if (!$question) {
+                continue; // Skip if question does not exist
+            }
+
+            if ($question->question_type === 'choice') {
+                $choices = $question->choices;
+                $correctChoice = $choices->where('is_correct', true)->first();
+                $userChoice = $choices->where('id', $value)->first();
+                $correct = $userChoice->is_correct ? 1 : 0;
+
+                $openAiRequests[] = [
+                    'question' => $question->question_text,
+                    'choices' => $choices->pluck('choice_text')->toArray(),
+                    'correct_answer' => $correctChoice->choice_text,
+                    'user_answer' => $userChoice->choice_text,
+                    'question_id' => $question->id
+                ];
+
+                $assessments[] = [
+                    'level_test_question_id' => $question->id,
+                    'user_id' => $user->id,
+                    'response' => $value,
+                    'correct' => $correct,
+                    'ai_review' => null,
+                    'Admin_review' => null,
+                    'created_at' => now(),
+                    'updated_at' => now()
+                ];
+            } elseif ($question->question_type === 'text') {
+                $openAiRequests[] = [
+                    'question' => $question->question_text,
+                    'notes' => $question->sub_text,
+                    'answer' => $value,
+                    'question_id' => $question->id
+                ];
+                $assessments[] = [
+                    'level_test_question_id' => $question->id,
+                    'user_id' => $user->id,
+                    'response' => $value,
+                    'correct' => null,
+                    'ai_review' => null,
+                    'Admin_review' => null,
+                    'created_at' => now(),
+                    'updated_at' => now()
+                ];
+            } elseif ($question->question_type === 'voice' && $request->hasFile("question_{$questionId}_audio")) {
+                // Save audio file
+                $path = $request->file("question_{$questionId}_audio")->store('audio_responses');
+                $audioTranscriptions[] = [
+                    'path' => $path,
+                    'question_text' => $question->question_text,
+                    'notes' => $question->sub_text,
+                    'question_id' => $question->id
+                ];
+                $assessments[] = [
+                    'level_test_question_id' => $question->id,
+                    'user_id' => $user->id,
+                    'response' => $path,
+                    'correct' => null,
+                    'ai_review' => null,
+                    'Admin_review' => null,
+                    'created_at' => now(),
+                    'updated_at' => now()
+                ];
+            }
+        }
+    }
+
+    LevelTestAssessment::insert($assessments);
+
+    // Process text and choice data with OpenAI
+    if (!empty($openAiRequests)) {
+        $textPrompt = $this->generatePrompt($openAiRequests, $user->age);
+        $textResponse = OpenAI::chat()->create([
+            'model' => 'gpt-3.5-turbo',
+            'messages' => [
+                ['role' => 'system', 'content' => 'You are an English proficiency evaluator.'],
+                ['role' => 'user', 'content' => $textPrompt]
+            ],
+            'max_tokens' => 1000
+        ]);
+        $textAiResults = $textResponse['choices'][0]['message']['content'];
+    } else {
+        $textAiResults = '';
+    }
+    dd($textAiResults);
+
+    // Process audio transcriptions and send to OpenAI
+    foreach ($audioTranscriptions as $audio) {
+        $audioContent = Storage::get($audio['path']);
+        $transcription = $this->transcribeAudio($audioContent);
+
+        $openAiRequests[] = [
+            'question' => $audio['question_text'],
+            'notes' => $audio['notes'],
+            'answer' => $transcription,
+            'question_id' => $audio['question_id']
+        ];
+    }
+
+    // Send audio transcriptions to OpenAI
+    if (!empty($openAiRequests)) {
+        $audioPrompt = $this->generatePrompt($openAiRequests, $user->age);
+        $audioResponse = OpenAI::chat()->create([
+            'model' => 'gpt-3.5-turbo',
+            'messages' => [
+                ['role' => 'system', 'content' => 'You are an English proficiency evaluator.'],
+                ['role' => 'user', 'content' => $audioPrompt]
+            ],
+            'max_tokens' => 1000
+        ]);
+        $audioAiResults = $audioResponse['choices'][0]['message']['content'];
+    } else {
+        $audioAiResults = '';
+    }
+
+    // Combine text and audio AI results
+    $combinedAiResults = $textAiResults . "\n" . $audioAiResults;
+
+    // Process AI results and update assessments
+    $this->processAiResults($combinedAiResults, $assessments);
+
+    // Update user's English proficiency level
+    $user->student->english_proficiency_level = $this->determineProficiencyLevel($combinedAiResults);
+    $user->save();
+
+    return response()->json(['success' => true]);
+}
+
+
+    private function generatePrompt($requests, $age)
     {
-        // Validate the form data
+        $prompt = "The following are responses from a non-native English speaking student aged $age. Please review and provide feedback:\n\n";
+        foreach ($requests as $request) {
+            $prompt .= "Question: {$request['question']}\n";
+            if (isset($request['choices'])) {
+                $prompt .= "Choices: " . implode(', ', $request['choices']) . "\n";
+                $prompt .= "Correct Answer: {$request['correct_answer']}\n";
+                $prompt .= "Student Answer: {$request['user_answer']}\n\n";
+            } else {
+                $prompt .= "Teacher Notes: {$request['notes']}\n";
+                $prompt .= "Student Answer: {$request['answer']}\n\n";
+            }
+        }
+        return $prompt;
+    }
 
-        // Store the assessment in the database
+    private function processAiResults($aiResults, $assessments)
+    {
+        $lines = explode("\n", trim($aiResults));
+        foreach ($assessments as $index => $assessment) {
+            // Extract AI review and correctness from aiResults (assuming a simple line-based format)
+            $lineIndex = $index * 2 + 1; // Adjusting index as per AI response format
+            $aiReview = $lines[$lineIndex] ?? '';
+            $correctness = strpos($aiReview, 'Correct') !== false;
 
-        // Redirect the user after submission
+            LevelTestAssessment::where('id', $assessment['id'])->update([
+                'correct' => $correctness,
+                'ai_review' => $aiReview
+            ]);
+        }
+    }
+
+    private function determineProficiencyLevel($aiResults)
+    {
+        $correctAnswers = substr_count($aiResults, 'Correct');
+        if ($correctAnswers >= 5) {
+            return 6; // Advanced
+        } elseif ($correctAnswers >= 4) {
+            return 5; // Upper-Intermediate
+        } elseif ($correctAnswers >= 3) {
+            return 4; // Intermediate
+        } elseif ($correctAnswers >= 2) {
+            return 3; // Pre-Intermediate
+        } elseif ($correctAnswers >= 1) {
+            return 2; // Elementary
+        } else {
+            return 1; // Beginner
+        }
+    }
+
+    private function transcribeAudio($audioContent)
+    {
+        $response = OpenAI::transcriptions()->create([
+            'model' => 'whisper-1',
+            'file' => fopen($audioContent, 'r'),
+            'language' => 'en'
+        ]);
+
+        return $response['text'];
     }
 }

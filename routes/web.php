@@ -192,4 +192,4 @@ Route::middleware(['auth'])->group(function () {
 
 Route::get('/level-test', [StudentController::class, 'levelTest'])->name('student.level_test');
 Route::post('/level-test/submit', [StudentController::class, 'submit'])->name('level-test.submit');
-Route::get('/level-test', [StudentController::class, 'index'])->name('student.level_test');
+Route::get('/Home', [StudentController::class, 'index'])->name('student.level_test');

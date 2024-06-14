@@ -94,7 +94,7 @@ class User extends Authenticatable
     // Student's relation 
     public function student()
     {
-        return $this->hasOne(Student::class);
+        return $this->hasOne(Student::class , 'student_id');
     }
 
     //teacher's relation
@@ -164,4 +164,18 @@ class User extends Authenticatable
         return $this->hasMany(UserMeeting::class);
     }
 
+    public function getAgeGroup()
+{
+    $age = \Carbon\Carbon::parse($this->date_of_birth)->age;
+    
+    if ($age >= 6 && $age <= 10) {
+        return '6-10';
+    } elseif ($age > 10 && $age <= 14) {
+        return '10-14';
+    } elseif ($age > 14 && $age <= 18) {
+        return '14-18';
+    } else {
+        return '18+';
+    }
+}
 }
