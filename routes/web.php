@@ -169,7 +169,7 @@ Route::middleware(['auth', 'role:Student'])->prefix('student')->group(function (
 Route::middleware(['auth', 'role:Admin'])->get('/admin', [AdminController::class, 'index'])->name('admin.uploadVideo');
 
 // Routes for Teacher access only
-Route::middleware(['auth', 'role:Teacher'])->get('/teacher', [TeacherController::class, 'index'])->name('teacher.dashboard');
+// Route::middleware(['auth', 'role:Teacher'])->get('/teacher', [TeacherController::class, 'index'])->name('teacher.dashboard');
 
 // Routes for Student access only
 Route::middleware(['auth', 'role:Student'])->get('/student', [StudentController::class, 'index'])->name('student.dashboard');
@@ -192,4 +192,4 @@ Route::middleware(['auth'])->group(function () {
 
 Route::get('/level-test', [StudentController::class, 'levelTest'])->name('student.level_test');
 Route::post('/level-test/submit', [StudentController::class, 'submit'])->name('level-test.submit');
-Route::get('/Home', [StudentController::class, 'index'])->name('student.level_test');
+Route::get('/Home', [StudentController::class, 'index'])->name('student.level_test.home');
