@@ -132,7 +132,11 @@ Route::middleware(['auth', 'role:Super Admin|Admin|Teacher'])->group(function ()
     Route::delete('quizzes/{quizId}/delete', [QuizController::class, 'deleteQuiz'])->name('quiz.deleteQuiz');
     Route::get('courses/quiz/add', [QuizController::class, 'addQuizPage'])->name('quiz.addPage');
     Route::get('courses/quiz/edit', [QuizController::class, 'editQuizPage'])->name('quiz.editPage');
-
+    Route::get('quizzes/{quizId}/results', [QuizController::class, 'showResults'])->name('quiz.showResults');
+    Route::get('quizzes/{quizId}/results/data', [QuizController::class, 'resultsDataTable'])->name('quiz.resultsDataTable');
+    Route::get('assessments/{assessmentId}/response', [QuizController::class, 'getStudentResponse'])->name('assessment.getStudentResponse');
+    Route::post('assessments/{assessmentId}/review', [QuizController::class, 'saveReview'])->name('assessment.saveReview');
+    
     // Meeting Routes
     Route::get('zoom-meetings', [ZoomMeetingController::class, 'index'])->name('zoom-meetings.index');
     Route::get('zoom-meetings/datatable', [ZoomMeetingController::class, 'getMeetings'])->name('zoom-meetings.datatable');
@@ -167,9 +171,6 @@ Route::middleware(['auth', 'role:Student'])->prefix('student')->group(function (
 
 // Routes for Admin access only
 Route::middleware(['auth', 'role:Admin'])->get('/admin', [AdminController::class, 'index'])->name('admin.uploadVideo');
-
-// Routes for Teacher access only
-// Route::middleware(['auth', 'role:Teacher'])->get('/teacher', [TeacherController::class, 'index'])->name('teacher.dashboard');
 
 // Routes for Student access only
 Route::middleware(['auth', 'role:Student'])->get('/student', [StudentController::class, 'index'])->name('student.dashboard');

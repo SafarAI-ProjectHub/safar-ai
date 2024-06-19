@@ -119,7 +119,7 @@
                                 </button>
                             </div>
                             <input type="file" id="audio-upload_{{ $loop->iteration }}"
-                                name="question_{{ $question->id }}_audio" style="display:none;" accept="audio/*" required>
+                                name="question_{{ $question->id }}_audio" style="display:none;" accept="audio/*" >
                             <audio id="audio-playback_{{ $loop->iteration }}" controls
                                 style="display:none; width: 100%;"></audio>
                         @elseif($question->question_type === 'choice')

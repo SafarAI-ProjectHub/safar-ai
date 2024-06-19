@@ -104,6 +104,7 @@ class QuizController extends Controller
         return DataTables::of($quizzes)
             ->addColumn('actions', function ($quiz) {
                 return '<div class="d-flex justify-content-around">
+                <a href="/quizzes/' . $quiz->id . '/results" class="btn btn-info btn-sm">Show Results</a>
                 <button class="btn btn-warning btn-sm edit-quiz" data-id="' . $quiz->id . '">Edit</button>
                 <button class="btn btn-danger btn-sm delete-quiz" data-id="' . $quiz->id . '">Delete</button>
             </div>';
@@ -111,6 +112,39 @@ class QuizController extends Controller
             ->rawColumns(['actions'])
             ->make(true);
     }
+
+    public function showResults($quizId)
+    {
+        $quiz = Quiz::findOrFail($quizId);
+        return view('dashboard.quiz.results', compact('quiz'));
+    }
+
+    public function resultsDataTable($quizId)
+    {
+        $quiz = Quiz::with(['unit.course.students', 'assessments'])->findOrFail($quizId);
+        $students = $quiz->unit->course->students;
+
+        $data = $students->map(function ($student) use ($quiz) {
+            $assessment = $quiz->assessments->firstWhere('user_id', $student->id);
+            return [
+                'name' => $student->name,
+                'status' => $assessment ? 'Submitted' : 'Not Submitted',
+                'ai_mark' => $assessment->ai_mark ?? '-',
+                'teacher_mark' => $assessment->teacher_mark ?? '-',
+                'score' => $assessment->score ?? '-',
+                'actions' => $assessment ? '<button class="btn btn-info btn-sm view-response" data-id="' . $assessment->id . '">View Response</button>' : ''
+            ];
+        });
+
+        return DataTables::of($data)->rawColumns(['actions'])->make(true);
+    }
+
+    public function getStudentResponse($assessmentId)
+    {
+        $assessment = Assessment::with('quiz.questions.choices', 'user')->findOrFail($assessmentId);
+        return response()->json($assessment);
+    }
+
 
     /**
      * Store a newly created quiz and its questions.

@@ -132,7 +132,7 @@ class StudentController extends Controller
                         'user_answer' => $userChoice->choice_text,
                         'question_id' => $question->id
                     ];
-
+                    dd($value);
                     $assessments[] = [
                         'level_test_question_id' => $question->id,
                         'user_id' => $user->id,
@@ -283,8 +283,9 @@ class StudentController extends Controller
 
     private function processAiResults($aiResults, $assessments)
     {
+        dd($assessments);
         \Log::info("inside processAiResults");
-        dd($aiResults);
+        // dd($aiResults);
         foreach ($assessments as $index => $assessment) {
             // Assuming aiResults is an array where each element corresponds to an assessment
             $aiReview = $aiResults[$index]['review'] ?? ''; // Adjust this based on your JSON structure

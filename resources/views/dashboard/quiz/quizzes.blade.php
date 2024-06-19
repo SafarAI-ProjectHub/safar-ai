@@ -70,7 +70,7 @@
                 ],
                 columnDefs: [{
                     targets: 3,
-                    width: '15%'
+                    width: '30%'
                 }],
                 lengthChange: false
             });

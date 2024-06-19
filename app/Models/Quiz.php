@@ -15,6 +15,11 @@ class Quiz extends Model
     {
         return $this->belongsTo(Unit::class, 'unit_id');
     }
+    // add function to libk quiz to course by unit
+    public function course()
+    {
+        return $this->unit->course();
+    }
 
     public function questions()
     {
@@ -26,4 +31,10 @@ class Quiz extends Model
         $this->pass_mark = $mark;
         $this->save();
     }
+
+    public function assessments()
+    {
+        return $this->hasMany(Assessment::class);
+    }
+
 }

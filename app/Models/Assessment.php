@@ -9,6 +9,17 @@ class Assessment extends Model
 {
     use HasFactory;
 
+    protected $fillable = [
+        'quiz_id',
+        'user_id',
+        'ai_mark',
+        'response',
+        'teacher_mark',
+        'ai_notes',
+        'score',
+        'teacher_notes',
+        'assessment_date'
+    ];
     public function quiz()
     {
         return $this->belongsTo(Quiz::class, 'quiz_id');
