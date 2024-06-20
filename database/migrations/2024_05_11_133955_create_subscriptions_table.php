@@ -13,12 +13,15 @@ return new class extends Migration {
         Schema::create('subscriptions', function (Blueprint $table) {
             $table->id();
             $table->foreignId('user_id')->constrained('users');
-            $table->foreignId('course_id')->constrained('courses');
             $table->date('subscription_date');
             $table->date('expiry_date');
             $table->enum('payment_method', ['card', 'cliq', 'paypal']);
-            $table->enum('subscription_type', ['monthly', 'yearly']);
+            $table->enum('subscription_type', ['monthly', 'yearly', 'trial']);
+            $table->string('description')->nullable();
+            $table->string('paypal_plan_id')->nullable();
             $table->boolean('is_cancelled')->default(false);
+            $table->boolean('is_active')->default(true);
+            $table->json('features')->nullable();
             $table->timestamps();
         });
     }

@@ -2,6 +2,7 @@
 
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\FileUploadController;
+use App\Http\Controllers\AdminSubscriptionController;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\AdminController;
 use App\Http\Controllers\QuizController;
@@ -105,6 +106,20 @@ Route::middleware(['auth', 'role:Admin|Super Admin'])->prefix('admin')->group(fu
     Route::post('/upload', [FileUploadController::class, 'process'])->name('filepond.upload');
     Route::delete('/upload', [FileUploadController::class, 'revert'])->name('filepond.revert');
     Route::get('/upload/{id}', [FileUploadController::class, 'load'])->name('filepond.load');
+
+    // Subscriptions
+
+    // GROUP ROUTES WITH PREFIX SUBSCRIPTIONS
+
+    Route::prefix('subscriptions')->group(function () {
+        Route::get('/', [AdminSubscriptionController::class, 'index'])->name('admin.subscriptions.index');
+        Route::get('/create', [AdminSubscriptionController::class, 'create'])->name('admin.subscriptions.create');
+        Route::post('/', [AdminSubscriptionController::class, 'store'])->name('admin.subscriptions.store');
+        Route::get('/{subscription}/edit', [AdminSubscriptionController::class, 'edit'])->name('admin.subscriptions.edit');
+        Route::put('/{subscription}', [AdminSubscriptionController::class, 'update'])->name('admin.subscriptions.update');
+        Route::delete('/{subscription}', [AdminSubscriptionController::class, 'destroy'])->name('admin.subscriptions.destroy');
+        Route::post('/toggle-active/{id}', [AdminSubscriptionController::class, 'toggleActive'])->name('admin.subscriptions.toggleActive');
+    });
 });
 
 // Routes for Super Admin, Admin, and Teacher
@@ -136,7 +151,7 @@ Route::middleware(['auth', 'role:Super Admin|Admin|Teacher'])->group(function ()
     Route::get('quizzes/{quizId}/results/data', [QuizController::class, 'resultsDataTable'])->name('quiz.resultsDataTable');
     Route::get('assessments/{assessmentId}/response', [QuizController::class, 'getStudentResponse'])->name('assessment.getStudentResponse');
     Route::post('assessments/{assessmentId}/review', [QuizController::class, 'saveReview'])->name('assessment.saveReview');
-    
+
     // Meeting Routes
     Route::get('zoom-meetings', [ZoomMeetingController::class, 'index'])->name('zoom-meetings.index');
     Route::get('zoom-meetings/datatable', [ZoomMeetingController::class, 'getMeetings'])->name('zoom-meetings.datatable');

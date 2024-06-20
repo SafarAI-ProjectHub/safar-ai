@@ -9,25 +9,49 @@ class Subscription extends Model
 {
     use HasFactory;
 
-    public function user()
+    protected $fillable = [
+        'user_id',
+        'subscription_date',
+        'expiry_date',
+        'payment_method',
+        'subscription_type',
+        'paypal_plan_id',
+        'is_cancelled',
+        'is_active',
+        'features',
+    ];
+
+    protected $casts = [
+        'features' => 'array',
+    ];
+
+    public function userSubscriptions()
     {
-        return $this->belongsTo(User::class, 'user_id');
+        return $this->hasMany(UserSubscription::class);
     }
 
-    public function course()
+    public function users()
     {
-        return $this->belongsTo(Course::class, 'course_id');
+        return $this->belongsToMany(User::class, 'user_subscriptions')
+            ->withPivot('start_date', 'end_date')
+            ->withTimestamps();
     }
 
-    public function setType($type)
+    public function payments()
     {
-        $this->subscription_type = $type;
-        $this->save();
+        return $this->hasMany(Payment::class);
     }
 
-    public function cancel()
+    // Accessor for subscription type
+    public function getSubscriptionTypeAttribute($value)
     {
-        $this->is_cancelled = true;
-        $this->save();
+        return ucfirst($value);
     }
+
+    //$this -> paypal_plan_id
+    public function paypal_plan_id()
+    {
+        return $this->paypal_plan_id ? $this->paypal_plan_id : 'N/A';
+    }
+
 }

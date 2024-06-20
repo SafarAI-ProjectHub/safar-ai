@@ -10,14 +10,12 @@ return new class extends Migration {
      */
     public function up(): void
     {
-        Schema::create('payments', function (Blueprint $table) {
+        Schema::create('user_subscriptions', function (Blueprint $table) {
             $table->id();
-            $table->foreignId('subscription_id')->constrained('subscriptions');
             $table->foreignId('user_id')->constrained('users');
-            $table->decimal('amount', 8, 2);
-            $table->enum('payment_status', ['pending', 'completed']);
-            $table->enum('payment_type', ['paypal', 'cliq']); // To differentiate between payment types
-            $table->dateTime('transaction_date');
+            $table->foreignId('subscription_id')->constrained('subscriptions');
+            $table->date('start_date');
+            $table->date('end_date');
             $table->timestamps();
         });
     }
@@ -27,6 +25,6 @@ return new class extends Migration {
      */
     public function down(): void
     {
-        Schema::dropIfExists('payments');
+        Schema::dropIfExists('user_subscriptions');
     }
 };

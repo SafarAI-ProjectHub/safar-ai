@@ -169,6 +169,7 @@ return [
         Jubaer\Zoom\ZoomServiceProvider::class,
         App\Providers\EventServiceProvider::class,
         App\Providers\RouteServiceProvider::class,
+        Srmklive\PayPal\Providers\PayPalServiceProvider::class,
     ])->toArray(),
 
     /*
@@ -185,6 +186,7 @@ return [
     'aliases' => Facade::defaultAliases()->merge([
         // 'Example' => App\Facades\Example::class,
         'Zoom' => Jubaer\Zoom\Facades\Zoom::class,
+        'PayPal' => Srmklive\PayPal\Facades\PayPal::class,
 
     ])->toArray(),
 

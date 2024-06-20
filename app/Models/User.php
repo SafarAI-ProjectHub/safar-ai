@@ -86,15 +86,33 @@ class User extends Authenticatable
     }
 
     // Subscriptions that the user has
+    public function userSubscriptions()
+    {
+        return $this->hasMany(UserSubscription::class);
+    }
+
     public function subscriptions()
     {
-        return $this->hasMany(Subscription::class);
+        return $this->belongsToMany(Subscription::class, 'user_subscriptions')
+            ->withPivot('start_date', 'end_date')
+            ->withTimestamps();
+    }
+
+    public function activeSubscription()
+    {
+        return $this->subscriptions()->wherePivot('end_date', '>', now())->first();
+    }
+
+    public function getSubscriptionTypeAttribute()
+    {
+        $activeSubscription = $this->activeSubscription();
+        return $activeSubscription ? $activeSubscription->subscription_type : 'None';
     }
 
     // Student's relation 
     public function student()
     {
-        return $this->hasOne(Student::class , 'student_id');
+        return $this->hasOne(Student::class, 'student_id');
     }
 
     //teacher's relation
@@ -165,17 +183,17 @@ class User extends Authenticatable
     }
 
     public function getAgeGroup()
-{
-    $age = \Carbon\Carbon::parse($this->date_of_birth)->age;
-    
-    if ($age >= 6 && $age <= 10) {
-        return '6-10';
-    } elseif ($age > 10 && $age <= 14) {
-        return '10-14';
-    } elseif ($age > 14 && $age <= 18) {
-        return '14-18';
-    } else {
-        return '18+';
+    {
+        $age = \Carbon\Carbon::parse($this->date_of_birth)->age;
+
+        if ($age >= 6 && $age <= 10) {
+            return '6-10';
+        } elseif ($age > 10 && $age <= 14) {
+            return '10-14';
+        } elseif ($age > 14 && $age <= 18) {
+            return '14-18';
+        } else {
+            return '18+';
+        }
     }
-}
 }
