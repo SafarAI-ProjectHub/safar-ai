@@ -14,6 +14,8 @@ use App\Http\Controllers\levelTest\TeacherTestController;
 use App\Http\Controllers\levelTest\StudentTestController;
 use App\Http\Controllers\NotificationController;
 use Illuminate\Support\Facades\Broadcast;
+use App\Http\Controllers\SubscriptionController;
+
 
 Broadcast::routes(['middleware' => ['auth']]);
 
@@ -115,9 +117,6 @@ Route::middleware(['auth', 'role:Admin|Super Admin'])->prefix('admin')->group(fu
         Route::get('/', [AdminSubscriptionController::class, 'index'])->name('admin.subscriptions.index');
         Route::get('/create', [AdminSubscriptionController::class, 'create'])->name('admin.subscriptions.create');
         Route::post('/', [AdminSubscriptionController::class, 'store'])->name('admin.subscriptions.store');
-        Route::get('/{subscription}/edit', [AdminSubscriptionController::class, 'edit'])->name('admin.subscriptions.edit');
-        Route::put('/{subscription}', [AdminSubscriptionController::class, 'update'])->name('admin.subscriptions.update');
-        Route::delete('/{subscription}', [AdminSubscriptionController::class, 'destroy'])->name('admin.subscriptions.destroy');
         Route::post('/toggle-active/{id}', [AdminSubscriptionController::class, 'toggleActive'])->name('admin.subscriptions.toggleActive');
     });
 });
@@ -182,6 +181,10 @@ Route::middleware(['auth', 'role:Student'])->prefix('student')->group(function (
     Route::get('/meetings/datatable', [StudentController::class, 'getMeetings'])->name('student.meetings.datatable');
     Route::get('/meetings/{id}', [StudentController::class, 'showMeeting'])->name('student.meetings.show');
 
+    // subscriptions
+
+    Route::post('/subscriptions/create', [SubscriptionController::class, 'create'])->name('subscriptions.create');
+
 });
 
 // Routes for Admin access only
@@ -209,3 +212,10 @@ Route::middleware(['auth'])->group(function () {
 Route::get('/level-test', [StudentController::class, 'levelTest'])->name('student.level_test');
 Route::post('/level-test/submit', [StudentController::class, 'submit'])->name('level-test.submit');
 Route::get('/Home', [StudentController::class, 'index'])->name('student.level_test.home');
+
+
+// webhooks
+Route::post('/paypal/webhook', [SubscriptionController::class, 'handleWebhook'])->name('paypal.webhook');
+Route::post('/paypal/webhook', [SubscriptionController::class, 'handleWebhook'])->name('paypal.webhook');
+Route::get('/paypal/return', [SubscriptionController::class, 'handleReturn'])->name('paypal.return');
+Route::get('/paypal/cancel', [SubscriptionController::class, 'handleCancel'])->name('paypal.cancel');

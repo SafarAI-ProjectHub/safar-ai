@@ -261,168 +261,169 @@
 
 
             <!-- ======= Pricing Section ======= -->
-            {{-- <section id="pricing" class="pricing">
-            <div class="container" data-aos="fade-up">
-                <header class="section-header">
-                    <h2>Pricing</h2>
-                    <p>Check our Pricing</p>
-                </header>
-                <ul class="nav nav-tabs top-50 start-50" id="myTab" role="tablist">
-                    <li class="nav-item" role="presentation">
-                        <button class="nav-link active" id="monthly-tab" data-bs-toggle="tab" data-bs-target="#month"
-                            type="button" role="tab" aria-controls="home" aria-selected="true">Monthly</button>
-                    </li>
-                    <li class="nav-item" role="presentation">
-                        <button class="nav-link" id="yearly-tab" data-bs-toggle="tab" data-bs-target="#year"
-                            type="button" role="tab" aria-controls="home" aria-selected="false">Yearly</button>
-                    </li>
+            <section id="pricing" class="pricing">
+                <div class="container" data-aos="fade-up">
+                    <header class="section-header">
+                        <h2>Pricing</h2>
+                        <p>Check our Pricing</p>
+                    </header>
+                    <ul class="nav nav-tabs top-50 start-50" id="myTab" role="tablist">
+                        <li class="nav-item" role="presentation">
+                            <button class="nav-link active" id="monthly-tab" data-bs-toggle="tab"
+                                data-bs-target="#month" type="button" role="tab" aria-controls="home"
+                                aria-selected="true">Monthly</button>
+                        </li>
+                        <li class="nav-item" role="presentation">
+                            <button class="nav-link" id="yearly-tab" data-bs-toggle="tab" data-bs-target="#year"
+                                type="button" role="tab" aria-controls="home" aria-selected="false">Yearly</button>
+                        </li>
 
-                </ul>
-                <div class=" row gy-4 tab-content" id="myTabContent">
-                    <!-- Monthly Pricing -->
-                    <div class="row gy-4 tab-pane fade show active" id="month" role="tabpanel"
-                        aria-labelledby="monthly-tab">
-                        <!-- Monthly Plan Cards -->
-                        <div class="col-lg-3 col-md-6" data-aos="zoom-in" data-aos-delay="100">
-                            <div class="box">
-                                <h3 style="color: #07d5c0;">Free Plan</h3>
-                                <div class="price"><sup>$</sup>0<span> / mo</span></div>
-                                <img src="assets/img/pricing-free.png" class="img-fluid" alt="">
-                                <ul>
-                                    <li>Aida dere</li>
-                                    <li>Nec feugiat nisl</li>
-                                    <li>Nulla at volutpat dola</li>
-                                    <li class="na">Pharetra massa</li>
-                                    <li class="na">Massa ultricies mi</li>
-                                </ul>
-                                <a href="#" class="btn-buy">Buy Now</a>
+                    </ul>
+                    <div class=" row gy-4 tab-content" id="myTabContent">
+                        <!-- Monthly Pricing -->
+                        <div class="row gy-4 tab-pane fade show active" id="month" role="tabpanel"
+                            aria-labelledby="monthly-tab">
+                            <!-- Monthly Plan Cards -->
+                            <div class="col-lg-3 col-md-6" data-aos="zoom-in" data-aos-delay="100">
+                                <div class="box">
+                                    <h3 style="color: #07d5c0;">Free Plan</h3>
+                                    <div class="price"><sup>$</sup>0<span> / mo</span></div>
+                                    <img src="assets/img/pricing-free.png" class="img-fluid" alt="">
+                                    <ul>
+                                        <li>Aida dere</li>
+                                        <li>Nec feugiat nisl</li>
+                                        <li>Nulla at volutpat dola</li>
+                                        <li class="na">Pharetra massa</li>
+                                        <li class="na">Massa ultricies mi</li>
+                                    </ul>
+                                    <a href="#" class="btn-buy">Buy Now</a>
+                                </div>
                             </div>
+
+                            <div class="col-lg-3 col-md-6" data-aos="zoom-in" data-aos-delay="200">
+                                <div class="box">
+                                    <span class="featured">Featured</span>
+                                    <h3 style="color: #65c600;">Starter Plan</h3>
+                                    <div class="price"><sup>$</sup>19<span> / mo</span></div>
+                                    <img src="assets/img/pricing-starter.png" class="img-fluid" alt="">
+                                    <ul>
+                                        <li>Aida dere</li>
+                                        <li>Nec feugiat nisl</li>
+                                        <li>Nulla at volutpat dola</li>
+                                        <li>Pharetra massa</li>
+                                        <li class="na">Massa ultricies mi</li>
+                                    </ul>
+                                    <a href="#" class="btn-buy">Buy Now</a>
+                                </div>
+                            </div>
+
+                            <div class="col-lg-3 col-md-6" data-aos="zoom-in" data-aos-delay="300">
+                                <div class="box">
+                                    <h3 style="color: #ff901c;">Business Plan</h3>
+                                    <div class="price"><sup>$</sup>29<span> / mo</span></div>
+                                    <img src="assets/img/pricing-business.png" class="img-fluid" alt="">
+                                    <ul>
+                                        <li>Aida dere</li>
+                                        <li>Nec feugiat nisl</li>
+                                        <li>Nulla at volutpat dola</li>
+                                        <li>Pharetra massa</li>
+                                        <li>Massa ultricies mi</li>
+                                    </ul>
+                                    <a href="#" class="btn-buy">Buy Now</a>
+                                </div>
+                            </div>
+
+                            <div class="col-lg-3 col-md-6" data-aos="zoom-in" data-aos-delay="400">
+                                <div class="box">
+                                    <h3 style="color: #ff0071;">Ultimate Plan</h3>
+                                    <div class="price"><sup>$</sup>49<span> / mo</span></div>
+                                    <img src="assets/img/pricing-ultimate.png" class="img-fluid" alt="">
+                                    <ul>
+                                        <li>Aida dere</li>
+                                        <li>Nec feugiat nisl</li>
+                                        <li>Nulla at volutpat dola</li>
+                                        <li>Pharetra massa</li>
+                                        <li>Massa ultricies mi</li>
+                                    </ul>
+                                    <a href="#" class="btn-buy">Buy Now</a>
+                                </div>
+                            </div>
+
+
                         </div>
 
-                        <div class="col-lg-3 col-md-6" data-aos="zoom-in" data-aos-delay="200">
-                            <div class="box">
-                                <span class="featured">Featured</span>
-                                <h3 style="color: #65c600;">Starter Plan</h3>
-                                <div class="price"><sup>$</sup>19<span> / mo</span></div>
-                                <img src="assets/img/pricing-starter.png" class="img-fluid" alt="">
-                                <ul>
-                                    <li>Aida dere</li>
-                                    <li>Nec feugiat nisl</li>
-                                    <li>Nulla at volutpat dola</li>
-                                    <li>Pharetra massa</li>
-                                    <li class="na">Massa ultricies mi</li>
-                                </ul>
-                                <a href="#" class="btn-buy">Buy Now</a>
+                        <!-- Yearly Pricing (Initially Hidden) -->
+                        <div class="row gy-4 tab-pane fade" id="year" role="tabpanel" aria-labelledby="yearly-tab">
+                            <div class="col-lg-3 col-md-6" data-aos="zoom-in" data-aos-delay="100">
+                                <div class="box">
+                                    <h3 style="color: #07d5c0;">Free Plan</h3>
+                                    <div class="price"><sup>$</sup>0<span> / year</span></div>
+                                    <img src="assets/img/pricing-free.png" class="img-fluid" alt="">
+                                    <ul>
+                                        <li>Aida dere</li>
+                                        <li>Nec feugiat nisl</li>
+                                        <li>Nulla at volutpat dola</li>
+                                        <li class="na">Pharetra massa</li>
+                                        <li class="na">Massa ultricies mi</li>
+                                    </ul>
+                                    <a href="#" class="btn-buy">Buy Now</a>
+                                </div>
+                            </div>
+
+                            <div class="col-lg-3 col-md-6" data-aos="zoom-in" data-aos-delay="200">
+                                <div class="box">
+                                    <span class="featured">Featured</span>
+                                    <h3 style="color: #65c600;">Starter Plan</h3>
+                                    <div class="price"><sup>$</sup>19<span> / year</span></div>
+                                    <img src="assets/img/pricing-starter.png" class="img-fluid" alt="">
+                                    <ul>
+                                        <li>Aida dere</li>
+                                        <li>Nec feugiat nisl</li>
+                                        <li>Nulla at volutpat dola</li>
+                                        <li>Pharetra massa</li>
+                                        <li class="na">Massa ultricies mi</li>
+                                    </ul>
+                                    <a href="#" class="btn-buy">Buy Now</a>
+                                </div>
+                            </div>
+
+                            <div class="col-lg-3 col-md-6" data-aos="zoom-in" data-aos-delay="300">
+                                <div class="box">
+                                    <h3 style="color: #ff901c;">Business Plan</h3>
+                                    <div class="price"><sup>$</sup>29<span> / year</span></div>
+                                    <img src="assets/img/pricing-business.png" class="img-fluid" alt="">
+                                    <ul>
+                                        <li>Aida dere</li>
+                                        <li>Nec feugiat nisl</li>
+                                        <li>Nulla at volutpat dola</li>
+                                        <li>Pharetra massa</li>
+                                        <li>Massa ultricies mi</li>
+                                    </ul>
+                                    <a href="#" class="btn-buy">Buy Now</a>
+                                </div>
+                            </div>
+
+                            <div class="col-lg-3 col-md-6" data-aos="zoom-in" data-aos-delay="400">
+                                <div class="box">
+                                    <h3 style="color: #ff0071;">Ultimate Plan</h3>
+                                    <div class="price"><sup>$</sup>49<span> / year</span></div>
+                                    <img src="assets/img/pricing-ultimate.png" class="img-fluid" alt="">
+                                    <ul>
+                                        <li>Aida dere</li>
+                                        <li>Nec feugiat nisl</li>
+                                        <li>Nulla at volutpat dola</li>
+                                        <li>Pharetra massa</li>
+                                        <li>Massa ultricies mi</li>
+                                    </ul>
+                                    <a href="#" class="btn-buy">Buy Now</a>
+                                </div>
                             </div>
                         </div>
-
-                        <div class="col-lg-3 col-md-6" data-aos="zoom-in" data-aos-delay="300">
-                            <div class="box">
-                                <h3 style="color: #ff901c;">Business Plan</h3>
-                                <div class="price"><sup>$</sup>29<span> / mo</span></div>
-                                <img src="assets/img/pricing-business.png" class="img-fluid" alt="">
-                                <ul>
-                                    <li>Aida dere</li>
-                                    <li>Nec feugiat nisl</li>
-                                    <li>Nulla at volutpat dola</li>
-                                    <li>Pharetra massa</li>
-                                    <li>Massa ultricies mi</li>
-                                </ul>
-                                <a href="#" class="btn-buy">Buy Now</a>
-                            </div>
-                        </div>
-
-                        <div class="col-lg-3 col-md-6" data-aos="zoom-in" data-aos-delay="400">
-                            <div class="box">
-                                <h3 style="color: #ff0071;">Ultimate Plan</h3>
-                                <div class="price"><sup>$</sup>49<span> / mo</span></div>
-                                <img src="assets/img/pricing-ultimate.png" class="img-fluid" alt="">
-                                <ul>
-                                    <li>Aida dere</li>
-                                    <li>Nec feugiat nisl</li>
-                                    <li>Nulla at volutpat dola</li>
-                                    <li>Pharetra massa</li>
-                                    <li>Massa ultricies mi</li>
-                                </ul>
-                                <a href="#" class="btn-buy">Buy Now</a>
-                            </div>
-                        </div>
-
-
                     </div>
 
-        <!-- Yearly Pricing (Initially Hidden) -->
-        <div class="row gy-4 tab-pane fade" id="year" role="tabpanel" aria-labelledby="yearly-tab">
-            <div class="col-lg-3 col-md-6" data-aos="zoom-in" data-aos-delay="100">
-                <div class="box">
-                    <h3 style="color: #07d5c0;">Free Plan</h3>
-                    <div class="price"><sup>$</sup>0<span> / year</span></div>
-                    <img src="assets/img/pricing-free.png" class="img-fluid" alt="">
-                    <ul>
-                        <li>Aida dere</li>
-                        <li>Nec feugiat nisl</li>
-                        <li>Nulla at volutpat dola</li>
-                        <li class="na">Pharetra massa</li>
-                        <li class="na">Massa ultricies mi</li>
-                    </ul>
-                    <a href="#" class="btn-buy">Buy Now</a>
+
                 </div>
-            </div>
-
-            <div class="col-lg-3 col-md-6" data-aos="zoom-in" data-aos-delay="200">
-                <div class="box">
-                    <span class="featured">Featured</span>
-                    <h3 style="color: #65c600;">Starter Plan</h3>
-                    <div class="price"><sup>$</sup>19<span> / year</span></div>
-                    <img src="assets/img/pricing-starter.png" class="img-fluid" alt="">
-                    <ul>
-                        <li>Aida dere</li>
-                        <li>Nec feugiat nisl</li>
-                        <li>Nulla at volutpat dola</li>
-                        <li>Pharetra massa</li>
-                        <li class="na">Massa ultricies mi</li>
-                    </ul>
-                    <a href="#" class="btn-buy">Buy Now</a>
-                </div>
-            </div>
-
-            <div class="col-lg-3 col-md-6" data-aos="zoom-in" data-aos-delay="300">
-                <div class="box">
-                    <h3 style="color: #ff901c;">Business Plan</h3>
-                    <div class="price"><sup>$</sup>29<span> / year</span></div>
-                    <img src="assets/img/pricing-business.png" class="img-fluid" alt="">
-                    <ul>
-                        <li>Aida dere</li>
-                        <li>Nec feugiat nisl</li>
-                        <li>Nulla at volutpat dola</li>
-                        <li>Pharetra massa</li>
-                        <li>Massa ultricies mi</li>
-                    </ul>
-                    <a href="#" class="btn-buy">Buy Now</a>
-                </div>
-            </div>
-
-            <div class="col-lg-3 col-md-6" data-aos="zoom-in" data-aos-delay="400">
-                <div class="box">
-                    <h3 style="color: #ff0071;">Ultimate Plan</h3>
-                    <div class="price"><sup>$</sup>49<span> / year</span></div>
-                    <img src="assets/img/pricing-ultimate.png" class="img-fluid" alt="">
-                    <ul>
-                        <li>Aida dere</li>
-                        <li>Nec feugiat nisl</li>
-                        <li>Nulla at volutpat dola</li>
-                        <li>Pharetra massa</li>
-                        <li>Massa ultricies mi</li>
-                    </ul>
-                    <a href="#" class="btn-buy">Buy Now</a>
-                </div>
-            </div>
-        </div>
-        </div>
-
-
-        </div>
-        </section> --}}
+            </section>
 
 
 

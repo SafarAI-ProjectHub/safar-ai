@@ -11,12 +11,14 @@ class Subscription extends Model
 
     protected $fillable = [
         'user_id',
-        'subscription_date',
-        'expiry_date',
+        'product_name',
+        'paypal_product_id',
         'payment_method',
         'subscription_type',
         'paypal_plan_id',
+        'description',
         'is_cancelled',
+        'price',
         'is_active',
         'features',
     ];
@@ -30,11 +32,9 @@ class Subscription extends Model
         return $this->hasMany(UserSubscription::class);
     }
 
-    public function users()
+    public function user()
     {
-        return $this->belongsToMany(User::class, 'user_subscriptions')
-            ->withPivot('start_date', 'end_date')
-            ->withTimestamps();
+        return $this->belongsTo(User::class);
     }
 
     public function payments()

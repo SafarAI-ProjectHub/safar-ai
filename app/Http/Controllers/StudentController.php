@@ -45,8 +45,11 @@ class StudentController extends Controller
             $courses = collect(); // Empty collection
         }
 
-        return view('dashboard.student.dashboard', compact('courses'));
+        $planDetails = \App\Models\Subscription::where('is_active', 1)->first();
+
+        return view('dashboard.student.dashboard', compact('courses', 'planDetails'));
     }
+
 
     public function myMeetings()
     {

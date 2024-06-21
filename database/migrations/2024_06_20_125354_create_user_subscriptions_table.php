@@ -12,10 +12,9 @@ return new class extends Migration {
     {
         Schema::create('user_subscriptions', function (Blueprint $table) {
             $table->id();
-            $table->foreignId('user_id')->constrained('users');
-            $table->foreignId('subscription_id')->constrained('subscriptions');
-            $table->date('start_date');
-            $table->date('end_date');
+            $table->foreignId('user_id');
+            $table->string('subscription_id');
+            $table->enum('status', ['active', 'inactive'])->default('active');
             $table->timestamps();
         });
     }
