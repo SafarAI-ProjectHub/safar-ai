@@ -17,7 +17,20 @@ class SubscriptionController extends Controller
     {
         $this->paypalService = $paypalService;
     }
+    public function showSubscriptionDetails($planId)
+    {
+        $planDetails = Subscription::find($planId);
 
+        if (!$planDetails) {
+            return redirect()->back()->withErrors('Plan not found.');
+        }
+
+        if (!$planDetails->is_active) {
+            return redirect()->back()->withErrors('Plan is not active.');
+        }
+
+        return view('dashboard.student.subscription_details', compact('planDetails'));
+    }
 
 
     public function create(Request $request)
@@ -31,7 +44,7 @@ class SubscriptionController extends Controller
         $payment->subscription_id = $planId;
         $payment->paypal_subscription_id = null;
         $payment->user_id = $user->id;
-        $payment->amount = 0; // Amount will be updated upon PayPal approval
+        $payment->amount = 0;
         $payment->payment_status = 'pending';
         $payment->payment_type = 'paypal';
         $payment->transaction_date = now();
@@ -41,7 +54,7 @@ class SubscriptionController extends Controller
         $userSubscription = UserSubscription::create([
             'user_id' => $user->id,
             'subscription_id' => $planId,
-            'status' => 'inactive',  // Default status is inactive until webhook updates it
+            'status' => 'inactive',
         ]);
 
         // Create PayPal subscription

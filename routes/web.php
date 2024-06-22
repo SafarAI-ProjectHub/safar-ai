@@ -182,8 +182,9 @@ Route::middleware(['auth', 'role:Student'])->prefix('student')->group(function (
     Route::get('/meetings/{id}', [StudentController::class, 'showMeeting'])->name('student.meetings.show');
 
     // subscriptions
-
     Route::post('/subscriptions/create', [SubscriptionController::class, 'create'])->name('subscriptions.create');
+    Route::get('subscription/details/{id}', [SubscriptionController::class, 'showSubscriptionDetails'])->name('subscription.details');
+
 
 });
 
