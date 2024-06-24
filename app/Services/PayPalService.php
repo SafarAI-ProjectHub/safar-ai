@@ -15,6 +15,7 @@ class PayPalService
         $this->paypal->getAccessToken();
     }
 
+
     public function createProduct(string $name, string $description)
     {
         $response = $this->paypal->createProduct([
@@ -65,14 +66,16 @@ class PayPalService
         return $response;
     }
 
-    public function createSubscription(string $planId, string $subscriberEmail)
+    public function createSubscription(string $planId, string $subscriberEmail, string $customId)
     {
         try {
             $response = $this->paypal->createSubscription([
                 'plan_id' => $planId,
                 'subscriber' => [
+                    'custom_id' => $customId,
                     'email_address' => $subscriberEmail,
                 ],
+
                 'application_context' => [
                     'brand_name' => config('app.name'),
                     'locale' => 'en-US',
@@ -84,15 +87,17 @@ class PayPalService
                     ],
                     'return_url' => route('paypal.return'),
                     'cancel_url' => route('paypal.cancel'),
+                    'custom_id' => $customId,
                 ],
             ]);
-
+            // dd($response);
             return $response;
         } catch (\Exception $e) {
             \Log::error('Error creating PayPal Subscription:', ['message' => $e->getMessage()]);
             return ['error' => true, 'message' => $e->getMessage()];
         }
     }
+
 
     public function captureSubscription(string $subscriptionId)
     {

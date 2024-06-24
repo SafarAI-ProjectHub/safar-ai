@@ -20,66 +20,117 @@
 @endsection
 
 @section('content')
-    <div class="container mt-5">
-        <div class="card">
-            <div class="card-header">
-                Subscription Details
-            </div>
-            <div class="card-body">
-                <h5 class="card-title">{{ $planDetails->name }}</h5>
-                <h6 class="card-subtitle mb-2 text-muted">$ {{ $planDetails->price }} / month</h6>
-                <p class="card-text">{{ $planDetails->description }}</p>
-                <ul class="feature-list">
-                    @foreach (json_decode($planDetails->features, true) as $feature)
-                        <li>{{ $feature }}</li>
-                    @endforeach
-                </ul>
-                <button id="subscribeButton" class="btn btn-primary">Subscribe Now</button>
-            </div>
+    @php
+        $isSubscribed = Auth::user()->student->subscription_status == 'subscribed';
+        $subscription = Auth::user()->userSubscriptions->where('status', 'active')->first();
+        $subscription_id = $subscription ? $subscription->subscription_id : 'N/A';
+        $subscription_date = $subscription ? $subscription->created_at->format('M d, Y') : 'N/A';
+        $next_billing_date = $subscription ? $subscription->created_at->addMonth()->format('M d, Y') : 'N/A';
+    @endphp
+
+    <div class="card mb-4">
+
+        <!-- Card body -->
+        <div class="card-body">
+            @if ($isSubscribed)
+                <h2 class="fw-bold mb-0">${{ $planDetails->price }}/Monthly</h2>
+                <p class="mb-0">
+                    Your next monthly charge of
+                    <span class="text-success">${{ $planDetails->price }}</span>
+                    will be applied
+                    <span class="text-success">July 20, 2020.</span>
+                </p>
+            @else
+                <h2 class="fw-bold mb-0">Free Plan</h2>
+                <p class="mb-0">
+                    Your next monthly charge of
+                    <span class="text-success">$0</span>
+                    will be applied
+                    <span class="text-success">N/A.</span>
+                </p>
+            @endif
         </div>
     </div>
-
-    <div class="container mt-5">
-        <div class="row">
-            <div class="col-12">
-                <div class="subscription-card">
-                    <div class="subscription-header">My Subscriptions</div>
-                    <p>Here is the list of packages/products that you have subscribed.</p>
-
-                    <!-- Active Subscription -->
-                    <div class="border-bottom pb-3 mb-3">
-                        <span class="badge bg-success status-active">Active</span>
-                        <h5>Monthly - Subscription ID: #100010002</h5>
-                        <div class="row">
-                            <div class="col-md-3 subscription-info">Started On: Oct 1, 2020</div>
-                            <div class="col-md-3 subscription-info">Price: Monthly</div>
-                            <div class="col-md-3 subscription-info">Access: Access All Courses</div>
-                            <div class="col-md-3 subscription-info">Billing Date: Next Billing on Nov 1, 2020</div>
-                        </div>
-                        <div class="mt-2">
-                            <button class="btn btn-primary">Change Plan</button>
-                            <span class="mx-2">|</span>
-                            <label class="switch">
-                                <input type="checkbox" checked>
-                                <span class="slider round"></span>
-                            </label> Auto Renewal
-                        </div>
+    <div class="card border-0">
+        <!-- Card header -->
+        <div class="card-header d-lg-flex justify-content-between align-items-center">
+            <div class="mb-3 mb-lg-0">
+                <h3 class="mb-0">My Subscriptions</h3>
+                <p class="mb-0">Here is list of package/product that you have subscribed.</p>
+            </div>
+            <div>
+                <a id="upgrade" class="btn btn-success btn-sm">Upgrade Now — Go Pro ${{ $planDetails->price }}</a>
+            </div>
+        </div>
+        <!-- Card body -->
+        <div class="card-body">
+            <div class="border-bottom pt-0 pb-5">
+                <div class="row mb-4">
+                    <div class="col-lg-6 col-md-8 col-7 mb-2 mb-lg-0">
+                        <span class="d-block">
+                            <span class="h4">Monthly</span>
+                            <span class="badge {{ $isSubscribed ? 'bg-success' : 'bg-danger' }} ms-2">
+                                {{ $isSubscribed ? 'Active' : 'Inactive' }}
+                            </span>
+                        </span>
+                        <p class="mb-0 fs-6">Subscription ID:
+                            #{{ $isSubscribed ? '100010' . $subscription_id : $subscription_id }}</p>
                     </div>
 
-                    <!-- Expired Subscription -->
-                    <div>
-                        <span class="badge bg-danger status-expired">Expired</span>
-                        <h5>Free Plan - Subscription ID: #100010001</h5>
-                        <div class="row">
-                            <div class="col-md-3 subscription-info">Started On: Sept 1, 2020</div>
-                            <div class="col-md-3 subscription-info">Price: Free - Trial a Month</div>
-                            <div class="col-md-3 subscription-info">Access: Access All Courses</div>
-                            <div class="col-md-3 subscription-info">Billing Date: Disabled</div>
-                        </div>
+                </div>
+                <!-- Pricing data -->
+                <div class="row">
+                    <div class="col-lg-3 col-md-3 col-6 mb-2 mb-lg-0">
+                        <span class="fs-6">Started On</span>
+                        <h6 class="mb-0">{{ $subscription_date }}</h6>
+                    </div>
+                    <div class="col-lg-3 col-md-3 col-6 mb-2 mb-lg-0">
+                        <span class="fs-6">Price</span>
+                        <h6 class="mb-0">$ {{ $planDetails->price }} / Monthly</h6>
+                    </div>
+                    <div class="col-lg-3 col-md-3 col-6 mb-2 mb-lg-0">
+                        <span class="fs-6">Access</span>
+                        <h6 class="mb-0">Access All Courses</h6>
+                    </div>
+                    <div class="col-lg-3 col-md-3 col-6 mb-2 mb-lg-0">
+                        <span class="fs-6">Billing Date</span>
+                        <h6 class="mb-0">Next Billing on {{ $next_billing_date }}</h6>
                     </div>
                 </div>
-
-                <button class="btn btn-upgrade">Upgrade Now — Go Pro $39.00</button>
+            </div>
+            <div class="pt-5">
+                <div class="row mb-4">
+                    <div class="col mb-2 mb-lg-0">
+                        <span class="d-block">
+                            <span class="h4">Free Plan</span>
+                            <span class="badge {{ $isSubscribed ? 'bg-danger' : 'bg-success' }} ms-2">
+                                {{ $isSubscribed ? 'Inactive' : 'Active' }}
+                            </span>
+                        </span>
+                        <p class="mb-0 fs-6">Subscription ID: #100010{{ $planDetails->id }}</p>
+                    </div>
+                    <div class="col-auto">
+                        <a href="#" class="btn btn-light btn-sm disabled">Disabled</a>
+                    </div>
+                </div>
+                <div class="row">
+                    <div class="col-lg-3 col-md-3 col-6 mb-2 mb-lg-0">
+                        <span class="fs-6">Started On</span>
+                        <h6 class="mb-0">{{ Auth::user()->created_at->format('M d, Y') }}</h6>
+                    </div>
+                    <div class="col-lg-3 col-md-3 col-6 mb-2 mb-lg-0">
+                        <span class="fs-6">Price</span>
+                        <h6 class="mb-0">Free</h6>
+                    </div>
+                    <div class="col-lg-3 col-md-3 col-6 mb-2 mb-lg-0">
+                        <span class="fs-6">Access</span>
+                        <h6 class="mb-0">Access YouTube Videos</h6>
+                    </div>
+                    <div class="col-lg-3 col-md-3 col-6 mb-2 mb-lg-0">
+                        <span class="fs-6">Billing Date</span>
+                        <h6 class="mb-0">N/A</h6>
+                    </div>
+                </div>
             </div>
         </div>
     </div>
@@ -89,7 +140,7 @@
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
     <script>
         $(document).ready(function() {
-            $('#subscribeButton').click(function() {
+            $('#upgrade').click(function() {
                 $.ajax({
                     url: '{{ route('subscriptions.create') }}',
                     method: 'POST',
@@ -111,6 +162,8 @@
                     }
                 });
             });
+
+
         });
     </script>
 @endsection

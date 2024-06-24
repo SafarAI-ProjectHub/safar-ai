@@ -28,6 +28,7 @@ class User extends Authenticatable
         'country_location',
         'profile_image',
         'role_id',
+        'paypal_subscription_id',
         'status',
     ];
 
@@ -95,9 +96,10 @@ class User extends Authenticatable
     public function subscriptions()
     {
         return $this->belongsToMany(Subscription::class, 'user_subscriptions')
-            ->withPivot('start_date', 'end_date')
+            ->withPivot('start_date', 'next_billing_time', 'status')
             ->withTimestamps();
     }
+
 
     public function activeSubscription()
     {

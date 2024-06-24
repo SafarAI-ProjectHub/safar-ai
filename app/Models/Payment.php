@@ -10,17 +10,26 @@ class Payment extends Model
     use HasFactory;
 
     protected $fillable = [
+        'paypal_subscription_id',
         'subscription_id',
+        'user_subscription_id',
         'user_id',
         'amount',
         'payment_status',
         'payment_type',
-        'transaction_date'
+        'transaction_date',
+
     ];
 
     public function subscription()
     {
         return $this->belongsTo(Subscription::class);
+    }
+
+    //user_subscription_id relation 
+    public function userSubscription()
+    {
+        return $this->belongsTo(UserSubscription::class);
     }
 
     public function user()

@@ -38,11 +38,22 @@ class SubscriptionController extends Controller
         $user = Auth::user();
         $planId = $request->input('plan_id');
         $email = $request->input('email');
+        $subscription_id = Subscription::where('paypal_plan_id', $planId)->first()->id;
+
+
+
+
+        $userSubscription = UserSubscription::create([
+            'user_id' => $user->id,
+            'subscription_id' => $planId,
+            'status' => 'inactive',
+        ]);
 
         // Create a pending payment record
         $payment = new Payment();
-        $payment->subscription_id = $planId;
-        $payment->paypal_subscription_id = null;
+        $payment->subscription_id = $subscription_id;
+        $payment->user_subscription_id = $userSubscription->id;
+        $payment->paypal_subscription_id = $planId;
         $payment->user_id = $user->id;
         $payment->amount = 0;
         $payment->payment_status = 'pending';
@@ -50,21 +61,18 @@ class SubscriptionController extends Controller
         $payment->transaction_date = now();
         $payment->save();
 
-        // Create a pending user subscription record
-        $userSubscription = UserSubscription::create([
-            'user_id' => $user->id,
-            'subscription_id' => $planId,
-            'status' => 'inactive',
-        ]);
 
         // Create PayPal subscription
-        $subscriptionResponse = $this->paypalService->createSubscription($planId, $email);
+        $customId = $user->id;
+        $subscriptionResponse = $this->paypalService->createSubscription($planId, $email, $customId);
 
         // Log the full response for debugging
         \Log::info('PayPal Subscription Response:', $subscriptionResponse);
 
         if (isset($subscriptionResponse['status']) && $subscriptionResponse['status'] == 'APPROVAL_PENDING') {
             $approvalUrl = collect($subscriptionResponse['links'])->where('rel', 'approve')->first()['href'];
+            $user->paypal_subscription_id = $subscriptionResponse['id'];
+            $user->save();
 
             // Update payment record with PayPal subscription ID
             $payment->paypal_subscription_id = $subscriptionResponse['id'];

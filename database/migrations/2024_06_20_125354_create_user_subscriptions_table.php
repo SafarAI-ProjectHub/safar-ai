@@ -15,6 +15,8 @@ return new class extends Migration {
             $table->foreignId('user_id');
             $table->string('subscription_id');
             $table->enum('status', ['active', 'inactive'])->default('active');
+            $table->timestamp('start_date')->nullable();
+            $table->timestamp('next_billing_time')->nullable();
             $table->timestamps();
         });
     }

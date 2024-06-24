@@ -13,13 +13,20 @@ class UserSubscription extends Model
         'user_id',
         'subscription_id',
         'status',
+        'start_date',
+        'next_billing_time',
+
     ];
 
     public function user()
     {
         return $this->belongsTo(User::class);
     }
-
+    // payment relationship
+    public function payment()
+    {
+        return $this->hasOne(Payment::class);
+    }
     public function subscription()
     {
         return $this->belongsTo(Subscription::class);

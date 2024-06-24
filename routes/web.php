@@ -216,7 +216,9 @@ Route::get('/Home', [StudentController::class, 'index'])->name('student.level_te
 
 
 // webhooks
-Route::post('/paypal/webhook', [SubscriptionController::class, 'handleWebhook'])->name('paypal.webhook');
-Route::post('/paypal/webhook', [SubscriptionController::class, 'handleWebhook'])->name('paypal.webhook');
 Route::get('/paypal/return', [SubscriptionController::class, 'handleReturn'])->name('paypal.return');
 Route::get('/paypal/cancel', [SubscriptionController::class, 'handleCancel'])->name('paypal.cancel');
+
+use App\Http\Controllers\PayPalWebhookController;
+
+Route::post('/paypal/webhook', [PayPalWebhookController::class, 'handle'])->name('paypal.webhook');
