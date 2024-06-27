@@ -15,6 +15,7 @@ use App\Http\Controllers\levelTest\StudentTestController;
 use App\Http\Controllers\NotificationController;
 use Illuminate\Support\Facades\Broadcast;
 use App\Http\Controllers\SubscriptionController;
+use App\Http\Controllers\PayPalWebhookController;
 
 
 Broadcast::routes(['middleware' => ['auth']]);
@@ -34,9 +35,14 @@ Route::get('/', function () {
     return view('welcome');
 });
 
+// PayPal webhook
+Route::post('/paypal/webhook', [PayPalWebhookController::class, 'handleWebhook'])->name('paypal.webhook');
+
 Route::get('/dashboard', function () {
     return view('dashboard.index');
 })->middleware(['auth', 'verified', 'role:Admin|Super Admin'])->name('dashboard');
+
+
 
 Route::middleware('auth')->group(function () {
     Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');
@@ -218,7 +224,3 @@ Route::get('/Home', [StudentController::class, 'index'])->name('student.level_te
 // webhooks
 Route::get('/paypal/return', [SubscriptionController::class, 'handleReturn'])->name('paypal.return');
 Route::get('/paypal/cancel', [SubscriptionController::class, 'handleCancel'])->name('paypal.cancel');
-
-use App\Http\Controllers\PayPalWebhookController;
-
-Route::post('/paypal/webhook', [PayPalWebhookController::class, 'handle'])->name('paypal.webhook');

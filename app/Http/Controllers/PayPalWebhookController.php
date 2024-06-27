@@ -9,560 +9,548 @@ use App\Models\Subscription;
 use App\Models\UserSubscription;
 use App\Models\Payment;
 use App\Models\User;
+use App\Models\Student;
 use Srmklive\PayPal\Services\PayPal as PayPalClient;
+use Carbon\Carbon;
 
 class PayPalWebhookController extends Controller
 {
     public function handleWebhook(Request $request)
     {
-        $payload = $request->all();
-        Log::info('PayPal Webhook Received:', $payload);
+        try {
+            $payload = $request->all();
 
-        if (!$this->verifyWebhookSignature($request)) {
-            return response()->json(['status' => 'error', 'message' => 'Invalid signature'], 400);
-        }
+            Log::channel('webhook')->info('Webhook payload:', $payload);
 
-        switch ($payload['event_type']) {
-            case 'BILLING.SUBSCRIPTION.ACTIVATED':
-                Log::channel('webhook')->info('Subscription activated:', $payload['resource']);
-                $this->handleSubscriptionActivated($payload['resource']);
-                break;
-            case 'BILLING.SUBSCRIPTION.CREATED':
-                Log::channel('webhook')->info('Subscription created:', $payload['resource']);
-                $this->handleSubscriptionCreated($payload['resource']);
-                break;
-            case 'BILLING.SUBSCRIPTION.CANCELLED':
-                Log::channel('webhook')->info('Subscription cancelled:', $payload['resource']);
-                $this->handleSubscriptionCancelled($payload['resource']);
-                break;
-            case 'BILLING.SUBSCRIPTION.EXPIRED':
-                Log::channel('webhook')->info('Subscription expired:', $payload['resource']);
-                $this->handleSubscriptionExpired($payload['resource']);
-                break;
-            case 'BILLING.SUBSCRIPTION.PAYMENT.FAILED':
-                Log::channel('webhook')->info('Subscription payment failed:', $payload['resource']);
-                $this->handleSubscriptionPaymentFailed($payload['resource']);
-                break;
-            case 'BILLING.SUBSCRIPTION.RE-ACTIVATED':
-                Log::channel('webhook')->info('Subscription reactivated:', $payload['resource']);
-                $this->handleSubscriptionReactivated($payload['resource']);
-                break;
-            case 'BILLING.SUBSCRIPTION.SUSPENDED':
-                Log::channel('webhook')->info('Subscription suspended:', $payload['resource']);
-                $this->handleSubscriptionSuspended($payload['resource']);
-                break;
-            case 'BILLING.SUBSCRIPTION.UPDATED':
-                Log::channel('webhook')->info('Subscription updated:', $payload['resource']);
-                $this->handleSubscriptionUpdated($payload['resource']);
-                break;
-            case 'PAYMENT.SALE.COMPLETED':
-                Log::channel('webhook')->info('Payment completed:', $payload['resource']);
-                $this->handlePaymentCompleted($payload['resource']);
-                break;
-            case 'PAYMENT.SALE.DENIED':
-                Log::channel('webhook')->info('Payment denied:', $payload['resource']);
-                $this->handlePaymentDenied($payload['resource']);
-                break;
-            case 'PAYMENT.SALE.PENDING':
-                Log::channel('webhook')->info('Payment pending:', $payload['resource']);
-                $this->handlePaymentPending($payload['resource']);
-                break;
-            case 'PAYMENT.SALE.REFUNDED':
-                Log::channel('webhook')->info('Payment refunded:', $payload['resource']);
-                $this->handlePaymentRefunded($payload['resource']);
-                break;
-            case 'PAYMENT.SALE.REVERSED':
-                Log::channel('webhook')->info('Payment reversed:', $payload['resource']);
-                $this->handlePaymentReversed($payload['resource']);
-                break;
-            case 'PAYMENT.REFUND.PENDING':
-                Log::channel('webhook')->info('Refund pending:', $payload['resource']);
-                $this->handleRefundPending($payload['resource']);
-                break;
-            default:
-                Log::channel('webhook')->info('Webhook event not handled:', $payload['event_type']);
-                break;
-        }
-
-        return response()->json(['status' => 'success']);
-    }
-
-    // private function verifyWebhookSignature($request)
-    // {
-    //     $headers = $request->headers->all();
-
-    //     $signatureVerification = $this->paypal->verifyWebhookSignature([
-    //         'auth_algo' => $headers['paypal-auth-algo'][0],
-    //         'cert_url' => $headers['paypal-cert-url'][0],
-    //         'transmission_id' => $headers['paypal-transmission-id'][0],
-    //         'transmission_sig' => $headers['paypal-transmission-sig'][0],
-    //         'transmission_time' => $headers['paypal-transmission-time'][0],
-    //         'webhook_id' => config('paypal.webhook_id'),
-    //         'webhook_event' => $request->getContent(),
-    //     ]);
-
-    //     if ($signatureVerification['verification_status'] === 'SUCCESS') {
-    //         return true;
-    //     }
-
-    //     Log::channel('webhook')->info('Invalid signature:', $signatureVerification);
-    //     return false;
-    // }
-    private function verifyWebhookSignature($request)
-    {
-        // Convert headers to an array with case-insensitive keys
-        $headers = array_change_key_case($request->headers->all(), CASE_LOWER);
-
-        // Verify all necessary headers are present
-        $requiredHeaders = ['paypal-auth-algo', 'paypal-cert-url', 'paypal-transmission-id', 'paypal-transmission-sig', 'paypal-transmission-time'];
-        foreach ($requiredHeaders as $header) {
-            if (!isset($headers[$header][0])) {
-                Log::channel('webhook')->error("Missing required header: $header");
-                return false;
+            switch ($payload['event_type']) {
+                case 'BILLING.SUBSCRIPTION.ACTIVATED':
+                    Log::channel('webhook-log')->info('Subscription activated:', $payload['resource']);
+                    $this->handleSubscriptionActivated($payload['resource']);
+                    break;
+                case 'BILLING.SUBSCRIPTION.CANCELLED':
+                    Log::channel('webhook-log')->info('Subscription cancelled:', $payload['resource']);
+                    $this->handleSubscriptionCancelled($payload['resource']);
+                    break;
+                case 'BILLING.SUBSCRIPTION.EXPIRED':
+                    Log::channel('webhook-log')->info('Subscription expired:', $payload['resource']);
+                    $this->handleSubscriptionExpired($payload['resource']);
+                    break;
+                case 'BILLING.SUBSCRIPTION.PAYMENT.FAILED':
+                    Log::channel('webhook-log')->info('Subscription payment failed:', $payload['resource']);
+                    $this->handleSubscriptionPaymentFailed($payload['resource']);
+                    break;
+                case 'BILLING.SUBSCRIPTION.RE-ACTIVATED':
+                    Log::channel('webhook-log')->info('Subscription reactivated:', $payload['resource']);
+                    $this->handleSubscriptionReactivated($payload['resource']);
+                    break;
+                case 'BILLING.SUBSCRIPTION.SUSPENDED':
+                    Log::channel('webhook-log')->info('Subscription suspended:', $payload['resource']);
+                    $this->handleSubscriptionSuspended($payload['resource']);
+                    break;
+                case 'BILLING.SUBSCRIPTION.UPDATED':
+                    Log::channel('webhook-log')->info('Subscription updated:', $payload['resource']);
+                    $this->handleSubscriptionUpdated($payload['resource']);
+                    break;
+                case 'PAYMENT.SALE.COMPLETED':
+                    Log::channel('webhook-log')->info('Payment completed:', $payload['resource']);
+                    $this->handlePaymentCompleted($payload['resource']);
+                    break;
+                case 'PAYMENT.SALE.DENIED':
+                    Log::channel('webhook-log')->info('Payment denied:', $payload['resource']);
+                    $this->handlePaymentDenied($payload['resource']);
+                    break;
+                case 'PAYMENT.SALE.PENDING':
+                    Log::channel('webhook-log')->info('Payment pending:', $payload['resource']);
+                    $this->handlePaymentPending($payload['resource']);
+                    break;
+                case 'PAYMENT.SALE.REFUNDED':
+                    Log::channel('webhook-log')->info('Payment refunded:', $payload['resource']);
+                    $this->handlePaymentRefunded($payload['resource']);
+                    break;
+                case 'PAYMENT.SALE.REVERSED':
+                    Log::channel('webhook-log')->info('Payment reversed:', $payload['resource']);
+                    $this->handlePaymentReversed($payload['resource']);
+                    break;
+                case 'PAYMENT.REFUND.PENDING':
+                    Log::channel('webhook-log')->info('Refund pending:', $payload['resource']);
+                    $this->handleRefundPending($payload['resource']);
+                    break;
+                default:
+                    Log::channel('webhook-log')->info('Webhook event not handled:', ['event_type' => $payload['event_type']]);
+                    break;
             }
+
+            return response()->json(['status' => 'success']);
+        } catch (\Exception $e) {
+            Log::channel('webhook-log')->error('Error processing webhook:', [
+                'message' => $e->getMessage(),
+                'trace' => $e->getTraceAsString()
+            ]);
+            return response()->json(['status' => 'error', 'message' => 'Internal Server Error'], 500);
         }
-
-        $signatureVerification = $this->paypal->verifyWebhookSignature([
-            'auth_algo' => $headers['paypal-auth-algo'][0],
-            'cert_url' => $headers['paypal-cert-url'][0],
-            'transmission_id' => $headers['paypal-transmission-id'][0],
-            'transmission_sig' => $headers['paypal-transmission-sig'][0],
-            'transmission_time' => $headers['paypal-transmission-time'][0],
-            'webhook_id' => config('paypal.webhook_id'),
-            'webhook_event' => $request->getContent(),
-        ]);
-
-        if ($signatureVerification['verification_status'] === 'SUCCESS') {
-            return true;
-        }
-
-        Log::channel('webhook')->info('Invalid signature:', $signatureVerification);
-        return false;
     }
 
-    // Subscription Events Handlers
     protected function handleSubscriptionActivated($resource)
     {
-        DB::transaction(function () use ($resource) {
-            $subscriptionId = $resource['id'];
-            $planId = $resource['plan_id'];
-            $startTime = $resource['start_time'];
-            $nextBillingTime = $resource['billing_info']['next_billing_time'];
+        try {
+            DB::transaction(function () use ($resource) {
+                $subscriptionId = $resource['id'];
+                $planId = $resource['plan_id'];
+                $startTime = Carbon::parse($resource['start_time']);
+                $nextBillingTime = Carbon::parse($resource['billing_info']['next_billing_time']);
 
-            $user = User::where('paypal_subscription_id', $subscriptionId)->first();
-            if ($user) {
-                $user->student->subscription_status = 'subscribed';
-                $user->save();
+                $user = User::where('paypal_subscription_id', $subscriptionId)->first();
+                if ($user) {
+                    Student::update('subscription_status', 'subscribed')->where('student_id', $user->id);
 
-                $userSubscription = UserSubscription::updateOrCreate(
-                    ['user_id' => $user->id, 'subscription_id' => $planId],
-                    ['status' => 'active', 'start_date' => $startTime, 'next_billing_time' => $nextBillingTime]
-                );
-            }
-        });
+                    UserSubscription::updateOrCreate(
+                        ['user_id' => $user->id, 'subscription_id' => $planId],
+                        ['status' => 'active', 'start_date' => $startTime, 'next_billing_time' => $nextBillingTime]
+                    );
+                }
+            });
+        } catch (\Exception $e) {
+            Log::channel('webhook-log')->error('Error handling subscription activation:', [
+                'message' => $e->getMessage(),
+                'trace' => $e->getTraceAsString()
+            ]);
+        }
     }
 
-    protected function handleSubscriptionCreated($resource)
-    {
-        DB::transaction(function () use ($resource) {
-            $subscriptionId = $resource['id'];
-            $planId = $resource['plan_id'];
-            $startTime = $resource['start_time'];
-            $subscriberEmail = $resource['subscriber']['email_address'];
-
-            $user = User::where('email', $subscriberEmail)->first();
-            if ($user) {
-                $user->update(['paypal_subscription_id' => $subscriptionId]);
-
-                UserSubscription::updateOrCreate(
-                    [
-                        'user_id' => $user->id,
-                        'subscription_id' => $planId,
-                    ],
-                    [
-                        'status' => 'created',
-                        'start_date' => $startTime
-                    ]
-                );
-            }
-        });
-    }
 
 
     protected function handleSubscriptionCancelled($resource)
     {
-        DB::transaction(function () use ($resource) {
-            $subscriptionId = $resource['id'];
-            $planId = $resource['plan_id'];
+        try {
+            DB::transaction(function () use ($resource) {
+                $subscriptionId = $resource['id'];
+                $planId = $resource['plan_id'];
 
-            $user = User::where('paypal_subscription_id', $subscriptionId)->first();
-            if ($user) {
-                $user->student->subscription_status = 'cancelled';
-                $user->save();
+                $user = User::where('paypal_subscription_id', $subscriptionId)->first();
+                if ($user) {
+                    Student::update('subscription_status', 'cancelled')->where('student_id', $user->id);
 
-                $userSubscription = UserSubscription::where('user_id', $user->id)
-                    ->where('subscription_id', $planId)
-                    ->first();
+                    $userSubscription = UserSubscription::where('user_id', $user->id)
+                        ->where('subscription_id', $planId)
+                        ->first();
 
-                if ($userSubscription) {
-                    $userSubscription->update(['status' => 'cancelled']);
+                    if ($userSubscription) {
+                        $userSubscription->update(['status' => 'cancelled']);
+                    }
                 }
-            }
-        });
+            });
+        } catch (\Exception $e) {
+            Log::channel('webhook-log')->error('Error handling subscription cancellation:', [
+                'message' => $e->getMessage(),
+                'trace' => $e->getTraceAsString()
+            ]);
+        }
     }
 
     protected function handleSubscriptionExpired($resource)
     {
-        DB::transaction(function () use ($resource) {
-            $subscriptionId = $resource['id'];
-            $planId = $resource['plan_id'];
+        try {
+            DB::transaction(function () use ($resource) {
+                $subscriptionId = $resource['id'];
+                $planId = $resource['plan_id'];
 
-            $user = User::where('paypal_subscription_id', $subscriptionId)->first();
-            if ($user) {
-                $user->student->subscription_status = 'expired';
-                $user->save();
+                $user = User::where('paypal_subscription_id', $subscriptionId)->first();
+                if ($user) {
+                    $user->student->subscription_status = 'expired';
+                    $user->save();
 
-                $userSubscription = UserSubscription::where('user_id', $user->id)
-                    ->where('subscription_id', $planId)
-                    ->first();
+                    $userSubscription = UserSubscription::where('user_id', $user->id)
+                        ->where('subscription_id', $planId)
+                        ->first();
 
-                if ($userSubscription) {
-                    $userSubscription->update(['status' => 'expired']);
+                    if ($userSubscription) {
+                        $userSubscription->update(['status' => 'expired']);
+                    }
                 }
-            }
-        });
+            });
+        } catch (\Exception $e) {
+            Log::channel('webhook-log')->error('Error handling subscription expiration:', [
+                'message' => $e->getMessage(),
+                'trace' => $e->getTraceAsString()
+            ]);
+        }
     }
 
     protected function handleSubscriptionPaymentFailed($resource)
     {
-        DB::transaction(function () use ($resource) {
-            $subscriptionId = $resource['billing_agreement_id'];
-            $paypalPaymentId = $resource['id'];
+        try {
+            DB::transaction(function () use ($resource) {
+                $subscriptionId = $resource['billing_agreement_id'];
+                $paypalPaymentId = $resource['id'];
 
-            $user = User::where('paypal_subscription_id', $subscriptionId)->first();
-            if ($user) {
-                $userSubscription = UserSubscription::where('user_id', $user->id)->first();
+                $user = User::where('paypal_subscription_id', $subscriptionId)->first();
+                if ($user) {
+                    $userSubscription = UserSubscription::where('user_id', $user->id)->first();
 
-                if ($userSubscription) {
-                    $userSubscription->update(['status' => 'failed']);
+                    if ($userSubscription) {
+                        $userSubscription->update(['status' => 'failed']);
 
-                    $payment = Payment::firstOrNew(['paypal_payment_id' => $paypalPaymentId]);
-                    $payment->fill([
-                        'user_subscription_id' => $userSubscription->id,
-                        'payment_method' => 'paypal',
-                        'user_id' => $user->id,
-                        'subscription_id' => $userSubscription->subscription_id,
-                        'payment_status' => 'failed',
-                        'transaction_date' => $resource['create_time'],
-                        'amount' => $resource['amount']['total']
-                    ]);
-                    $payment->save();
+                        $payment = Payment::firstOrNew(['paypal_payment_id' => $paypalPaymentId]);
+                        $payment->fill([
+                            'user_subscription_id' => $userSubscription->id,
+                            'payment_method' => 'paypal',
+                            'user_id' => $user->id,
+                            'subscription_id' => $userSubscription->subscription_id,
+                            'payment_status' => 'failed',
+                            'transaction_date' => Carbon::parse($resource['create_time']),
+                            'amount' => $resource['amount']['total']
+                        ]);
+                        $payment->save();
+                    }
                 }
-            }
-        });
+            });
+        } catch (\Exception $e) {
+            Log::channel('webhook-log')->error('Error handling subscription payment failure:', [
+                'message' => $e->getMessage(),
+                'trace' => $e->getTraceAsString()
+            ]);
+        }
     }
-
 
     protected function handleSubscriptionReactivated($resource)
     {
-        DB::transaction(function () use ($resource) {
-            $subscriptionId = $resource['id'];
-            $planId = $resource['plan_id'];
-            $nextBillingTime = $resource['billing_info']['next_billing_time'];
+        try {
+            DB::transaction(function () use ($resource) {
+                $subscriptionId = $resource['id'];
+                $planId = $resource['plan_id'];
+                $nextBillingTime = Carbon::parse($resource['billing_info']['next_billing_time']);
 
-            $user = User::where('paypal_subscription_id', $subscriptionId)->first();
-            if ($user) {
-                $user->student->subscription_status = 'subscribed';
-                $user->save();
+                $user = User::where('paypal_subscription_id', $subscriptionId)->first();
+                if ($user) {
+                    Student::update('subscription_status', 'subscribed')->where('student_id', $user->id);
 
-                $userSubscription = UserSubscription::where('user_id', $user->id)
-                    ->where('subscription_id', $planId)
-                    ->first();
 
-                if ($userSubscription) {
-                    $userSubscription->update(['status' => 'active', 'next_billing_time' => $nextBillingTime]);
+                    $userSubscription = UserSubscription::where('user_id', $user->id)
+                        ->where('subscription_id', $planId)
+                        ->first();
+
+                    if ($userSubscription) {
+                        $userSubscription->update(['status' => 'active', 'next_billing_time' => $nextBillingTime]);
+                    }
                 }
-            }
-        });
+            });
+        } catch (\Exception $e) {
+            Log::channel('webhook-log')->error('Error handling subscription reactivation:', [
+                'message' => $e->getMessage(),
+                'trace' => $e->getTraceAsString()
+            ]);
+        }
     }
 
     protected function handleSubscriptionSuspended($resource)
     {
-        DB::transaction(function () use ($resource) {
-            $subscriptionId = $resource['id'];
-            $planId = $resource['plan_id'];
+        try {
+            DB::transaction(function () use ($resource) {
+                $subscriptionId = $resource['id'];
+                $planId = $resource['plan_id'];
 
-            $user = User::where('paypal_subscription_id', $subscriptionId)->first();
-            if ($user) {
-                $user->student->subscription_status = 'suspended';
-                $user->save();
+                $user = User::where('paypal_subscription_id', $subscriptionId)->first();
+                if ($user) {
+                    Student::update('subscription_status', 'suspended')->where('student_id', $user->id);
 
-                $userSubscription = UserSubscription::where('user_id', $user->id)
-                    ->where('subscription_id', $planId)
-                    ->first();
+                    $userSubscription = UserSubscription::where('user_id', $user->id)
+                        ->where('subscription_id', $planId)
+                        ->first();
 
-                if ($userSubscription) {
-                    $userSubscription->update(['status' => 'suspended']);
+                    if ($userSubscription) {
+                        $userSubscription->update(['status' => 'suspended']);
+                    }
                 }
-            }
-        });
+            });
+        } catch (\Exception $e) {
+            Log::channel('webhook-log')->error('Error handling subscription suspension:', [
+                'message' => $e->getMessage(),
+                'trace' => $e->getTraceAsString()
+            ]);
+        }
     }
 
     protected function handleSubscriptionUpdated($resource)
     {
-        DB::transaction(function () use ($resource) {
-            $subscriptionId = $resource['id'];
-            $planId = $resource['plan_id'];
-            $updateTime = $resource['update_time'];
-            $nextBillingTime = $resource['billing_info']['next_billing_time'];
+        try {
+            DB::transaction(function () use ($resource) {
+                $subscriptionId = $resource['id'];
+                $planId = $resource['plan_id'];
+                $updateTime = Carbon::parse($resource['update_time']);
+                $nextBillingTime = Carbon::parse($resource['billing_info']['next_billing_time']);
 
-            $user = User::where('paypal_subscription_id', $subscriptionId)->first();
-            if ($user) {
-                $userSubscription = UserSubscription::where('user_id', $user->id)
-                    ->where('subscription_id', $planId)
-                    ->first();
+                $user = User::where('paypal_subscription_id', $subscriptionId)->first();
+                if ($user) {
+                    $userSubscription = UserSubscription::where('user_id', $user->id)
+                        ->where('subscription_id', $planId)
+                        ->first();
 
-                if ($userSubscription) {
-                    $userSubscription->update(['updated_at' => $updateTime, 'next_billing_time' => $nextBillingTime]);
+                    if ($userSubscription) {
+                        $userSubscription->update(['updated_at' => $updateTime, 'next_billing_time' => $nextBillingTime]);
+                    }
                 }
-            }
-        });
+            });
+        } catch (\Exception $e) {
+            Log::channel('webhook-log')->error('Error handling subscription update:', [
+                'message' => $e->getMessage(),
+                'trace' => $e->getTraceAsString()
+            ]);
+        }
     }
 
-    // Payment Events Handlers
     protected function handlePaymentCompleted($resource)
     {
-        DB::transaction(function () use ($resource) {
-            $paypalPaymentId = $resource['id'];
-            $subscriptionId = $resource['billing_agreement_id'];
+        try {
+            Log::channel('webhook-log')->info('Handling payment completion:', $resource);
 
-            $user = User::where('paypal_subscription_id', $subscriptionId)->first();
-            if ($user) {
-                $userSubscription = UserSubscription::where('user_id', $user->id)->first();
+            // Start database transaction
+            DB::transaction(function () use ($resource) {
+                Log::channel('webhook-log')->info('Transaction date:', $resource);
 
-                if ($userSubscription) {
-                    $subscription_id = Subscription::where('paypal_plan_id', $userSubscription->subscription_id)->first()->id;
-                    // Fetch subscription details from PayPal
-                    $subscriptionDetails = $this->getSubscriptionDetails($subscriptionId);
+                $paypalPaymentId = $resource['id'];
+                $subscriptionId = $resource['billing_agreement_id'];
+                $transactionDate = Carbon::parse($resource['create_time']);
+                $amount = $resource['amount']['total'];
 
-                    if ($subscriptionDetails && isset($subscriptionDetails['billing_info']['next_billing_time'])) {
-                        $nextBillingTime = $subscriptionDetails['billing_info']['next_billing_time'];
+                // Log extracted data
+                Log::channel('webhook-log')->info('Extracted data:', [
+                    'paypalPaymentId' => $paypalPaymentId,
+                    'subscriptionId' => $subscriptionId,
+                    'transactionDate' => $transactionDate,
+                    'amount' => $amount,
+                ]);
 
-                        $userSubscription->update(['next_billing_time' => $nextBillingTime]);
+                // Find the user by PayPal subscription ID
+                $user = User::where('paypal_subscription_id', $subscriptionId)->first();
+                if ($user) {
+                    Log::channel('webhook-log')->info('User found:', ['user_id' => $user->id]);
+
+                    // Find the user subscription
+                    $userSubscription = UserSubscription::where('user_id', $user->id)->first();
+                    if ($userSubscription) {
+                        Log::channel('webhook-log')->info('User subscription found:', $userSubscription);
+
+                        // Find or create the payment record
+                        $payment = Payment::firstOrNew(['paypal_payment_id' => $paypalPaymentId]);
+                        $payment->fill([
+                            'user_subscription_id' => $userSubscription->id,
+                            'payment_method' => 'paypal',
+                            'user_id' => $user->id,
+                            'subscription_id' => $userSubscription->subscription_id,
+                            'payment_status' => 'completed',
+                            'transaction_date' => $transactionDate,
+                            'amount' => $amount,
+                        ]);
+                        $payment->save();
+
+                        Log::channel('webhook-log')->info('Payment saved:', $payment);
+                    } else {
+                        Log::channel('webhook-log')->warning('User subscription not found:', ['user_id' => $user->id]);
                     }
-
-                    $payment = Payment::firstOrNew(['paypal_payment_id' => $paypalPaymentId]);
-                    $payment->fill([
-                        'user_subscription_id' => $userSubscription->id,
-                        'payment_method' => 'paypal',
-                        'user_id' => $user->id,
-                        'subscription_id' => $subscription_id,
-                        'payment_status' => 'completed',
-                        'transaction_date' => $resource['create_time'],
-                        'amount' => $resource['amount']['total']
-                    ]);
-                    $payment->save();
+                } else {
+                    Log::channel('webhook-log')->warning('User not found for PayPal subscription ID:', ['subscriptionId' => $subscriptionId]);
                 }
-            }
-        });
+            });
+        } catch (\Exception $e) {
+            Log::channel('webhook-log')->error('Error handling payment completion:', [
+                'message' => $e->getMessage(),
+                'trace' => $e->getTraceAsString()
+            ]);
+        }
     }
+
 
     protected function handlePaymentDenied($resource)
     {
-        DB::transaction(function () use ($resource) {
-            $paypalPaymentId = $resource['id'];
-            $subscriptionId = $resource['billing_agreement_id'];
+        try {
+            DB::transaction(function () use ($resource) {
+                $paypalPaymentId = $resource['id'];
+                $subscriptionId = $resource['billing_agreement_id'];
 
-            $user = User::where('paypal_subscription_id', $subscriptionId)->first();
-            if ($user) {
-                $userSubscription = UserSubscription::where('user_id', $user->id)->first();
+                $user = User::where('paypal_subscription_id', $subscriptionId)->first();
+                if ($user) {
+                    $userSubscription = UserSubscription::where('user_id', $user->id)->first();
 
-                if ($userSubscription) {
-                    $subscription_id = Subscription::where('paypal_plan_id', $userSubscription->subscription_id)->first()->id;
-                    // Fetch subscription details from PayPal
-                    $subscriptionDetails = $this->getSubscriptionDetails($subscriptionId);
-
-                    if ($subscriptionDetails && isset($subscriptionDetails['billing_info']['next_billing_time'])) {
-                        $nextBillingTime = $subscriptionDetails['billing_info']['next_billing_time'];
-
-                        $userSubscription->update(['next_billing_time' => $nextBillingTime]);
+                    if ($userSubscription) {
+                        $payment = Payment::firstOrNew(['paypal_payment_id' => $paypalPaymentId]);
+                        $payment->fill([
+                            'user_subscription_id' => $userSubscription->id,
+                            'payment_method' => 'paypal',
+                            'user_id' => $user->id,
+                            'subscription_id' => $userSubscription->subscription_id,
+                            'payment_status' => 'denied',
+                            'transaction_date' => Carbon::parse($resource['create_time']),
+                            'amount' => $resource['amount']['total']
+                        ]);
+                        $payment->save();
                     }
-
-                    $payment = Payment::firstOrNew(['paypal_payment_id' => $paypalPaymentId]);
-                    $payment->fill([
-                        'user_subscription_id' => $userSubscription->id,
-                        'payment_method' => 'paypal',
-                        'user_id' => $user->id,
-                        'subscription_id' => $subscription_id,
-                        'payment_status' => 'denied',
-                        'transaction_date' => $resource['create_time'],
-                        'amount' => $resource['amount']['total']
-                    ]);
-                    $payment->save();
                 }
-            }
-        });
+            });
+        } catch (\Exception $e) {
+            Log::channel('webhook-log')->error('Error handling payment denial:', [
+                'message' => $e->getMessage(),
+                'trace' => $e->getTraceAsString()
+            ]);
+        }
     }
 
     protected function handlePaymentPending($resource)
     {
-        DB::transaction(function () use ($resource) {
-            $paypalPaymentId = $resource['id'];
-            $subscriptionId = $resource['billing_agreement_id'];
+        try {
+            DB::transaction(function () use ($resource) {
+                $paypalPaymentId = $resource['id'];
+                $subscriptionId = $resource['billing_agreement_id'];
 
-            $user = User::where('paypal_subscription_id', $subscriptionId)->first();
-            if ($user) {
-                $userSubscription = UserSubscription::where('user_id', $user->id)->first();
+                $user = User::where('paypal_subscription_id', $subscriptionId)->first();
+                if ($user) {
+                    $userSubscription = UserSubscription::where('user_id', $user->id)->first();
 
-                if ($userSubscription) {
-                    $subscription_id = Subscription::where('paypal_plan_id', $userSubscription->subscription_id)->first()->id;
-                    // Fetch subscription details from PayPal
-                    $subscriptionDetails = $this->getSubscriptionDetails($subscriptionId);
-
-                    if ($subscriptionDetails && isset($subscriptionDetails['billing_info']['next_billing_time'])) {
-                        $nextBillingTime = $subscriptionDetails['billing_info']['next_billing_time'];
-
-                        $userSubscription->update(['next_billing_time' => $nextBillingTime]);
+                    if ($userSubscription) {
+                        $payment = Payment::firstOrNew(['paypal_payment_id' => $paypalPaymentId]);
+                        $payment->fill([
+                            'user_subscription_id' => $userSubscription->id,
+                            'payment_method' => 'paypal',
+                            'user_id' => $user->id,
+                            'subscription_id' => $userSubscription->subscription_id,
+                            'payment_status' => 'pending',
+                            'transaction_date' => Carbon::parse($resource['create_time']),
+                            'amount' => $resource['amount']['total']
+                        ]);
+                        $payment->save();
                     }
-
-                    $payment = Payment::firstOrNew(['paypal_payment_id' => $paypalPaymentId]);
-                    $payment->fill([
-                        'user_subscription_id' => $userSubscription->id,
-                        'payment_method' => 'paypal',
-                        'user_id' => $user->id,
-                        'subscription_id' => $subscription_id,
-                        'payment_status' => 'pending',
-                        'transaction_date' => $resource['create_time'],
-                        'amount' => $resource['amount']['total']
-                    ]);
-                    $payment->save();
                 }
-            }
-        });
+            });
+        } catch (\Exception $e) {
+            Log::channel('webhook-log')->error('Error handling pending payment:', [
+                'message' => $e->getMessage(),
+                'trace' => $e->getTraceAsString()
+            ]);
+        }
     }
 
     protected function handlePaymentRefunded($resource)
     {
-        DB::transaction(function () use ($resource) {
-            $paypalPaymentId = $resource['id'];
-            $subscriptionId = $resource['billing_agreement_id'];
+        try {
+            DB::transaction(function () use ($resource) {
+                $paypalPaymentId = $resource['id'];
+                $subscriptionId = $resource['billing_agreement_id'];
 
-            $user = User::where('paypal_subscription_id', $subscriptionId)->first();
-            if ($user) {
-                $userSubscription = UserSubscription::where('user_id', $user->id)->first();
+                $user = User::where('paypal_subscription_id', $subscriptionId)->first();
+                if ($user) {
+                    $userSubscription = UserSubscription::where('user_id', $user->id)->first();
 
-                if ($userSubscription) {
-                    $subscription_id = Subscription::where('paypal_plan_id', $userSubscription->subscription_id)->first()->id;
-                    // Fetch subscription details from PayPal
-                    $subscriptionDetails = $this->getSubscriptionDetails($subscriptionId);
-
-                    if ($subscriptionDetails && isset($subscriptionDetails['billing_info']['next_billing_time'])) {
-                        $nextBillingTime = $subscriptionDetails['billing_info']['next_billing_time'];
-
-                        $userSubscription->update(['next_billing_time' => $nextBillingTime]);
+                    if ($userSubscription) {
+                        $payment = Payment::firstOrNew(['paypal_payment_id' => $paypalPaymentId]);
+                        $payment->fill([
+                            'user_subscription_id' => $userSubscription->id,
+                            'payment_method' => 'paypal',
+                            'user_id' => $user->id,
+                            'subscription_id' => $userSubscription->subscription_id,
+                            'payment_status' => 'refunded',
+                            'transaction_date' => Carbon::parse($resource['create_time']),
+                            'amount' => $resource['amount']['total']
+                        ]);
+                        $payment->save();
                     }
-
-                    $payment = Payment::firstOrNew(['paypal_payment_id' => $paypalPaymentId]);
-                    $payment->fill([
-                        'user_subscription_id' => $userSubscription->id,
-                        'payment_method' => 'paypal',
-                        'user_id' => $user->id,
-                        'subscription_id' => $subscription_id,
-                        'payment_status' => 'refunded',
-                        'transaction_date' => $resource['create_time'],
-                        'amount' => $resource['amount']['total']
-                    ]);
-                    $payment->save();
                 }
-            }
-        });
+            });
+        } catch (\Exception $e) {
+            Log::channel('webhook-log')->error('Error handling refunded payment:', [
+                'message' => $e->getMessage(),
+                'trace' => $e->getTraceAsString()
+            ]);
+        }
     }
 
     protected function handlePaymentReversed($resource)
     {
-        DB::transaction(function () use ($resource) {
-            $paypalPaymentId = $resource['id'];
-            $subscriptionId = $resource['billing_agreement_id'];
+        try {
+            DB::transaction(function () use ($resource) {
+                $paypalPaymentId = $resource['id'];
+                $subscriptionId = $resource['billing_agreement_id'];
 
-            $user = User::where('paypal_subscription_id', $subscriptionId)->first();
-            if ($user) {
-                $userSubscription = UserSubscription::where('user_id', $user->id)->first();
+                $user = User::where('paypal_subscription_id', $subscriptionId)->first();
+                if ($user) {
+                    $userSubscription = UserSubscription::where('user_id', $user->id)->first();
 
-                if ($userSubscription) {
-                    $subscription_id = Subscription::where('paypal_plan_id', $userSubscription->subscription_id)->first()->id;
-                    // Fetch subscription details from PayPal
-                    $subscriptionDetails = $this->getSubscriptionDetails($subscriptionId);
-
-                    if ($subscriptionDetails && isset($subscriptionDetails['billing_info']['next_billing_time'])) {
-                        $nextBillingTime = $subscriptionDetails['billing_info']['next_billing_time'];
-
-                        $userSubscription->update(['next_billing_time' => $nextBillingTime]);
+                    if ($userSubscription) {
+                        $payment = Payment::firstOrNew(['paypal_payment_id' => $paypalPaymentId]);
+                        $payment->fill([
+                            'user_subscription_id' => $userSubscription->id,
+                            'payment_method' => 'paypal',
+                            'user_id' => $user->id,
+                            'subscription_id' => $userSubscription->subscription_id,
+                            'payment_status' => 'reversed',
+                            'transaction_date' => Carbon::parse($resource['create_time']),
+                            'amount' => $resource['amount']['total']
+                        ]);
+                        $payment->save();
                     }
-
-                    $payment = Payment::firstOrNew(['paypal_payment_id' => $paypalPaymentId]);
-                    $payment->fill([
-                        'user_subscription_id' => $userSubscription->id,
-                        'payment_method' => 'paypal',
-                        'user_id' => $user->id,
-                        'subscription_id' => $subscription_id,
-                        'payment_status' => 'reversed',
-                        'transaction_date' => $resource['create_time'],
-                        'amount' => $resource['amount']['total']
-                    ]);
-                    $payment->save();
                 }
-            }
-        });
+            });
+        } catch (\Exception $e) {
+            Log::channel('webhook-log')->error('Error handling reversed payment:', [
+                'message' => $e->getMessage(),
+                'trace' => $e->getTraceAsString()
+            ]);
+        }
     }
 
     protected function handleRefundPending($resource)
     {
-        DB::transaction(function () use ($resource) {
-            $paypalPaymentId = $resource['id'];
-            $subscriptionId = $resource['billing_agreement_id'];
+        try {
+            DB::transaction(function () use ($resource) {
+                $paypalPaymentId = $resource['id'];
+                $subscriptionId = $resource['billing_agreement_id'];
 
-            $user = User::where('paypal_subscription_id', $subscriptionId)->first();
-            if ($user) {
-                $userSubscription = UserSubscription::where('user_id', $user->id)->first();
+                $user = User::where('paypal_subscription_id', $subscriptionId)->first();
+                if ($user) {
+                    $SUBSCRIPTION = $this->getSubscriptionDetails($subscriptionId);
 
-                if ($userSubscription) {
-                    $subscription_id = Subscription::where('paypal_plan_id', $userSubscription->subscription_id)->first()->id;
-                    // Fetch subscription details from PayPal
-                    $subscriptionDetails = $this->getSubscriptionDetails($subscriptionId);
+                    $userSubscription = UserSubscription::where('user_id', $user->id)->first();
 
-                    if ($subscriptionDetails && isset($subscriptionDetails['billing_info']['next_billing_time'])) {
-                        $nextBillingTime = $subscriptionDetails['billing_info']['next_billing_time'];
-
-                        $userSubscription->update(['next_billing_time' => $nextBillingTime]);
+                    if ($userSubscription) {
+                        $payment = Payment::firstOrNew(['paypal_payment_id' => $paypalPaymentId]);
+                        $payment->fill([
+                            'user_subscription_id' => $userSubscription->id,
+                            'payment_method' => 'paypal',
+                            'user_id' => $user->id,
+                            'subscription_id' => $userSubscription->subscription_id,
+                            'payment_status' => 'refund_pending',
+                            'transaction_date' => Carbon::parse($resource['create_time']),
+                            'amount' => $resource['amount']['total']
+                        ]);
+                        $payment->save();
                     }
-
-                    $payment = Payment::firstOrNew(['paypal_payment_id' => $paypalPaymentId]);
-                    $payment->fill([
-                        'user_subscription_id' => $userSubscription->id,
-                        'payment_method' => 'paypal',
-                        'user_id' => $user->id,
-                        'subscription_id' => $subscription_id,
-                        'payment_status' => 'refund_pending',
-                        'transaction_date' => $resource['create_time'],
-                        'amount' => $resource['amount']['total']
-                    ]);
-                    $payment->save();
                 }
-            }
-        });
+            });
+        } catch (\Exception $e) {
+            Log::channel('webhook-log')->error('Error handling pending refund:', [
+                'message' => $e->getMessage(),
+                'trace' => $e->getTraceAsString()
+            ]);
+        }
     }
+
 
 
     // Helper Functions
     private function getSubscriptionDetails($subscriptionId)
     {
-        $provider = new PayPalClient;
-        $provider->setApiCredentials(config('paypal'));
-        $provider->getAccessToken();
+        try {
+            $provider = new PayPalClient;
+            $provider->setApiCredentials(config('paypal'));
+            $provider->getAccessToken();
+            $subscriptionDetails = $provider->showSubscriptionDetails($subscriptionId);
+            Log::channel('webhook-log')->info('Subscription details:', $subscriptionDetails);
 
-        $subscriptionDetails = $provider->showSubscriptionDetails($subscriptionId);
-        Log::channel('webhook')->info('Subscription details:', $subscriptionDetails);
-
-        return $subscriptionDetails;
+            return $subscriptionDetails;
+        } catch (\Exception $e) {
+            Log::channel('webhook-log')->error('Error retrieving subscription details:', [
+                'message' => $e->getMessage(),
+                'trace' => $e->getTraceAsString()
+            ]);
+            return null;
+        }
     }
 }

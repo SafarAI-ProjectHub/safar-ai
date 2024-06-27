@@ -22,10 +22,18 @@
 @section('content')
     @php
         $isSubscribed = Auth::user()->student->subscription_status == 'subscribed';
-        $subscription = Auth::user()->userSubscriptions->where('status', 'active')->first();
-        $subscription_id = $subscription ? $subscription->subscription_id : 'N/A';
-        $subscription_date = $subscription ? $subscription->created_at->format('M d, Y') : 'N/A';
-        $next_billing_date = $subscription ? $subscription->created_at->addMonth()->format('M d, Y') : 'N/A';
+        $subscription = Auth::user()->userSubscriptions;
+        if ($subscription) {
+            $subscription = $subscription->where('status', 'active')->first();
+            $subscription_id = $subscription ? $subscription->subscription_id : 'N/A';
+            $subscription_date = $subscription ? $subscription->created_at->format('M d, Y') : 'N/A';
+            $next_billing_date = $subscription ? $subscription->created_at->addMonth()->format('M d, Y') : 'N/A';
+        } else {
+            $subscription_id = 'N/A';
+            $subscription_date = 'N/A';
+            $next_billing_date = 'N/A';
+        }
+
     @endphp
 
     <div class="card mb-4">

@@ -90,7 +90,7 @@ class User extends Authenticatable
     // Subscriptions that the user has
     public function userSubscriptions()
     {
-        return $this->hasMany(UserSubscription::class);
+        return $this->hasOne(UserSubscription::class);
     }
 
     public function subscriptions()
