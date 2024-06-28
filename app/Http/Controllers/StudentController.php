@@ -10,6 +10,7 @@ use Illuminate\Support\Facades\Auth;
 use App\Models\LevelTestAssessment;
 use App\Models\LevelTest;
 use Illuminate\Http\UploadedFile;
+use App\Models\UserSubscription;
 use App\Models\LevelTestQuestion;
 use OpenAI\Laravel\Facades\OpenAI;
 use Illuminate\Support\Facades\Storage;
@@ -45,9 +46,11 @@ class StudentController extends Controller
             $courses = collect(); // Empty collection
         }
 
+        $subscription = UserSubscription::where('user_id', Auth::id())->first();
+
         $planDetails = \App\Models\Subscription::where('is_active', 1)->first();
 
-        return view('dashboard.student.dashboard', compact('courses', 'planDetails'));
+        return view('dashboard.student.dashboard', compact('courses', 'planDetails', 'subscription'));
     }
 
 

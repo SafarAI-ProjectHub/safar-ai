@@ -106,9 +106,16 @@ class PayPalService
         return $response;
     }
 
-    public function cancelSubscription(string $subscriptionId)
+    public function reactivateSubscription(string $subscriptionId, $reason = 'Reactivating subscription')
     {
-        $response = $this->paypal->cancelSubscription($subscriptionId);
+        $response = $this->paypal->activateSubscription($subscriptionId, $reason);
+
+        return $response;
+    }
+
+    public function cancelSubscription(string $subscriptionId, $reason = 'Not specified')
+    {
+        $response = $this->paypal->cancelSubscription($subscriptionId, $reason);
 
         return $response;
     }

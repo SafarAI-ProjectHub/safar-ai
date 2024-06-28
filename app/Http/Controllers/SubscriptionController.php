@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use Illuminate\Http\Request;
 use App\Services\PayPalService;
 use App\Models\Subscription;
+use Illuminate\Support\Facades\Log;
 use App\Models\Payment;
 use App\Models\UserSubscription;
 use Auth;
@@ -17,20 +18,26 @@ class SubscriptionController extends Controller
     {
         $this->paypalService = $paypalService;
     }
-    public function showSubscriptionDetails($planId)
+    public function showSubscriptionDetails()
     {
-        $planDetails = Subscription::find($planId);
-
-        if (!$planDetails) {
-            return redirect()->back()->withErrors('Plan not found.');
+        $user = Auth::user();
+        $subscription = UserSubscription::where('user_id', $user->id)
+            ->first();
+        if ($subscription) {
+            if ($subscription->status == 'active' || $subscription->status == 'suspend') {
+                $planDetails = Subscription::where('paypal_plan_id', $subscription->subscription_id)->first();
+            } else {
+                $planDetails = Subscription::where('is_active', true)->first();
+            }
+        } else {
+            $planDetails = Subscription::where('is_active', true)->first();
         }
 
-        if (!$planDetails->is_active) {
-            return redirect()->back()->withErrors('Plan is not active.');
-        }
+        $activePlan = Subscription::where('is_active', true)->first();
 
-        return view('dashboard.student.subscription_details', compact('planDetails'));
+        return view('dashboard.student.subscription_details', compact('planDetails', 'subscription', 'activePlan'));
     }
+
 
 
     public function create(Request $request)
@@ -42,12 +49,12 @@ class SubscriptionController extends Controller
 
 
 
+        // Check if user already has an active subscription based on user_id and subscription_id
 
-        $userSubscription = UserSubscription::create([
-            'user_id' => $user->id,
-            'subscription_id' => $planId,
-            'status' => 'inactive',
-        ]);
+        $userSubscription = UserSubscription::updateOrCreate(
+            ['user_id' => $user->id],
+            ['subscription_id' => $planId, 'status' => 'inactive']
+        );
 
         // Create PayPal subscription
         $customId = $user->id;
@@ -81,5 +88,42 @@ class SubscriptionController extends Controller
     {
         // Handle PayPal cancel
         return redirect()->route('student.dashboard')->with('error', 'Subscription cancelled.');
+    }
+
+
+    public function cancel(Request $request)
+    {
+        $user = Auth::user();
+        $subscriptionId = $user->paypal_subscription_id;
+        $response = $this->paypalService->cancelSubscription($subscriptionId);
+
+        Log::info('PayPal Subscription Cancellation Response:', $response);
+
+        if (isset($response['status']) && $response['status'] == 'CANCELLED') {
+            UserSubscription::where('user_id', $user->id)->update(['status' => 'cancelled']);
+            $user->student->subscription_status = 'cancelled';
+            $user->student->save();
+            return response()->json(['success' => true, 'message' => 'Subscription cancelled successfully.']);
+        } else {
+            return response()->json(['success' => false, 'message' => 'Failed to cancel subscription.']);
+        }
+    }
+
+    public function reactivate(Request $request)
+    {
+        $user = Auth::user();
+        $subscriptionId = $user->paypal_subscription_id;
+        $response = $this->paypalService->reactivateSubscription($subscriptionId);
+
+        Log::info('PayPal Subscription Reactivation Response:', $response);
+
+        if (isset($response['status']) && $response['status'] == 'ACTIVE') {
+            UserSubscription::where('user_id', $user->id)->update(['status' => 'active']);
+            $user->student->subscription_status = 'subscribed';
+            $user->student->save();
+            return response()->json(['success' => true, 'message' => 'Subscription reactivated successfully.']);
+        } else {
+            return response()->json(['success' => false, 'message' => 'Failed to reactivate subscription.']);
+        }
     }
 }

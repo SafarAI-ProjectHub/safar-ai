@@ -189,7 +189,7 @@ Route::middleware(['auth', 'role:Student'])->prefix('student')->group(function (
 
     // subscriptions
     Route::post('/subscriptions/create', [SubscriptionController::class, 'create'])->name('subscriptions.create');
-    Route::get('subscription/details/{id}', [SubscriptionController::class, 'showSubscriptionDetails'])->name('subscription.details');
+    Route::get('subscription/details', [SubscriptionController::class, 'showSubscriptionDetails'])->name('subscription.details');
 
 
 });
@@ -198,7 +198,14 @@ Route::middleware(['auth', 'role:Student'])->prefix('student')->group(function (
 Route::middleware(['auth', 'role:Admin'])->get('/admin', [AdminController::class, 'index'])->name('admin.uploadVideo');
 
 // Routes for Student access only
-Route::middleware(['auth', 'role:Student'])->get('/student', [StudentController::class, 'index'])->name('student.dashboard');
+Route::middleware(['auth', 'role:Student'])->group(function () {
+
+    Route::get('/student', [StudentController::class, 'index'])->name('student.dashboard');
+    Route::post('/subscriptions/create', [SubscriptionController::class, 'create'])->name('subscriptions.create');
+    Route::post('/subscriptions/cancel', [SubscriptionController::class, 'cancel'])->name('subscriptions.cancel');
+    Route::post('/subscriptions/reactivate', [SubscriptionController::class, 'reactivate'])->name('subscriptions.reactivate');
+});
+
 
 // groupe for all Auth users
 Route::middleware(['auth'])->group(function () {

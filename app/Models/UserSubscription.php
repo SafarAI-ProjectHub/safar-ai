@@ -17,6 +17,10 @@ class UserSubscription extends Model
         'next_billing_time',
 
     ];
+    protected $casts = [
+        'start_date' => 'datetime',
+        'next_billing_time' => 'datetime',
+    ];
 
     public function user()
     {
