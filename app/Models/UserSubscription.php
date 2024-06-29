@@ -29,10 +29,11 @@ class UserSubscription extends Model
     // payment relationship
     public function payment()
     {
-        return $this->hasOne(Payment::class);
+        return $this->hasMany(Payment::class, 'user_subscription_id', 'id');
     }
-    public function subscription()
-    {
-        return $this->belongsTo(Subscription::class);
-    }
+    // public function subscription()
+    // {
+    //     return $this->belongsTo(Subscription::class);
+    // }
+
 }

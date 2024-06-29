@@ -2,6 +2,7 @@
 
 @section('styles')
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.0.1/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons/font/bootstrap-icons.css" rel="stylesheet">
     <style>
         .feature-list {
             list-style: none;
@@ -15,6 +16,26 @@
 
         .feature-list li:last-child {
             border-bottom: none;
+        }
+
+        .loader-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(255, 255, 255, 0.7);
+            z-index: 9999;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .loader-message {
+            margin-top: 15px;
+            font-size: 1.2rem;
+            color: #007bff;
         }
     </style>
 @endsection
@@ -72,7 +93,7 @@
                 <div class="row mb-4">
                     <div class="col-lg-6 col-md-8 col-7 mb-2 mb-lg-0">
                         <span class="d-block">
-                            <span class="h4">{{ $subscriptionStatus == 'active' ? 'Monthly' : 'Free Plan' }}</span>
+                            <span class="h4"> Monthly</span>
                             <span
                                 class="badge {{ $subscriptionStatus == 'active' ? 'bg-success' : ($subscriptionStatus == 'suspended' ? 'bg-warning' : 'bg-danger') }} ms-2">
                                 {{ ucfirst($subscriptionStatus) }}
@@ -85,12 +106,12 @@
                 <div class="row">
                     <div class="col-lg-3 col-md-3 col-6 mb-2 mb-lg-0">
                         <span class="fs-6">Started On</span>
-                        <h6 class="mb-0">{{ $subscriptionDate }}</h6>
+                        <h6 class="mb-0">{{ $subscriptionStatus == 'active' ? $subscriptionDate : 'N/A' }}</h6>
                     </div>
                     <div class="col-lg-3 col-md-3 col-6 mb-2 mb-lg-0">
                         <span class="fs-6">Price</span>
                         <h6 class="mb-0">
-                            {{ $subscriptionStatus == 'active' ? '$ ' . $planDetails->price . ' / Monthly' : 'Free' }}</h6>
+                            {{ '$ ' . $planDetails->price . ' / Monthly' }}</h6>
                     </div>
                     <div class="col-lg-3 col-md-3 col-6 mb-2 mb-lg-0">
                         <span class="fs-6">Access</span>
@@ -160,16 +181,46 @@
                 </div>
             </div>
         </div>
-
-        <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons/font/bootstrap-icons.css" rel="stylesheet">
-
     </div>
 @endsection
 
-
 @section('scripts')
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script src="https://js.pusher.com/7.0/pusher.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/laravel-echo/dist/echo.iife.min.js"></script>
     <script>
+        // Initialize Pusher
+        Pusher.logToConsole = true;
+
+        window.Echo = new Echo({
+            broadcaster: 'pusher',
+            key: '{{ env('PUSHER_APP_KEY') }}',
+            cluster: '{{ env('PUSHER_APP_CLUSTER') }}',
+            forceTLS: true,
+            authEndpoint: '/broadcasting/auth',
+            auth: {
+                headers: {
+                    Authorization: 'Bearer ' + '{{ csrf_token() }}',
+                },
+            },
+        });
+
+        function showLoader(message) {
+            var loaderHtml = `
+                <div class="loader-overlay">
+                    <div class="spinner-border text-primary" role="status">
+                        <span class="sr-only"></span>
+                    </div>
+                    <div class="loader-message">${message}</div>
+                </div>
+            `;
+            $('body').append(loaderHtml);
+        }
+
+        function hideLoader() {
+            $('.loader-overlay').remove();
+        }
+
         function showAlert(type, message, icon) {
             var alertHtml = `
                 <div class="alert alert-${type} border-0 bg-${type} alert-dismissible fade show py-2 position-fixed top-0 end-0 m-3" role="alert">
@@ -192,7 +243,36 @@
         }
 
         $(document).ready(function() {
+            function handleTimeout() {
+                hideLoader();
+                showAlert('warning', 'Timeout waiting for subscription confirmation. Redirecting...', 'bx-time');
+                setTimeout(() => {
+                    window.location.href = '{{ route('student.dashboard') }}';
+                }, 2000);
+            }
+
+            function listenForEvent(type, userId) {
+                let eventReceived = false;
+
+                Echo.private('subscriptions.' + userId)
+                    .listen('SubscriptionEvent', (e) => {
+                        if (e.type === type) {
+                            eventReceived = true;
+                            hideLoader();
+                            showAlert('success', `Subscription ${type} successfully.`, 'bx-check-circle');
+                            location.reload();
+                        }
+                    });
+
+                setTimeout(() => {
+                    if (!eventReceived) {
+                        handleTimeout();
+                    }
+                }, 30000); // 30 seconds timeout
+            }
+
             $('#upgrade').click(function() {
+                showLoader('Processing your subscription, please wait...');
                 $.ajax({
                     url: '{{ route('subscriptions.create') }}',
                     method: 'POST',
@@ -206,10 +286,12 @@
                         if (response.success) {
                             window.location.href = response.approval_url;
                         } else {
+                            hideLoader();
                             showAlert('danger', response.message, 'bx-error');
                         }
                     },
                     error: function(error) {
+                        hideLoader();
                         showAlert('danger', 'Failed to subscribe. Please try again.',
                             'bx-error');
                     }
@@ -217,6 +299,7 @@
             });
 
             $('#cancel-subscription').click(function() {
+                showLoader('Cancelling your subscription, please wait...');
                 $.ajax({
                     url: '{{ route('subscriptions.cancel') }}',
                     method: 'POST',
@@ -226,14 +309,14 @@
                     },
                     success: function(response) {
                         if (response.success) {
-                            showAlert('success', 'Subscription canceled successfully.',
-                                'bx-check-circle');
-                            location.reload();
+                            listenForEvent('cancelled', '{{ Auth::id() }}');
                         } else {
+                            hideLoader();
                             showAlert('danger', response.message, 'bx-error');
                         }
                     },
                     error: function(error) {
+                        hideLoader();
                         showAlert('danger', 'Failed to cancel subscription. Please try again.',
                             'bx-error');
                     }
@@ -241,6 +324,7 @@
             });
 
             $('#reactivate-subscription').click(function() {
+                showLoader('Reactivating your subscription, please wait...');
                 $.ajax({
                     url: '{{ route('subscriptions.reactivate') }}',
                     method: 'POST',
@@ -250,14 +334,14 @@
                     },
                     success: function(response) {
                         if (response.success) {
-                            showAlert('success', 'Subscription reactivated successfully.',
-                                'bx-check-circle');
-                            location.reload();
+                            listenForEvent('reactivated', '{{ Auth::id() }}');
                         } else {
+                            hideLoader();
                             showAlert('danger', response.message, 'bx-error');
                         }
                     },
                     error: function(error) {
+                        hideLoader();
                         showAlert('danger',
                             'Failed to reactivate subscription. Please try again.',
                             'bx-error');

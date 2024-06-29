@@ -7,6 +7,7 @@ use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\AdminController;
 use App\Http\Controllers\QuizController;
 use App\Http\Controllers\TeacherController;
+use App\Http\Controllers\AdminBillingController;
 use App\Http\Controllers\StudentController;
 use App\Http\Controllers\ZoomMeetingController;
 use App\Http\Controllers\CourseController;
@@ -52,8 +53,6 @@ Route::middleware('auth')->group(function () {
 
 require __DIR__ . '/auth.php';
 
-
-// Allowed for Admin and Super Admin
 
 // Routes for Admin and Super Admin only
 Route::middleware(['auth', 'role:Admin|Super Admin'])->prefix('admin')->group(function () {
@@ -116,9 +115,9 @@ Route::middleware(['auth', 'role:Admin|Super Admin'])->prefix('admin')->group(fu
     Route::get('/upload/{id}', [FileUploadController::class, 'load'])->name('filepond.load');
 
     // Subscriptions
-
-    // GROUP ROUTES WITH PREFIX SUBSCRIPTIONS
-
+    Route::get('users/subscriptions', [AdminBillingController::class, 'subscriptions'])->name('admin.subscriptions');
+    Route::get('inactive_subscriptions', [AdminBillingController::class, 'InactiveSubscriptions'])->name('admin.inactive_subscriptions');
+    Route::get('payments', [AdminBillingController::class, 'payments'])->name('admin.payments');
     Route::prefix('subscriptions')->group(function () {
         Route::get('/', [AdminSubscriptionController::class, 'index'])->name('admin.subscriptions.index');
         Route::get('/create', [AdminSubscriptionController::class, 'create'])->name('admin.subscriptions.create');

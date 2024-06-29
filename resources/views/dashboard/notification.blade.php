@@ -101,7 +101,9 @@
                                 <p class="text">{{ $notification->message }}</p>
                                 <p class="text"><small>{{ $notification->created_at->diffForHumans() }}</small></p>
                                 @if ($notification->type == 'meeting')
-                                    <a href="{{ route('student.meetings.show' ,$notification->model_id ) }}">See Details</a>
+                                    <a href="{{ route('student.meetings.show', $notification->model_id) }}">See Details</a>
+                                @elseif ($notification->type == 'subscription')
+                                    <a href="{{ route('subscription.details') }}">See Details</a>
                                 @endif
                             </div>
                         </div>
@@ -136,6 +138,7 @@
                         if (response.status === 'success') {
                             $('.notification-list--unread').removeClass(
                                 'notification-list--unread');
+                            $('#unread-count').text('0');
                         }
                     },
                     error: function(xhr, status, error) {

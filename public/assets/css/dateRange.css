@@ -1,0 +1,76 @@
+/* Custom styles for Date Range Picker */
+.daterangepicker .ranges ul li {
+    background-color: rgba(133, 78, 205, 0.15);
+    color: #C45ACD;
+    opacity: 0.9;
+}
+
+.daterangepicker .ranges ul li.active,
+.daterangepicker .ranges ul li:hover {
+    background-color: #844DCD;
+    color: #fff;
+    opacity: 1;
+}
+
+.daterangepicker .calendar-table table.table-condensed thead th {
+    background-color: rgba(133, 78, 205, 0.15);
+    color: #C45ACD;
+    opacity: 0.9;
+}
+
+.daterangepicker .calendar-table table.table-condensed tbody td.available {
+    background-color: rgba(255, 255, 255, 0.8);
+    color: #000;
+}
+
+.daterangepicker .calendar-table table.table-condensed tbody td.in-range,
+.daterangepicker .calendar-table table.table-condensed tbody td.start-date,
+.daterangepicker .calendar-table table.table-condensed tbody td.end-date {
+    background-color: rgba(196, 90, 205, 0.7);
+    color: #fff;
+}
+
+.daterangepicker .calendar-table table.table-condensed tbody td.active,
+.daterangepicker .calendar-table table.table-condensed tbody td.active:hover {
+    background-color: rgba(132, 77, 205, 0.7);
+    color: #fff;
+}
+
+.daterangepicker .calendar-table table.table-condensed tbody td.today {
+    background-color: rgba(196, 90, 205, 0.9);
+    color: #fff;
+}
+
+.daterangepicker .calendar-table table.table-condensed tbody td.weekend.off.available,
+.daterangepicker .calendar-table table.table-condensed tbody td.off.available {
+    background-color: rgba(196, 90, 205, 0.2);
+    color: #C45ACD;
+}
+
+.daterangepicker .applyBtn {
+    background-color: #C45ACD;
+    border-color: #C45ACD;
+}
+
+.daterangepicker .applyBtn:hover {
+    background-color: #844DCD;
+    border-color: #844DCD;
+}
+
+.daterangepicker .cancelBtn {
+    background-color: #fff;
+    color: #C45ACD;
+    border-color: #C45ACD;
+}
+
+.daterangepicker .cancelBtn:hover {
+    background-color: #fff;
+    color: #844DCD;
+    border-color: #844DCD;
+}
+
+.daterangepicker .cancelBtn:active {
+    background-color: #fff;
+    color: #844DCD;
+    border-color: #844DCD;
+}

@@ -721,8 +721,13 @@
                     response.notifications.forEach(function(notification) {
                         let truncatedMessage = truncateMessage(notification.message, 30);
                         if (notification.type === 'meeting') {
-                        notificationUrl = `/student/meetings/${notification.model_id}`;
-                    }
+                            notificationUrl = `/student/meetings/${notification.model_id}`;
+                        } else if (notification.type === 'subscription') {
+                            notificationUrl =
+                                `/student/subscription/details`;
+                        } else {
+                            notificationUrl = '#';
+                        }
                         let notificationItem = `
                             <a class="dropdown-item" href="${notificationUrl}">
                                 <div class="d-flex align-items-center">

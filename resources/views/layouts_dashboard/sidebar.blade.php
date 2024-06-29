@@ -19,13 +19,13 @@
             </li>
         @endhasanyrole
         @hasanyrole('Student')
-        <li>
-            <a href="{{ route('student.dashboard') }}">
-                <div class="parent-icon"><i class='bx bx-home'></i></div>
-                <div class="menu-title">Home</div>
-            </a>
-        </li>
-    @endhasanyrole
+            <li>
+                <a href="{{ route('student.dashboard') }}">
+                    <div class="parent-icon"><i class='bx bx-home'></i></div>
+                    <div class="menu-title">Home</div>
+                </a>
+            </li>
+        @endhasanyrole
 
         @hasanyrole('Super Admin|Admin')
             <li>
@@ -165,6 +165,49 @@
                             </a>
                         </li>
                     @endhasanyrole
+                </ul>
+            </li>
+        @endhasanyrole
+        @hasanyrole('Student')
+            <li>
+                <a href="{{ route('subscription.details') }}">
+                    <div class="parent-icon"><i class='bx bx-credit-card'></i></div>
+                    <div class="menu-title">My Subscription</div>
+                </a>
+            </li>
+        @endhasanyrole
+
+        @hasanyrole('Super Admin|Admin')
+            <li>
+                <a href="javascript:;" class="has-arrow">
+                    <div class="parent-icon"><i class='bx bx-wallet'></i></div>
+                    <div class="menu-title">Subscription</div>
+                </a>
+                <ul>
+                    <li>
+                        <a href="{{ route('admin.subscriptions') }}">
+                            <div class="parent-icon"><i class="bx bx-check-circle"></i></div>
+                            <div class="menu-title">Active Subscriptions</div>
+                        </a>
+                    </li>
+                    <li>
+                        <a href="{{ route('admin.inactive_subscriptions') }}">
+                            <div class="parent-icon"><i class="bx bx-x-circle"></i></div>
+                            <div class="menu-title">Inactive Subscriptions</div>
+                        </a>
+                    </li>
+                    <li>
+                        <a href="{{ route('admin.payments') }}">
+                            <div class="parent-icon"><i class="bx bx-receipt"></i></div>
+                            <div class="menu-title">Payments</div>
+                        </a>
+                    </li>
+                    <li>
+                        <a href="{{ route('admin.subscriptions.index') }}">
+                            <div class="parent-icon"><i class="bx bx-layer-plus"></i></div>
+                            <div class="menu-title">Manage Subscriptions"</div>
+                        </a>
+                    </li>
                 </ul>
             </li>
         @endhasanyrole

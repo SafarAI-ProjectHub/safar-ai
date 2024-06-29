@@ -105,7 +105,7 @@ class SubscriptionController extends Controller
             $user->student->save();
             return response()->json(['success' => true, 'message' => 'Subscription cancelled successfully.']);
         } else {
-            return response()->json(['success' => false, 'message' => 'Failed to cancel subscription.']);
+            return response()->json(['success' => false, 'message' => $response['message']]);
         }
     }
 

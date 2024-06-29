@@ -10,6 +10,9 @@ use App\Models\UserSubscription;
 use App\Models\Payment;
 use App\Models\User;
 use App\Models\Student;
+use App\Models\Notification;
+use App\Events\NotificationEvent;
+use App\Events\SubscriptionEvent;
 use Srmklive\PayPal\Services\PayPal as PayPalClient;
 use Carbon\Carbon;
 
@@ -108,6 +111,10 @@ class PayPalWebhookController extends Controller
                         ['user_id' => $user->id, 'subscription_id' => $planId],
                         ['status' => 'active', 'start_date' => $startTime, 'next_billing_time' => $nextBillingTime]
                     );
+
+                    // Send notification
+                    $this->sendSubscriptionNotification($user->id, 'Subscription Activated', 'Your subscription has been activated.', 'bx bx-credit-card');
+                    event(new SubscriptionEvent($user->id, 'activated', 'Your subscription has been activated.'));
                 }
             });
         } catch (\Exception $e) {
@@ -127,6 +134,7 @@ class PayPalWebhookController extends Controller
 
                 $user = User::where('paypal_subscription_id', $subscriptionId)->first();
                 if ($user) {
+                    $user->update(['paypal_subscription_id' => null]);
                     Student::where('student_id', $user->id)->update(['subscription_status' => 'cancelled']);
 
                     $userSubscription = UserSubscription::where('user_id', $user->id)
@@ -136,6 +144,10 @@ class PayPalWebhookController extends Controller
                     if ($userSubscription) {
                         $userSubscription->update(['status' => 'cancelled']);
                     }
+
+                    // Send notification
+                    $this->sendSubscriptionNotification($user->id, 'Subscription Cancelled', 'Your subscription has been cancelled.', 'bx bx-credit-card');
+                    event(new SubscriptionEvent($user->id, 'cancelled', 'Your subscription has been cancelled.'));
                 }
             });
         } catch (\Exception $e) {
@@ -164,6 +176,9 @@ class PayPalWebhookController extends Controller
                     if ($userSubscription) {
                         $userSubscription->update(['status' => 'expired']);
                     }
+
+                    // Send notification
+                    $this->sendSubscriptionNotification($user->id, 'Subscription Expired', 'Your subscription has expired.', 'bx bx-credit-card');
                 }
             });
         } catch (\Exception $e) {
@@ -200,6 +215,9 @@ class PayPalWebhookController extends Controller
                             'amount' => $resource['amount']['total']
                         ]);
                         $payment->save();
+
+                        // Send notification
+                        $this->sendSubscriptionNotification($user->id, 'Payment Failed', 'Your subscription payment has failed.', 'bx bx-credit-card');
                     }
                 }
             });
@@ -229,6 +247,10 @@ class PayPalWebhookController extends Controller
 
                     if ($userSubscription) {
                         $userSubscription->update(['status' => 'active', 'next_billing_time' => $nextBillingTime]);
+
+                        // Send notification
+                        $this->sendSubscriptionNotification($user->id, 'Subscription Reactivated', 'Your subscription has been reactivated.', 'bx bx-credit-card');
+                        event(new SubscriptionEvent($user->id, 'reactivated', 'Your subscription has been reactivated.'));
                     }
                 }
             });
@@ -257,6 +279,9 @@ class PayPalWebhookController extends Controller
 
                     if ($userSubscription) {
                         $userSubscription->update(['status' => 'suspended']);
+
+                        // Send notification
+                        $this->sendSubscriptionNotification($user->id, 'Subscription Suspended', 'Your subscription has been suspended.', 'bx bx-credit-card');
                     }
                 }
             });
@@ -285,6 +310,9 @@ class PayPalWebhookController extends Controller
 
                     if ($userSubscription) {
                         $userSubscription->update(['updated_at' => $updateTime, 'next_billing_time' => $nextBillingTime]);
+
+                        // Send notification
+                        $this->sendSubscriptionNotification($user->id, 'Subscription Updated', 'Your subscription has been updated.', 'bx bx-credit-card');
                     }
                 }
             });
@@ -348,6 +376,9 @@ class PayPalWebhookController extends Controller
                             $payment->save();
 
                             Log::channel('webhook-log')->info('Payment saved:', $payment->toArray());
+
+                            // Send notification
+                            $this->sendSubscriptionNotification($user->id, 'Payment Completed', 'Your payment has been completed successfully.', 'bx bx-credit-card');
                         } else {
                             Log::channel('webhook-log')->warning('Subscription not found for PayPal plan ID:', ['planId' => $plan_id]);
                         }
@@ -389,6 +420,9 @@ class PayPalWebhookController extends Controller
                             'amount' => $resource['amount']['total']
                         ]);
                         $payment->save();
+
+                        // Send notification
+                        $this->sendSubscriptionNotification($user->id, 'Payment Denied', 'Your payment has been denied.', 'bx bx-credit-card');
                     }
                 }
             });
@@ -423,6 +457,9 @@ class PayPalWebhookController extends Controller
                             'amount' => $resource['amount']['total']
                         ]);
                         $payment->save();
+
+                        // Send notification
+                        $this->sendSubscriptionNotification($user->id, 'Payment Pending', 'Your payment is pending.', 'bx bx-credit-card');
                     }
                 }
             });
@@ -457,6 +494,9 @@ class PayPalWebhookController extends Controller
                             'amount' => $resource['amount']['total']
                         ]);
                         $payment->save();
+
+                        // Send notification
+                        $this->sendSubscriptionNotification($user->id, 'Payment Refunded', 'Your payment has been refunded.', 'bx bx-credit-card');
                     }
                 }
             });
@@ -491,6 +531,9 @@ class PayPalWebhookController extends Controller
                             'amount' => $resource['amount']['total']
                         ]);
                         $payment->save();
+
+                        // Send notification
+                        $this->sendSubscriptionNotification($user->id, 'Payment Reversed', 'Your payment has been reversed.', 'bx bx-credit-card');
                     }
                 }
             });
@@ -527,6 +570,9 @@ class PayPalWebhookController extends Controller
                             'amount' => $resource['amount']['total']
                         ]);
                         $payment->save();
+
+                        // Send notification
+                        $this->sendSubscriptionNotification($user->id, 'Refund Pending', 'Your refund is pending.', 'bx bx-credit-card');
                     }
                 }
             });
@@ -555,6 +601,30 @@ class PayPalWebhookController extends Controller
                 'trace' => $e->getTraceAsString()
             ]);
             return null;
+        }
+    }
+
+    private function sendSubscriptionNotification($userId, $title, $message, $icon)
+    {
+        try {
+            $notification = Notification::create([
+                'user_id' => $userId,
+                'title' => $title,
+                'message' => $message,
+                'icon' => $icon,
+                'type' => 'subscription',
+                'is_seen' => false,
+                'model_id' => 0,
+                'reminder' => false,
+                'reminder_time' => null,
+            ]);
+
+            event(new NotificationEvent($notification));
+        } catch (\Exception $e) {
+            Log::channel('webhook-log')->error('Error sending notification:', [
+                'message' => $e->getMessage(),
+                'trace' => $e->getTraceAsString()
+            ]);
         }
     }
 }
