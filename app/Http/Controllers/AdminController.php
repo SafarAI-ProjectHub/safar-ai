@@ -231,9 +231,26 @@ class AdminController extends Controller
             'category_id' => 'required|exists:course_categories,id',
             'level' => 'required|integer|min:1|max:6',
             'type' => 'required|in:weekly,intensive',
+            'image' => 'required|image|mimes:jpeg,png,jpg,gif|max:5120',
         ]);
 
-        Course::create($request->all());
+        // Store the image
+        if ($request->hasFile('image')) {
+            $file = $request->file('image');
+            $filename = uniqid() . '.' . $file->getClientOriginalExtension();
+            $path = $file->storeAs('uploads', $filename, 'public');
+            $imagePath = 'storage/' . $path;
+        }
+
+        // Create the course
+        $course = new Course();
+        $course->title = $request->title;
+        $course->description = $request->description;
+        $course->category_id = $request->category_id;
+        $course->level = $request->level;
+        $course->type = $request->type;
+        $course->image = $imagePath;
+        $course->save();
 
         return response()->json(['success' => 'Course added successfully']);
     }

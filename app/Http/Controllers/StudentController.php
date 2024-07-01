@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
 use App\Models\Course;
+use Illuminate\Support\Facades\DB;
 use App\Models\UserMeeting;
 use Yajra\DataTables\Facades\DataTables;
 use Illuminate\Support\Facades\Auth;
@@ -11,8 +12,10 @@ use App\Models\LevelTestAssessment;
 use App\Models\LevelTest;
 use Illuminate\Http\UploadedFile;
 use App\Models\UserSubscription;
+use Carbon\Carbon;
 use App\Models\LevelTestQuestion;
 use OpenAI\Laravel\Facades\OpenAI;
+use App\Models\CourseStudent;
 use Illuminate\Support\Facades\Storage;
 use ProtoneMedia\LaravelFFMpeg\Support\FFMpeg;
 
@@ -31,27 +34,115 @@ class StudentController extends Controller
             }
         }
 
-        $user = Auth::user();
-        $ageGroup = $user->getAgeGroup();
 
-        $category = \DB::table('course_categories')
+        $user = Auth::user();
+
+        // Calculate the user's age
+        $dateOfBirth = $user->date_of_birth;
+        $age = Carbon::parse($dateOfBirth)->age;
+
+        // Determine the age group
+        if ($age >= 6 && $age < 10) {
+            $ageGroup = '6-10';
+        } elseif ($age >= 10 && $age < 14) {
+            $ageGroup = '10-14';
+        } elseif ($age >= 14 && $age < 18) {
+            $ageGroup = '14-18';
+        } else {
+            $ageGroup = '18+';
+        }
+
+        $category = DB::table('course_categories')
             ->where('age_group', $ageGroup)
             ->first();
 
         if ($category) {
-            $courses = \App\Models\Course::where('level', $user->english_proficiency_level)
+            $courses = Course::where('level', $user->student->english_proficiency_level)
                 ->where('category_id', $category->id)
                 ->get();
         } else {
-            $courses = collect(); // Empty collection
+            $courses = collect();
+        }
+        // $courses = Course::all();
+        $subscription = UserSubscription::where('user_id', Auth::id())->first();
+        $enrolledCourseIds = Auth::user()->courses->pluck('id')->toArray();
+        $planDetails = \App\Models\Subscription::where('is_active', 1)->first();
+        return view('dashboard.student.dashboard', compact('courses', 'planDetails', 'subscription', 'enrolledCourseIds'));
+    }
+
+    public function levelTest()
+    {
+        $completedLevelTest = LevelTestAssessment::where('user_id', Auth::id())->exists();
+
+        if (!$completedLevelTest) {
+            $levelTestQuestions = LevelTestQuestion::with('levelTest')->whereHas('levelTest', function ($query) {
+                $query->where('exam_type', 'student')->where('active', true);
+            })->get();
+            return view('dashboard.student.level_test', compact('levelTestQuestions'));
+        }
+    }
+
+    public function getCourseDetails(Request $request)
+    {
+        $courseId = $request->input('course_id');
+        $course = Course::find($courseId);
+
+        if ($course) {
+            return response()->json([
+                'course' => [
+                    'title' => $course->title,
+                    'description' => $course->description,
+                    'teacher_name' => $course->teacher ? optional($course->teacher->user)->full_name : 'N/A',
+                    'years_of_experience' => $course->teacher ? $course->teacher->years_of_experience : 'N/A',
+                ]
+            ]);
         }
 
-        $subscription = UserSubscription::where('user_id', Auth::id())->first();
-
-        $planDetails = \App\Models\Subscription::where('is_active', 1)->first();
-
-        return view('dashboard.student.dashboard', compact('courses', 'planDetails', 'subscription'));
+        return response()->json([
+            'error' => 'Course not found.'
+        ], 404);
     }
+
+    public function enroll(Request $request)
+    {
+        $courseId = $request->input('course_id');
+        $userId = Auth::id();
+
+        // Check if the user is already enrolled
+        if (CourseStudent::where('course_id', $courseId)->where('student_id', $userId)->exists()) {
+            return response()->json([
+                'error' => 'You are already enrolled in this course.'
+            ], 400);
+        }
+
+        // Enroll the user in the course
+        CourseStudent::create([
+            'course_id' => $courseId,
+            'student_id' => $userId,
+            'enrollment_date' => now(),
+            'progress' => 0,
+        ]);
+
+        return response()->json([
+            'success' => 'You have been enrolled in the course successfully.'
+        ]);
+    }
+
+
+
+    public function myCourses()
+    {
+        $courses = Auth::user()->courses;
+        return view('dashboard.student.myCourses', compact('courses'));
+    }
+
+    /*
+     *
+     *
+     *   meeting section    
+     *
+     *
+     */
 
 
     public function myMeetings()
@@ -102,6 +193,12 @@ class StudentController extends Controller
         return view('dashboard.student.meeting-details', compact('userMeeting'));
     }
 
+
+    /*
+     *
+     *   level test section   
+     *
+     */
     public function submit(Request $request)
     {
         $user = Auth::user();

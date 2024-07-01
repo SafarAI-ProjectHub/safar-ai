@@ -7362,6 +7362,7 @@ div.datedropper .picker .pick-lg-b li {
   -moz-box-shadow: 0 0 8px 0px rgba(0, 0, 0, 0.05);
   box-shadow: 0 0 8px 0px rgba(0, 0, 0, 0.05);
   border: 1px solid rgba(127, 136, 151, 0.2);
+  top: 60px !important;
   border-top: 0; }
   @media (max-width: 1366px) {
     .course-dashboard-sidebar-column {

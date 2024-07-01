@@ -18,8 +18,6 @@ return new class extends Migration {
             $table->integer('level');
             $table->enum('type', ['weekly', 'intensive']);
             $table->timestamps();
-
-
         });
 
     }

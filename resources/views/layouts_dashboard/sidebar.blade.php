@@ -25,6 +25,12 @@
                     <div class="menu-title">Home</div>
                 </a>
             </li>
+            <li>
+                <a href="{{ route('student.myCourses') }}">
+                    <div class="parent-icon"><i class='bx bx-book'></i></div>
+                    <div class="menu-title">My Courses</div>
+                </a>
+            </li>
         @endhasanyrole
 
         @hasanyrole('Super Admin|Admin')
@@ -205,7 +211,7 @@
                     <li>
                         <a href="{{ route('admin.subscriptions.index') }}">
                             <div class="parent-icon"><i class="bx bx-layer-plus"></i></div>
-                            <div class="menu-title">Manage Subscriptions"</div>
+                            <div class="menu-title">Manage Subscriptions</div>
                         </a>
                     </li>
                 </ul>

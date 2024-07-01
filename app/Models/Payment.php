@@ -18,7 +18,8 @@ class Payment extends Model
         'payment_status',
         'payment_type',
         'transaction_date',
-
+        'payment_image',
+        'rejection_reason',
     ];
 
     public function subscription()

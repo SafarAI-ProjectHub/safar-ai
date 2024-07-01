@@ -32,10 +32,11 @@ class SubscriptionController extends Controller
         } else {
             $planDetails = Subscription::where('is_active', true)->first();
         }
+        $cliqUserName = config('cliq.username');
 
         $activePlan = Subscription::where('is_active', true)->first();
 
-        return view('dashboard.student.subscription_details', compact('planDetails', 'subscription', 'activePlan'));
+        return view('dashboard.student.subscription_details', compact('planDetails', 'subscription', 'activePlan', 'cliqUserName'));
     }
 
 
@@ -96,8 +97,6 @@ class SubscriptionController extends Controller
         $user = Auth::user();
         $subscriptionId = $user->paypal_subscription_id;
         $response = $this->paypalService->cancelSubscription($subscriptionId);
-
-        Log::info('PayPal Subscription Cancellation Response:', $response);
 
         if (isset($response['status']) && $response['status'] == 'CANCELLED') {
             UserSubscription::where('user_id', $user->id)->update(['status' => 'cancelled']);

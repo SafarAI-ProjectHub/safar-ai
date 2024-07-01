@@ -3,6 +3,7 @@
 @section('styles')
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.0.1/dist/css/bootstrap.min.css" rel="stylesheet">
     <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons/font/bootstrap-icons.css" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@10"></script>
     <style>
         .feature-list {
             list-style: none;
@@ -46,6 +47,8 @@
         $subscriptionDate = $subscription ? $subscription->start_date->format('M d, Y') : 'N/A';
         $nextBillingDate = $subscription ? $subscription->next_billing_time->format('M d, Y') : 'N/A';
         $features = $planDetails ? json_decode($planDetails->features, true) : [];
+        $payment = $payment ?? null;
+
     @endphp
 
     <div class="card mb-4">
@@ -85,6 +88,10 @@
                 @else
                     <button id="upgrade" class="btn btn-success btn-sm">Upgrade Now — Go Pro
                         ${{ $activePlan->price }}</button>
+                @endif
+
+                @if (auth()->user()->country_location == 'Jordan')
+                    <button id="pay-with-cliq" class="btn btn-primary btn-sm">Pay with Cliq</button>
                 @endif
             </div>
         </div>
@@ -222,24 +229,11 @@
         }
 
         function showAlert(type, message, icon) {
-            var alertHtml = `
-                <div class="alert alert-${type} border-0 bg-${type} alert-dismissible fade show py-2 position-fixed top-0 end-0 m-3" role="alert">
-                    <div class="d-flex align-items-center">
-                    <div class="font-35 text-white">
-                        <i class="bx ${icon}"></i>
-                    </div>
-                    <div class="ms-3">
-                        <h6 class="mb-0 text-white">${type.charAt(0).toUpperCase() + type.slice(1)}</h6>
-                        <div class="text-white">${message}</div>
-                    </div>
-                </div>
-                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
-            </div>
-        `;
-            $('body').append(alertHtml);
-            setTimeout(function() {
-                $('.alert').alert('close');
-            }, 5000);
+            Swal.fire({
+                icon: type,
+                title: type.charAt(0).toUpperCase() + type.slice(1),
+                text: message,
+            });
         }
 
         $(document).ready(function() {
@@ -345,6 +339,79 @@
                         showAlert('danger',
                             'Failed to reactivate subscription. Please try again.',
                             'bx-error');
+                    }
+                });
+            });
+
+            $('#pay-with-cliq').click(function() {
+                const paymentStatus = '{{ $payment ? $payment->status : 'none' }}';
+                const rejectionReason = '{{ $payment ? $payment->rejection_reason : '' }}';
+
+                let htmlContent = `
+                <form id="cliqPaymentForm">
+            <div class="mb-3 text-center">
+                <div>
+                    <h3><strong>Pay with</strong> <img src="{{ asset('img/cliq.svg') }}" alt="Cliq Logo" style="max-width: 50px;"></h3>
+                </div>
+                <div>
+                    <h2 id="cliqUserName" class="border fw-bold d-inline-block">{{ $cliqUserName }} <i class="bi bi-clipboard" style="cursor: pointer;" onclick="copyCliqUserName()"></i></h2>
+                </div>
+            </div>
+            <div class="mb-3">
+                <label for="userName" class="form-label">Your Full Name</label>
+                <input type="text" class="form-control" id="userName" name="userName" required>
+            </div>
+            <div class="mb-3">
+                <label for="payment_image" class="form-label">Proof of Payment</label>
+                <input type="file" class="form-control" id="payment_image" name="payment_image" accept="image/*" required>
+            </div>`;
+
+                if (paymentStatus === 'pending') {
+                    htmlContent += `<div class="alert alert-info" role="alert">
+                    Your payment is still pending approval.
+                </div>`;
+                } else if (paymentStatus === 'rejected') {
+                    htmlContent += `<div class="alert alert-danger" role="alert">
+                    Your payment was rejected. Reason: ${rejectionReason}
+                </div>`;
+                }
+
+                htmlContent += `</form>`;
+
+                Swal.fire({
+                    title: '',
+                    html: htmlContent,
+                    showCancelButton: true,
+                    confirmButtonText: 'Submit',
+                    preConfirm: () => {
+                        const form = document.getElementById('cliqPaymentForm');
+                        const formData = new FormData(form);
+
+                        return fetch('/pay-with-cliq', {
+                                method: 'POST',
+                                body: formData,
+                                headers: {
+                                    'X-CSRF-TOKEN': '{{ csrf_token() }}'
+                                }
+                            })
+                            .then(response => response.json())
+                            .then(data => {
+                                if (!data.success) {
+                                    throw new Error(data.message ||
+                                        'There was an error submitting your payment proof.'
+                                    );
+                                }
+                                return data;
+                            })
+                            .catch(error => {
+                                Swal.showValidationMessage(`Request failed: ${error}`);
+                            });
+                    }
+                }).then((result) => {
+                    if (result.isConfirmed) {
+                        Swal.fire('Submitted!',
+                            'Your payment proof has been submitted. Await admin approval.',
+                            'success');
                     }
                 });
             });

@@ -34,7 +34,6 @@
 @endsection
 
 @section('scripts')
-    <script src="https://cdn.datatables.net/1.11.5/js/jquery.dataTables.min.js"></script>
     <script src="https://cdn.datatables.net/1.11.5/js/dataTables.bootstrap4.min.js"></script>
     <script src="{{ asset('assets/plugins/select2/js/select2.min.js') }}"></script>
     <script src="//cdn.jsdelivr.net/momentjs/latest/moment.min.js"></script>
@@ -114,7 +113,26 @@
                         data: 'payment_status',
                         name: 'payment_status'
                     }
-                ]
+                ],
+                dom: 'Bfrtip',
+                buttons: [{
+                        extend: 'copy',
+                        className: 'btn btn-outline-secondary buttons-copy buttons-html5'
+                    },
+                    {
+                        extend: 'excel',
+                        className: 'btn btn-outline-secondary buttons-excel buttons-html5'
+                    },
+                    {
+                        extend: 'pdf',
+                        className: 'btn btn-outline-secondary buttons-pdf buttons-html5'
+                    },
+                    {
+                        extend: 'print',
+                        className: 'btn btn-outline-secondary buttons-print'
+                    }
+                ],
+                lengthChange: false
             });
 
             $('#daterange').on('apply.daterangepicker', function(ev, picker) {

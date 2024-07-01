@@ -249,42 +249,51 @@
                 <div class="course-dashboard-column">
 
                     <div class="lecture-viewer-container" style="min-height:50vh;">
-                        @foreach ($course->units as $unit)
-                            @php
-                                $contentDivId = 'unitContent' . $loop->iteration; // Unique ID for content div
-                            @endphp
+                        @if ($course->units->count() > 0)
+                            @foreach ($course->units as $unit)
+                                @php
+                                    $contentDivId = 'unitContent' . $loop->iteration; // Unique ID for content div
+                                @endphp
 
-                            @if ($unit->content_type === 'video')
-                                <div id="{{ $contentDivId }}" class="collapse lecture-video-item"
-                                    aria-labelledby="heading{{ $loop->iteration }}"
-                                    data-parent="#accordionCourseExample">
-                                    <video controls crossorigin playsinline id="player{{ $loop->iteration }}">
-                                        <!-- Video files -->
-                                        <source src="{{ asset($unit->content) }}" type="video/mp4" />
-                                        <!-- Additional sources can be specified here -->
+                                @if ($unit->content_type === 'video')
+                                    <div id="{{ $contentDivId }}" class="collapse lecture-video-item"
+                                        aria-labelledby="heading{{ $loop->iteration }}"
+                                        data-parent="#accordionCourseExample">
+                                        <video controls crossorigin playsinline id="player{{ $loop->iteration }}">
+                                            <!-- Video files -->
+                                            <source src="{{ asset($unit->content) }}" type="video/mp4" />
+                                            <!-- Additional sources can be specified here -->
 
-                                        <!-- Caption files -->
-                                        <track kind="captions" label="English" srclang="en" src="#"
-                                            default />
-                                        <track kind="captions" label="Français" srclang="fr" src="#" />
+                                            <!-- Caption files -->
+                                            <track kind="captions" label="English" srclang="en" src="#"
+                                                default />
+                                            <track kind="captions" label="Français" srclang="fr" src="#" />
 
-                                        <!-- Fallback for browsers that don't support the <video> element -->
-                                        <a href="{{ asset($unit->content) }}" download>Download</a>
-                                    </video>
-                                </div>
-                            @else
-                                <div id="{{ $contentDivId }}"
-                                    class="collapse lecture-viewer-text-wrap {{ $loop->first ? 'active' : '' }} "
-                                    aria-labelledby="heading{{ $loop->iteration }}"
-                                    data-parent="#accordionCourseExample">
-                                    <div class="lecture-viewer-text-content custom-scrollbar-styled">
-                                        <div class="lecture-viewer-text-body">
-                                            {!! $unit->content !!} <!-- Dynamically loading text content -->
+                                            <!-- Fallback for browsers that don't support the <video> element -->
+                                            <a href="{{ asset($unit->content) }}" download>Download</a>
+                                        </video>
+                                    </div>
+                                @else
+                                    <div id="{{ $contentDivId }}"
+                                        class="collapse lecture-viewer-text-wrap {{ $loop->first ? 'active' : '' }} "
+                                        aria-labelledby="heading{{ $loop->iteration }}"
+                                        data-parent="#accordionCourseExample">
+                                        <div class="lecture-viewer-text-content custom-scrollbar-styled">
+                                            <div class="lecture-viewer-text-body">
+                                                {!! $unit->content !!} <!-- Dynamically loading text content -->
+                                            </div>
                                         </div>
                                     </div>
+                                @endif
+                            @endforeach
+                        @else
+                            <div class="lecture-viewer-container">
+                                <div class="lecture-video-item">
+                                    <h3 class="fs-24 font-weight-semi-bold">No
+                                        content available Yet</h3>
                                 </div>
-                            @endif
-                        @endforeach
+                            </div>
+                        @endif
                     </div><!-- end lecture-viewer-container -->
 
                     <div class="lecture-video-detail">
@@ -560,81 +569,85 @@
                                                 <div class="media media-card align-items-center">
                                                     <a href="teacher-detail.html"
                                                         class="media-img d-block rounded-full avatar-md">
-                                                        <img src="{{ $course->teacher->user->profile_image ? asset(Auth::user()->profile_image) : asset('assets/images/avatars/profile-Img.png') }}"
+                                                        <img src="{{ $course->teacher && $course->teacher->user->profile_image ? $course->teacher->user->profile_image : asset('assets/images/avatars/profile-Img.png') }}"
                                                             class="rounded-full user-img" alt="Instructor avatar">
 
                                                     </a>
                                                     <div class="media-body">
-                                                        <h5><a
-                                                                href="teacher-detail.html">{{ $course->teacher->user->full_name }}</a>
+                                                        <h5><a href="{{ $course->teacher ? '#' : '#' }}">
+                                                                {{ $course->teacher && optional($course->teacher->user)->full_name ? $course->teacher->user->full_name : 'N/A' }}
+                                                            </a>
                                                         </h5>
-                                                        <span class="d-block lh-18 pt-2">years of experience
-                                                            : {{ $course->teacher->years_of_experience }} </span>
+                                                        <div>
+                                                            <span class="d-block lh-18 pt-2">Years of experience:
+                                                                {{ optional($course->teacher)->years_of_experience ?? 'N/A' }}
+                                                            </span>
+                                                        </div>
+
                                                     </div>
-                                                </div>
 
-                                            </div><!-- end lecture-overview-stats-item -->
-                                        </div><!-- end lecture-overview-stats-wrap -->
-                                    </div><!-- end lecture-overview-item -->
-                                </div><!-- end lecture-overview-wrap -->
-                            </div><!-- end tab-pane -->
+                                                </div><!-- end lecture-overview-stats-item -->
+                                            </div><!-- end lecture-overview-stats-wrap -->
+                                        </div><!-- end lecture-overview-item -->
+                                    </div><!-- end lecture-overview-wrap -->
+                                </div><!-- end tab-pane -->
 
-                        </div><!-- end tab-content -->
-                    </div><!-- end lecture-video-detail-body -->
-                </div><!-- end lecture-video-detail -->
-                <div class="cta-area py-4 bg-gray">
-                    <div class="container-fluid">
-                        <div class="row align-items-center">
-                            <div class="col-lg-6">
-                                <div class="cta-content-wrap">
-                                    <h3 class="fs-18 font-weight-semi-bold">Top companies choose <a
-                                            href="for-business.html" class="text-color hover-underline">Safar AI
-                                            for Business</a> to build in-demand career skills.</h3>
-                                </div>
-                            </div><!-- end col-lg-6 -->
-                            <div class="col-lg-6">
-                                <div class="client-logo-wrap text-right">
-                                    <a href="#" class="client-logo-item client--logo-item-2 pr-3"><img
-                                            src="/images/sponsor-img.png" alt="brand image"></a>
-                                    <a href="#" class="client-logo-item client--logo-item-2 pr-3"><img
-                                            src="/images/sponsor-img2.png" alt="brand image"></a>
-                                    <a href="#" class="client-logo-item client--logo-item-2 pr-3"><img
-                                            src="/images/sponsor-img3.png" alt="brand image"></a>
-                                </div><!-- end client-logo-wrap -->
-                            </div><!-- end col-lg-6 -->
-                        </div><!-- end row -->
-                    </div><!-- end container-fluid -->
-                </div><!-- end cta-area -->
-                <div class="footer-area pt-50px">
-                    <div class="container-fluid">
-                        <div class="row">
-                            <div class="col-lg-6 responsive-column-half">
-                                <div class="footer-item">
-                                    <a href="index.html">
-                                        <img src="{{ asset('assets/images/logo-img.png') }}" alt="footer logo"
-                                            class="footer__logo" style="width:100%;height:100%;">
-                                    </a>
-                                    <ul class="generic-list-item pt-4">
-                                        <li><a href="tel:+1631237884">+163 123 7884</a></li>
-                                        <li><a href="mailto:support@wbsite.com">support@website.com</a></li>
-                                        <li>Melbourne, Australia, 105 South Park Avenue</li>
-                                    </ul>
-                                </div><!-- end footer-item -->
-                            </div><!-- end col-lg-3 -->
-                            <div class="col-lg-6 responsive-column-half">
-                                <div class="footer-item">
-                                    <h3 class="fs-20 font-weight-semi-bold pb-3">Company</h3>
-                                    <ul class="generic-list-item">
-                                        <li><a href="/#about">About us</a></li>
-                                        <li><a href="/#contact">Contact us</a></li>
-                                        <li><a href="/register-teacher">Become a Teacher</a></li>
-                                        <li><a href="/#team">Team</a></li>
-                                        {{-- <li><a href="#">FAQs</a></li>
+                            </div><!-- end tab-content -->
+                        </div><!-- end lecture-video-detail-body -->
+                    </div><!-- end lecture-video-detail -->
+                    <div class="cta-area py-4 bg-gray">
+                        <div class="container-fluid">
+                            <div class="row align-items-center">
+                                <div class="col-lg-6">
+                                    <div class="cta-content-wrap">
+                                        <h3 class="fs-18 font-weight-semi-bold">Top companies choose <a
+                                                href="for-business.html" class="text-color hover-underline">Safar AI
+                                                for Business</a> to build in-demand career skills.</h3>
+                                    </div>
+                                </div><!-- end col-lg-6 -->
+                                <div class="col-lg-6">
+                                    <div class="client-logo-wrap text-right">
+                                        <a href="#" class="client-logo-item client--logo-item-2 pr-3"><img
+                                                src="/images/sponsor-img.png" alt="brand image"></a>
+                                        <a href="#" class="client-logo-item client--logo-item-2 pr-3"><img
+                                                src="/images/sponsor-img2.png" alt="brand image"></a>
+                                        <a href="#" class="client-logo-item client--logo-item-2 pr-3"><img
+                                                src="/images/sponsor-img3.png" alt="brand image"></a>
+                                    </div><!-- end client-logo-wrap -->
+                                </div><!-- end col-lg-6 -->
+                            </div><!-- end row -->
+                        </div><!-- end container-fluid -->
+                    </div><!-- end cta-area -->
+                    <div class="footer-area pt-50px">
+                        <div class="container-fluid">
+                            <div class="row">
+                                <div class="col-lg-6 responsive-column-half">
+                                    <div class="footer-item">
+                                        <a href="index.html">
+                                            <img src="{{ asset('assets/images/logo-img.png') }}" alt="footer logo"
+                                                class="footer__logo" style="width:100%;height:100%;">
+                                        </a>
+                                        <ul class="generic-list-item pt-4">
+                                            <li><a href="tel:+1631237884">+163 123 7884</a></li>
+                                            <li><a href="mailto:support@wbsite.com">support@website.com</a></li>
+                                            <li>Melbourne, Australia, 105 South Park Avenue</li>
+                                        </ul>
+                                    </div><!-- end footer-item -->
+                                </div><!-- end col-lg-3 -->
+                                <div class="col-lg-6 responsive-column-half">
+                                    <div class="footer-item">
+                                        <h3 class="fs-20 font-weight-semi-bold pb-3">Company</h3>
+                                        <ul class="generic-list-item">
+                                            <li><a href="/#about">About us</a></li>
+                                            <li><a href="/#contact">Contact us</a></li>
+                                            <li><a href="/register-teacher">Become a Teacher</a></li>
+                                            <li><a href="/#team">Team</a></li>
+                                            {{-- <li><a href="#">FAQs</a></li>
                                         <li><a href="#">Blog</a></li> --}}
-                                    </ul>
-                                </div><!-- end footer-item -->
-                            </div><!-- end col-lg-3 -->
-                            {{-- <div class="col-lg-3 responsive-column-half">
+                                        </ul>
+                                    </div><!-- end footer-item -->
+                                </div><!-- end col-lg-3 -->
+                                {{-- <div class="col-lg-3 responsive-column-half">
                                 <div class="footer-item">
                                     <h3 class="fs-20 font-weight-semi-bold pb-3">Courses</h3>
                                     <ul class="generic-list-item">
@@ -659,16 +672,16 @@
                                     </div>
                                 </div><!-- end footer-item -->
                             </div><!-- end col-lg-3 --> --}}
-                        </div><!-- end row -->
-                    </div><!-- end container-fluid -->
-                    <div class="section-block"></div>
-                    <div class="copyright-content py-4">
-                        <div class="container-fluid">
-                            <div class="row align-items-center">
-                                <div class="col-lg-12 text-center">
-                                    <p class="copy-desc">&copy; 2021 Safar AI. All Rights Reserved.
-                                </div><!-- end col-lg-6 -->
-                                {{-- <div class="col-lg-6">
+                            </div><!-- end row -->
+                        </div><!-- end container-fluid -->
+                        <div class="section-block"></div>
+                        <div class="copyright-content py-4">
+                            <div class="container-fluid">
+                                <div class="row align-items-center">
+                                    <div class="col-lg-12 text-center">
+                                        <p class="copy-desc">&copy; 2021 Safar AI. All Rights Reserved.
+                                    </div><!-- end col-lg-6 -->
+                                    {{-- <div class="col-lg-6">
                                     <div class="d-flex flex-wrap align-items-center justify-content-end">
                                         <ul class="generic-list-item d-flex flex-wrap align-items-center fs-14">
                                             <li class="mr-3"><a href="terms-and-conditions.html">Terms &
@@ -700,64 +713,75 @@
                                         </div>
                                     </div>
                                 </div><!-- end col-lg-6 --> --}}
-                            </div><!-- end row -->
-                        </div><!-- end container-fluid -->
-                    </div><!-- end copyright-content -->
-                </div><!-- end footer-area -->
-            </div><!-- end course-dashboard-column -->
+                                </div><!-- end row -->
+                            </div><!-- end container-fluid -->
+                        </div><!-- end copyright-content -->
+                    </div><!-- end footer-area -->
+                </div><!-- end course-dashboard-column -->
 
-            <div class="course-dashboard-sidebar-column">
-                <button class="sidebar-open" type="button"><i class="la la-angle-left"></i> Course
-                    Content</button>
-                <div class="course-dashboard-sidebar-wrap custom-scrollbar-styled">
-                    <div class="course-dashboard-side-heading d-flex align-items-center justify-content-between">
-                        <h3 class="fs-18 font-weight-semi-bold">Course content</h3>
-                        <button class="sidebar-close" type="button"><i class="la la-times"></i></button>
-                    </div>
-                    <div class="course-dashboard-side-content">
-                        <div class="accordion generic-accordion generic--accordion" id="accordionCourseExample">
-                            <div class="card">
-                                <div class="card-header" id="headingOne">
-                                    <button class="btn btn-link" type="button" data-toggle="collapse"
-                                        data-target="#collapseOne" aria-expanded="true" aria-controls="collapseOne">
-                                        <i class="la la-angle-down"></i><i class="la la-angle-up"></i>
-                                        <span class="fs-15">{{ $course->title }} :
-                                            {{-- {{ $course->description }}</span> --}}
-                                            <span class="course-duration"><span>1 /
-                                                    {{ $course->units->count() }}</span>{{-- <span>21min</span> --}}</span>
-                                    </button>
-                                </div>
-                                <div id="collapseOne" class="collapse show" aria-labelledby="headingOne"
-                                    data-parent="#accordionCourseExample">
-                                    <div class="card-body p-0">
-                                        <ul class="curriculum-sidebar-list">
-                                            @foreach ($course->units as $unit)
-                                                <li class="course-item-link  {{ $unit->content_type == 'video' ? '' : 'active-resource' }} {{ $loop->first ? 'active' : '' }}"
-                                                    @if ($unit->content_type == 'video') onclick="updateContent('{{ $unit->content_type }}', `{{ asset($unit->content) }}`, '{{ $unit->title }}')">
+                <div class="course-dashboard-sidebar-column">
+                    <button class="sidebar-open" type="button"><i class="la la-angle-left"></i> Course
+                        Content</button>
+                    <div class="course-dashboard-sidebar-wrap custom-scrollbar-styled">
+                        <div class="course-dashboard-side-heading d-flex align-items-center justify-content-between">
+                            <h3 class="fs-18 font-weight-semi-bold">Course content</h3>
+                            <button class="sidebar-close" type="button"><i class="la la-times"></i></button>
+                        </div>
+                        <div class="course-dashboard-side-content">
+                            <div class="accordion generic-accordion generic--accordion" id="accordionCourseExample">
+                                <div class="card">
+                                    <div class="card-header" id="headingOne">
+                                        <button class="btn btn-link" type="button" data-toggle="collapse"
+                                            data-target="#collapseOne" aria-expanded="true"
+                                            aria-controls="collapseOne">
+                                            <i class="la la-angle-down"></i><i class="la la-angle-up"></i>
+                                            <span class="fs-15">{{ $course->title }} :
+                                                {{-- {{ $course->description }}</span> --}}
+                                                <span class="course-duration"><span>1 /
+                                                        {{ $course->units->count() }}</span>{{-- <span>21min</span> --}}</span>
+                                        </button>
+                                    </div>
+                                    <div id="collapseOne" class="collapse show" aria-labelledby="headingOne"
+                                        data-parent="#accordionCourseExample">
+                                        <div class="card-body p-0">
+                                            <ul class="curriculum-sidebar-list">
+                                                @if ($course->units->count() > 0)
+                                                    @foreach ($course->units as $unit)
+                                                        <li class="course-item-link  {{ $unit->content_type == 'video' ? '' : 'active-resource' }} {{ $loop->first ? 'active' : '' }}"
+                                                            @if ($unit->content_type == 'video') onclick="updateContent('{{ $unit->content_type }}', `{{ asset($unit->content) }}`, '{{ $unit->title }}')">
                                                     @else
                                                     onclick="updateContent('{{ $unit->content_type }}', `{{ $unit->content }}`, '{{ $unit->title }}')"> @endif
-                                                    <div class="course-item-content-wrap">
-                                                    <div class="course-item-content">
-                                                        <h4 class="fs-15">{{ $unit->title }}</h4>
-                                                        <div class="courser-item-meta-wrap">
-                                                            <p class="course-item-meta">
-                                                                <i
-                                                                    class="la la-{{ $unit->content_type === 'video' ? 'play-circle' : 'file' }}"></i>
-                                                                {{ $unit->content_type === 'video' ? 'video' : 'text' }}
-                                                            </p>
-                                                        </div>
-                                                    </div>
-                                    </div>
-                                    </li>
-                                    @endforeach
-                                    </ul>
-                                </div><!-- end card-body -->
-                            </div><!-- end collapse -->
-                        </div><!-- end card -->
-                    </div><!-- end accordion-->
-                </div><!-- end course-dashboard-side-content -->
-            </div><!-- end course-dashboard-sidebar-wrap -->
-        </div><!-- end course-dashboard-sidebar-column -->
+                                                            <div class="course-item-content-wrap">
+                                                            <div class="course-item-content">
+                                                                <h4 class="fs-15">{{ $unit->title }}</h4>
+                                                                <div class="courser-item-meta-wrap">
+                                                                    <p class="course-item-meta">
+                                                                        <i
+                                                                            class="la la-{{ $unit->content_type === 'video' ? 'play-circle' : 'file' }}"></i>
+                                                                        {{ $unit->content_type === 'video' ? 'video' : 'text' }}
+                                                                    </p>
+                                                                </div>
+                                                            </div>
+                                        </div>
+                                        </li>
+                                        @endforeach
+                                    @else
+                                        <li class="course-item-link">
+                                            <div class="course-item-content-wrap">
+                                                <div class="course-item-content">
+                                                    <h4 class="fs-15">No content available Yet</h4>
+                                                </div>
+                                            </div>
+                                        </li>
+                                        @endif
+                                        </ul>
+                                    </div><!-- end card-body -->
+                                </div><!-- end collapse -->
+                            </div><!-- end card -->
+                        </div><!-- end accordion-->
+                    </div><!-- end course-dashboard-side-content -->
+                </div><!-- end course-dashboard-sidebar-wrap -->
+            </div><!-- end course-dashboard-sidebar-column -->
         </div><!-- end course-dashboard-container -->
         </div><!-- end course-dashboard-wrap -->
     </section><!-- end course-dashboard -->

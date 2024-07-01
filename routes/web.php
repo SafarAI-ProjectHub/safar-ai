@@ -124,6 +124,10 @@ Route::middleware(['auth', 'role:Admin|Super Admin'])->prefix('admin')->group(fu
         Route::post('/', [AdminSubscriptionController::class, 'store'])->name('admin.subscriptions.store');
         Route::post('/toggle-active/{id}', [AdminSubscriptionController::class, 'toggleActive'])->name('admin.subscriptions.toggleActive');
     });
+
+    // cliq payments
+    Route::post('/approve-payment/{id}', [CliqController::class, 'approvePayment'])->name('admin.approvePayment');
+    Route::post('/reject-payment/{id}', [CliqController::class, 'rejectPayment'])->name('admin.rejectPayment');
 });
 
 // Routes for Super Admin, Admin, and Teacher
@@ -176,7 +180,6 @@ Route::middleware(['auth', 'role:Teacher|Super Admin'])->prefix('teacher')->grou
     Route::get('quiz-results/{courseId}', [TeacherController::class, 'getStudentQuizResults'])->name('teacher.quizResults');
     Route::get('student-profiles', [TeacherController::class, 'getStudentProfiles'])->name('teacher.getStudentProfiles');
     Route::get('student-profiles/{id}', [TeacherController::class, 'showStudentProfile'])->name('teacher.showStudentProfile');
-
 });
 
 // Routes for Students and Super Admin
@@ -203,6 +206,19 @@ Route::middleware(['auth', 'role:Student'])->group(function () {
     Route::post('/subscriptions/create', [SubscriptionController::class, 'create'])->name('subscriptions.create');
     Route::post('/subscriptions/cancel', [SubscriptionController::class, 'cancel'])->name('subscriptions.cancel');
     Route::post('/subscriptions/reactivate', [SubscriptionController::class, 'reactivate'])->name('subscriptions.reactivate');
+
+    // courses routes 
+    Route::get('/my-courses', [StudentController::class, 'myCourses'])->name('student.myCourses');
+    Route::get('/course/details', [StudentController::class, 'getCourseDetails'])->name('student.getCourseDetails');
+    Route::post('/course/enroll', [StudentController::class, 'enroll'])->name('student.enroll');
+
+    // level test
+    Route::get('/level-test', [StudentController::class, 'levelTest'])->name('level.test');
+
+    // Cliq payments 
+    Route::post('/pay-with-cliq', [CliqController::class, 'payWithCliq'])->name('payWithCliq');
+    Route::post('/reupload-payment-proof/{id}', [CliqController::class, 'reuploadPaymentProof'])->name('reuploadPaymentProof');
+
 });
 
 

@@ -1,8 +1,16 @@
 @extends('layouts_dashboard.main')
 
 @section('styles')
+    <link href="https://unpkg.com/filepond/dist/filepond.css" rel="stylesheet">
+    <link href="https://unpkg.com/filepond-plugin-image-preview/dist/filepond-plugin-image-preview.css" rel="stylesheet">
     <link href="{{ asset('assets/plugins/select2/css/select2.min.css') }}" rel="stylesheet" />
     <link href="{{ asset('assets/plugins/select2/css/select2-bootstrap4.css') }}" rel="stylesheet" />
+    <style>
+        .modal-body {
+            max-height: calc(100vh - 200px);
+            overflow-y: auto;
+        }
+    </style>
 @endsection
 
 @section('content')
@@ -11,7 +19,8 @@
             <h5>Courses List</h5>
             @hasanyrole('Super Admin|Admin')
                 <div class="d-flex justify-content-end mb-3">
-                    <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#addCourseModal">Add New Course</button>
+                    <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#addCourseModal">Add New
+                        Course</button>
                 </div>
             @endhasanyrole
             <div class="table-responsive">
@@ -37,7 +46,7 @@
         <div class="modal fade" id="addCourseModal" tabindex="-1" aria-hidden="true">
             <div class="modal-dialog modal-dialog-scrollable">
                 <div class="modal-content">
-                    <form id="addCourseForm">
+                    <form id="addCourseForm" enctype="multipart/form-data">
                         @csrf
                         <div class="modal-header">
                             <h5 class="modal-title" id="addCourseModalLabel">Add New Course</h5>
@@ -77,6 +86,11 @@
                                     <option value="weekly">Weekly</option>
                                     <option value="intensive">Intensive</option>
                                 </select>
+                            </div>
+                            <div class="mb-3">
+                                <label for="image" class="form-label">Upload Image</label>
+                                <input type="file" class="filepond" name="image" data-allow-reorder="true"
+                                    data-max-file-size="5MB" data-max-files="1">
                             </div>
                         </div>
                         <div class="modal-footer">
@@ -122,6 +136,10 @@
 
 @section('scripts')
     <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.12.9/umd/popper.min.js"></script>
+    <script src="https://unpkg.com/filepond/dist/filepond.js"></script>
+    <script src="https://unpkg.com/filepond-plugin-file-validate-size/dist/filepond-plugin-file-validate-size.js"></script>
+    <script src="https://unpkg.com/filepond-plugin-image-preview/dist/filepond-plugin-image-preview.js"></script>
+    <script src="https://unpkg.com/filepond-plugin-file-validate-type/dist/filepond-plugin-file-validate-type.js"></script>
     <script src="{{ asset('assets/plugins/select2/js/select2.min.js') }}"></script>
     <script>
         $(document).ready(function() {
@@ -187,20 +205,44 @@
                 ],
                 lengthChange: false
             });
-            // Initialize tooltips
-            $('[data-toggle="tooltip"]').tooltip()
 
-            table.buttons().container()
-                .appendTo('#courses-table_wrapper .col-md-6:eq(0)');
+            // Initialize tooltips
+            $('[data-toggle="tooltip"]').tooltip();
+
+            // FilePond initialization
+            FilePond.registerPlugin(FilePondPluginFileValidateSize, FilePondPluginImagePreview,
+                FilePondPluginFileValidateType);
+
+            const pond = FilePond.create(document.querySelector('input[name="image"]'), {
+                allowFileTypeValidation: true,
+                acceptedFileTypes: ['image/*'],
+                fileValidateTypeLabelExpectedTypes: 'Expected file type: Image'
+            });
 
             $('#addCourseForm').on('submit', function(e) {
                 e.preventDefault();
-                var formData = $(this).serialize();
+                var originalFormData = new FormData(this);
+                var newFormData = new FormData();
+
+                // Iterate over each entry in the original form data
+                for (var pair of originalFormData.entries()) {
+                    if (pair[0] !== 'image') {
+                        newFormData.append(pair[0], pair[1]);
+                    }
+                }
+
+                // Add the image file separately
+                var file = pond.getFile();
+                if (file) {
+                    newFormData.append('image', file.file);
+                }
 
                 $.ajax({
                     url: '{{ route('admin.storeCourse') }}',
                     method: 'POST',
-                    data: formData,
+                    data: newFormData,
+                    processData: false,
+                    contentType: false,
                     success: function(response) {
                         $('#addCourseModal').modal('hide');
                         table.ajax.reload();
@@ -212,6 +254,9 @@
                         $('#category_id').val('');
                         $('#level').val('');
                         $('#type').val('');
+
+                        // Clear FilePond
+                        pond.removeFiles();
                     },
                     error: function(response) {
                         showAlert('danger', 'Error adding course', 'bxs-message-square-x');
@@ -219,63 +264,17 @@
                 });
             });
 
-            $(document).on('click', '.assign-teacher-btn', function() {
-                var courseId = $(this).data('course-id');
-                $('#assignCourseId').val(courseId);
 
-                $.ajax({
-                    url: '{{ route('admin.getTeachersForAssignment') }}',
-                    method: 'GET',
-                    success: function(response) {
-                        var teacherSelect = $('#teacher_id');
-                        teacherSelect.empty();
-                        teacherSelect.append(
-                            '<option value="" disabled selected>Select Teacher</option>');
-                        $.each(response, function(index, teacher) {
-                            teacherSelect.append('<option value="' + teacher.id + '">' +
-                                teacher.user.first_name + ' ' + teacher.user
-                                .last_name + ' - ' + teacher.user.email +
-                                '</option>');
-                        });
-                        $('#teacher_id').select2({
-                            theme: 'bootstrap4',
-                            dropdownParent: $('#assignTeacherModal'),
-                            placeholder: 'Search for a teacher',
-                            allowClear: true
-                        });
+            $('#addCourseModal').on('hidden.bs.modal', function() {
+                // Clear input fields
+                $('#title').val('');
+                $('#description').val('');
+                $('#category_id').val('');
+                $('#level').val('');
+                $('#type').val('');
 
-                        // Pre-select the assigned teacher if available
-                        var selectedTeacherId = $('#assignCourseId').data('teacher-id');
-                        if (selectedTeacherId) {
-                            $('#teacher_id').val(selectedTeacherId).trigger('change');
-                        }
-
-                        $('#assignTeacherModal').modal('show');
-                    },
-                    error: function(response) {
-                        showAlert('danger', 'Error fetching teachers', 'bxs-message-square-x');
-                    }
-                });
-            });
-
-            $('#assignTeacherForm').on('submit', function(e) {
-                e.preventDefault();
-                var formData = $(this).serialize();
-
-                $.ajax({
-                    url: '{{ route('admin.assignTeacherToCourse') }}',
-                    method: 'POST',
-                    data: formData,
-                    success: function(response) {
-                        $('#assignTeacherModal').modal('hide');
-                        table.ajax.reload();
-                        showAlert('success', 'Teacher assigned successfully!',
-                            'bxs-check-circle');
-                    },
-                    error: function(response) {
-                        showAlert('danger', 'Error assigning teacher', 'bxs-message-square-x');
-                    }
-                });
+                // Clear FilePond
+                pond.removeFiles();
             });
 
             function showAlert(type, message, icon) {
