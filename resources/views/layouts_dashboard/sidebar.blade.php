@@ -191,11 +191,18 @@
                 </a>
                 <ul>
                     <li>
+                        <a href="{{ route('showPendingPayments') }}">
+                            <div class="parent-icon"><i class="bx bx-time"></i></div>
+                            <div class="menu-title">Pending Cliq Payments</div>
+                        </a>
+                    </li>
+                    <li>
                         <a href="{{ route('admin.subscriptions') }}">
                             <div class="parent-icon"><i class="bx bx-check-circle"></i></div>
                             <div class="menu-title">Active Subscriptions</div>
                         </a>
                     </li>
+
                     <li>
                         <a href="{{ route('admin.inactive_subscriptions') }}">
                             <div class="parent-icon"><i class="bx bx-x-circle"></i></div>

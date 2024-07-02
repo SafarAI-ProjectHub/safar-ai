@@ -5,6 +5,7 @@ use App\Http\Controllers\FileUploadController;
 use App\Http\Controllers\AdminSubscriptionController;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\AdminController;
+use App\Http\Controllers\CliqController;
 use App\Http\Controllers\QuizController;
 use App\Http\Controllers\TeacherController;
 use App\Http\Controllers\AdminBillingController;
@@ -126,6 +127,7 @@ Route::middleware(['auth', 'role:Admin|Super Admin'])->prefix('admin')->group(fu
     });
 
     // cliq payments
+    Route::get('/pending-payments', [CliqController::class, 'showPendingPayments'])->name('showPendingPayments');
     Route::post('/approve-payment/{id}', [CliqController::class, 'approvePayment'])->name('admin.approvePayment');
     Route::post('/reject-payment/{id}', [CliqController::class, 'rejectPayment'])->name('admin.rejectPayment');
 });
@@ -218,7 +220,6 @@ Route::middleware(['auth', 'role:Student'])->group(function () {
     // Cliq payments 
     Route::post('/pay-with-cliq', [CliqController::class, 'payWithCliq'])->name('payWithCliq');
     Route::post('/reupload-payment-proof/{id}', [CliqController::class, 'reuploadPaymentProof'])->name('reuploadPaymentProof');
-
 });
 
 

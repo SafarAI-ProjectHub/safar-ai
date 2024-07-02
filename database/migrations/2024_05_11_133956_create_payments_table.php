@@ -24,7 +24,8 @@ return new class extends Migration {
                 'denied',
                 'refunded',
                 'reversed',
-                'refund_pending'
+                'refund_pending',
+                'rejected',
             ])->default('pending');
             $table->enum('payment_type', ['paypal', 'cliq']);
             $table->string('paypal_payment_id')->nullable();

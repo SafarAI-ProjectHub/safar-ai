@@ -21,23 +21,37 @@ class SubscriptionController extends Controller
     public function showSubscriptionDetails()
     {
         $user = Auth::user();
-        $subscription = UserSubscription::where('user_id', $user->id)
-            ->first();
+        $subscription = UserSubscription::where('user_id', $user->id)->first();
+
         if ($subscription) {
             if ($subscription->status == 'active' || $subscription->status == 'suspend') {
-                $planDetails = Subscription::where('paypal_plan_id', $subscription->subscription_id)->first();
+                if ($subscription->subscription_id == 'cliq-' . $user->id) {
+                    $planDetails = Subscription::where('is_active', true)->first();
+                    $payment = Payment::where('user_id', $user->id)->latest()->first();
+                } else {
+                    $planDetails = Subscription::where('paypal_plan_id', $subscription->subscription_id)->first();
+                    $payment = Payment::where('user_id', $user->id)->latest()->first();
+                }
             } else {
-                $planDetails = Subscription::where('is_active', true)->first();
+                if ($subscription->subscription_id == 'cliq-' . $user->id) {
+                    $planDetails = Subscription::where('is_active', true)->first();
+                    $payment = Payment::where('user_id', $user->id)->latest()->first();
+                } else {
+                    $planDetails = Subscription::where('is_active', true)->first();
+                    $payment = Payment::where('user_id', $user->id)->latest()->first();
+                }
             }
         } else {
             $planDetails = Subscription::where('is_active', true)->first();
+            $payment = collect();
         }
-        $cliqUserName = config('cliq.username');
 
+        $cliqUserName = config('cliq.username');
         $activePlan = Subscription::where('is_active', true)->first();
 
-        return view('dashboard.student.subscription_details', compact('planDetails', 'subscription', 'activePlan', 'cliqUserName'));
+        return view('dashboard.student.subscription_details', compact('planDetails', 'subscription', 'activePlan', 'cliqUserName', 'payment'));
     }
+
 
 
 
