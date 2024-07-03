@@ -665,7 +665,7 @@
         authEndpoint: '/broadcasting/auth',
         auth: {
             headers: {
-                Authorization: 'Bearer:' + '{{ csrf_token() }}',
+                Authorization: 'Bearer ' + '{{ csrf_token() }}', // Fixed the 'Bearer ' prefix
             },
         },
     });
@@ -707,7 +707,6 @@
         }
         return Math.floor(seconds) + ' seconds ago';
     }
-
     $(document).ready(function() {
         function fetchNotifications() {
             $.ajax({
@@ -720,14 +719,18 @@
                     $('#notification-list').empty();
                     response.notifications.forEach(function(notification) {
                         let truncatedMessage = truncateMessage(notification.message, 30);
+                        let notificationUrl;
+
                         if (notification.type === 'meeting') {
                             notificationUrl = `/student/meetings/${notification.model_id}`;
                         } else if (notification.type === 'subscription') {
-                            notificationUrl =
-                                `/student/subscription/details`;
+                            notificationUrl = `/student/subscription/details`;
+                        } else if (notification.type === 'payment') {
+                            notificationUrl = `{{ route('showPendingPayments') }}`;
                         } else {
                             notificationUrl = '#';
                         }
+
                         let notificationItem = `
                             <a class="dropdown-item" href="${notificationUrl}">
                                 <div class="d-flex align-items-center">

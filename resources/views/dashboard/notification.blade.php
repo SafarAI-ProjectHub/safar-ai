@@ -104,6 +104,8 @@
                                     <a href="{{ route('student.meetings.show', $notification->model_id) }}">See Details</a>
                                 @elseif ($notification->type == 'subscription')
                                     <a href="{{ route('subscription.details') }}">See Details</a>
+                                @elseif ($notification->type == 'admin-subscription')
+                                    <a href="{{ route('showPendingPayments') }}">See Details</a>
                                 @endif
                             </div>
                         </div>
@@ -138,7 +140,6 @@
                         if (response.status === 'success') {
                             $('.notification-list--unread').removeClass(
                                 'notification-list--unread');
-                            $('#unread-count').text('0');
                         }
                     },
                     error: function(xhr, status, error) {

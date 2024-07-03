@@ -139,7 +139,7 @@
                 <div class="row">
                     <div class="col-lg-3 col-md-3 col-6 mb-2 mb-lg-0">
                         <span class="fs-6">Started On</span>
-                        <h6 class="mb-0">{{ $subscriptionStatus == 'active' ? $subscriptionDate : 'N/A' }}</h6>
+                        <h6 class="mb-0">{{ $subscription ? $subscriptionDate : 'N/A' }}</h6>
                     </div>
                     <div class="col-lg-3 col-md-3 col-6 mb-2 mb-lg-0">
                         <span class="fs-6">Price</span>
@@ -271,7 +271,7 @@
         function copyCliqUserName() {
             const cliqUserName = document.getElementById('cliqUserName').innerText.trim();
             navigator.clipboard.writeText(cliqUserName).then(function() {
-                showAlertS('success', 'Cliq user name copied to clipboard!', 'bi-check-circle');
+                showAlertS('success', 'copied to clipboard!', 'bi-check-circle');
             }, function(err) {
                 showAlertS('error', 'Failed to copy text: ' + err, 'bi-exclamation-circle');
             });
@@ -370,7 +370,7 @@
                             <h3><strong>Pay with</strong> <img src="{{ asset('img/cliq.svg') }}" alt="Cliq Logo" style="max-width: 50px;"></h3>
                         </div>
                         <div>
-                            <h2 id="cliqUserName" class="border fw-bold d-inline-block"  data-toggle="tooltip" data-placement="top" title="Click to copy">{{ $cliqUserName }} <i class="bi bi-clipboard" style="cursor: pointer;" onclick="copyCliqUserName()"></i></h2>
+                            <h2 id="cliqUserName" class="border fw-bold d-inline-block" onclick="copyCliqUserName()" data-toggle="tooltip" data-placement="top" title="Click to copy">{{ $cliqUserName }} <i class="bi bi-clipboard" style="cursor: pointer;" onclick="copyCliqUserName()"></i></h2>
                         </div>
                         <dev>
                             <h6 class="text">you can pay to the cliq account using the Above Aliases and then upload the proof of the payment below</h6>
@@ -435,6 +435,7 @@
                                         'There was an error submitting your payment proof.'
                                     );
                                 }
+                                window.location.reload();
                                 return data;
 
 
@@ -442,7 +443,7 @@
                             .catch(error => {
                                 Swal.showValidationMessage(`Request failed: ${error}`);
                             });
-                        window.location.reload();
+
                     }
                 }).then((result) => {
                     if (result.isConfirmed) {
@@ -463,7 +464,7 @@
                             <h3><strong>Reupload Payment for</strong> <img src="{{ asset('img/cliq.svg') }}" alt="Cliq Logo" style="max-width: 50px;"></h3>
                         </div>
                         <div>
-                            <h2 id="cliqUserName" class="border fw-bold d-inline-block">{{ $cliqUserName }} <i class="bi bi-clipboard" style="cursor: pointer;" onclick="copyCliqUserName()"></i></h2>
+                            <h2 id="cliqUserName" onclick="copyCliqUserName()" data-toggle="tooltip" data-placement="top" title="Click to copy" class="border fw-bold d-inline-block">{{ $cliqUserName }} <i class="bi bi-clipboard" style="cursor: pointer;" onclick="copyCliqUserName()"></i></h2>
                         </div>
                     </div>
                     <div class="alert alert-danger" role="alert">
@@ -521,13 +522,14 @@
                                         'There was an error re-uploading your payment proof.'
                                     );
                                 }
+                                window.location.reload();
                                 return data;
 
                             })
                             .catch(error => {
                                 Swal.showValidationMessage(`Request failed: ${error}`);
                             });
-                        window.location.reload();
+
                     }
                 }).then((result) => {
                     if (result.isConfirmed) {

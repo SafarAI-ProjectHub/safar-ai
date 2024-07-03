@@ -1,5 +1,30 @@
 @extends('layout.main')
 
+@section('styles')
+    <style>
+        .team .member .member-img {
+            position: relative;
+            overflow: hidden;
+            height: 150px !important;
+        }
+
+        .team .member {
+            overflow: hidden;
+            text-align: center;
+            border-radius: 5px;
+            background: #fff;
+            box-shadow: 0px 0 30px rgba(1, 41, 112, 0.08);
+            transition: 0.3s;
+            height: 300px !important;
+        }
+
+        .img-fluid {
+            max-width: 100%;
+            height: auto;
+            height: 150px;
+        }
+    </style>
+@endsection
 
 @section('content')
     <!-- ======= Hero Section ======= -->
@@ -261,7 +286,7 @@
 
 
             <!-- ======= Pricing Section ======= -->
-            <section id="pricing" class="pricing">
+            {{-- <section id="pricing" class="pricing">
                 <div class="container" data-aos="fade-up">
                     <header class="section-header">
                         <h2>Pricing</h2>
@@ -423,7 +448,7 @@
 
 
                 </div>
-            </section>
+            </section> --}}
 
 
 
@@ -861,7 +886,7 @@
             </section><!-- End Testimonials Section -->
 
             <!-- ======= Team Section ======= -->
-            <section id="team" class="team">
+            {{-- <section id="team" class="team">
 
                 <div class="container" data-aos="fade-up">
 
@@ -964,10 +989,73 @@
 
                 </div>
 
-            </section><!-- End Team Section -->
+            </section> --}}
+            <script>
+                document.addEventListener('DOMContentLoaded', function() {
+                    new Swiper('.team-slider', {
+                        speed: 600,
+                        loop: false,
+                        slidesPerView: 4, // Adjust this to show the desired number of slides at once
+                        spaceBetween: 30, // Adjust the space between slides
+                        autoplay: {
+                            delay: 5000,
+                            disableOnInteraction: false
+                        },
+                        pagination: {
+                            el: '.swiper-pagination',
+                            clickable: true,
+                        },
+                        navigation: {
+                            nextEl: '.swiper-button-next',
+                            prevEl: '.swiper-button-prev',
+                        },
+                    });
+                });
+            </script>
+            <section id="team" class="team">
+                <div class="container" data-aos="fade-up">
+                    <header class="section-header">
+                        <h2>Team</h2>
+                        <p>Our hard working team</p>
+                    </header>
+
+                    <div class="team-slider swiper" data-aos="fade-up" data-aos-delay="200">
+                        <div class="swiper-wrapper">
+                            @foreach ($teachers as $teacher)
+                                <div class="swiper-slide">
+                                    <div class="member">
+                                        <div class="member-img">
+                                            <img src="{{ asset($teacher->user->profile_image ?? 'assets/images/avatars/profile-Img.png') }}"
+                                                class="img-fluid" alt="{{ $teacher->user->full_name }}">
+
+                                            <div class="social">
+                                                @if ($teacher->cv_link)
+                                                    <a href="{{ $teacher->cv_link }}" target="_blank"><i
+                                                            class="bi bi-file-earmark-text"></i></a>
+                                                @else
+                                                    No CV available
+                                                @endif
+                                            </div>
+                                        </div>
+                                        <div class="member-info">
+                                            <h4>{{ $teacher->user->full_name }}</h4>
+                                            <p>Experience: {{ $teacher->years_of_experience }} years</p>
+                                        </div>
+                                    </div>
+                                </div><!-- End member item -->
+                            @endforeach
+                        </div>
+                        <!-- Add Navigation -->
+                        <div class="swiper-button-next"></div>
+                        <div class="swiper-button-prev"></div>
+                    </div>
+
+                </div>
+            </section>
+            <!-- End Team Section -->
 
             <!-- ======= Clients Section ======= -->
-            <section id="clients" class="clients">
+            {{-- <section id="clients" class="clients">
 
                 <div class="container" data-aos="fade-up">
 
@@ -999,7 +1087,7 @@
                     </div>
                 </div>
 
-            </section><!-- End Clients Section -->
+            </section><!-- End Clients Section --> --}}
 
             {{-- <!-- ======= Recent Blog Posts Section ======= -->
         <section id="recent-blog-posts" class="recent-blog-posts">
@@ -1101,7 +1189,8 @@
                         </div>
 
                         <div class="col-lg-6">
-                            <form action="forms/contact.php" method="post" class="php-email-form">
+                            <form action="/forms/contact" method="post" class="php-email-form">
+                                @csrf
                                 <div class="row gy-4">
 
                                     <div class="col-md-6">

@@ -18,7 +18,8 @@ use App\Http\Controllers\NotificationController;
 use Illuminate\Support\Facades\Broadcast;
 use App\Http\Controllers\SubscriptionController;
 use App\Http\Controllers\PayPalWebhookController;
-
+use App\Http\Controllers\ContactController;
+use App\Models\Teacher;
 
 Broadcast::routes(['middleware' => ['auth']]);
 
@@ -34,7 +35,9 @@ Broadcast::routes(['middleware' => ['auth']]);
 */
 
 Route::get('/', function () {
-    return view('welcome');
+    $teachers = Teacher::with('user')->where('approval_status', 'approved')->get();
+    // dd($teachers->toArray());
+    return view('welcome', compact('teachers'));
 });
 
 // PayPal webhook
@@ -53,6 +56,9 @@ Route::middleware('auth')->group(function () {
 });
 
 require __DIR__ . '/auth.php';
+
+// contact us
+Route::post('/forms/contact', [ContactController::class, 'submit']);
 
 
 // Routes for Admin and Super Admin only
@@ -177,8 +183,9 @@ Route::middleware(['auth', 'role:Super Admin|Admin|Teacher'])->group(function ()
 
 // Routes for Teacher and Super Admin
 Route::middleware(['auth', 'role:Teacher|Super Admin'])->prefix('teacher')->group(function () {
-    Route::get('dashboard', [TeacherController::class, 'index'])->name('teacher.dashboard');
+    Route::get('/', [TeacherController::class, 'index'])->name('teacher.dashboard');
     Route::get('courses', [TeacherController::class, 'getCourses'])->name('teacher.courses');
+    Route::post('/level-test/submit', [TeacherController::class, 'submit'])->name('teacher.level-test.submit');
     Route::get('quiz-results/{courseId}', [TeacherController::class, 'getStudentQuizResults'])->name('teacher.quizResults');
     Route::get('student-profiles', [TeacherController::class, 'getStudentProfiles'])->name('teacher.getStudentProfiles');
     Route::get('student-profiles/{id}', [TeacherController::class, 'showStudentProfile'])->name('teacher.showStudentProfile');

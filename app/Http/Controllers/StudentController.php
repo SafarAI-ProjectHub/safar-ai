@@ -301,7 +301,7 @@ class StudentController extends Controller
                     ['role' => 'user', 'content' => $textPrompt]
                 ],
                 'response_format' => ['type' => 'json_object'],
-                'max_tokens' => 1000
+                'max_tokens' => 2048
             ]);
 
             $textAiResults = json_decode($textResponse['choices'][0]['message']['content'], true);
@@ -369,7 +369,45 @@ class StudentController extends Controller
 
     private function generatePrompt($requests, $age)
     {
-        $prompt = "The following are responses from a non-native English speaking student aged $age. Please review and provide feedback in JSON format with the following fields: id (question id), correct (0 or 1), review (brief comment on what the student should work on to improve: syntax, grammar, misunderstanding the question, etc.).\n\n";
+        $prompt = "
+    The following are responses from a non-native English speaking student aged $age. Please review and provide feedback in JSON format with the following fields: 
+    - id (question id)
+    - correct (0 or 1)
+    - review (brief comment on what the student should work on to improve: syntax, grammar, misunderstanding the question, etc.)
+    
+    Additionally, provide the overall English proficiency level from 1 to 6 based on the student's answers.
+    
+    Here is the JSON structure you will receive:
+    - question_id: the ID of the question
+    - question: the text of the question
+    - answer: the user's answer
+    - question_type: the type of question ('text', 'choice', 'voice')
+    - sub_text: additional information related to the question (optional)
+    - correct_answer: the correct answer for the question (only for 'choice' type questions)
+    - choices: array of possible choices (only for 'choice' type questions)
+    - is_correct: whether the user's answer is correct (only for 'choice' type questions)
+    - ai_review: a review of the user's answer. If the answer is incorrect, include a brief comment on what the student should work on to improve (syntax, grammar, misunderstanding the question, etc.)
+    
+    Evaluate the user's responses and return the results in the following JSON structure:
+    
+    {
+      \"questions\": [
+        {
+          \"question_id\": 1,
+          \"is_correct\": true,
+          \"ai_review\": \"The answer is correct.\"
+        },
+        {
+          \"question_id\": 2,
+          \"is_correct\": false,
+          \"ai_review\": \"The answer is incorrect. The student misunderstood the question.\"
+        }
+      ],
+      \"english_proficiency_level\": 3
+    }
+    
+    Evaluate the following questions:\n\n";
+
         foreach ($requests as $request) {
             $prompt .= "Question: {$request['question']}\n";
             if (isset($request['choices'])) {
@@ -377,10 +415,11 @@ class StudentController extends Controller
                 $prompt .= "Correct Answer: {$request['correct_answer']}\n";
                 $prompt .= "Student Answer: {$request['user_answer']}\n\n";
             } else {
-                $prompt .= "Teacher Notes: {$request['notes']}\n";
+                $prompt .= "Teacher Notes: {$request['sub_text']}\n";
                 $prompt .= "Student Answer: {$request['answer']}\n\n";
             }
         }
+
         return $prompt;
     }
 

@@ -131,6 +131,11 @@ return [
             'path' => storage_path('logs/webhook.log'),
             'level' => 'debug',
         ],
+        'cliq' => [
+            'driver' => 'single',
+            'path' => storage_path('Logs/cliq.log'),
+            'level' => 'debug',
+        ],
     ],
 
 ];

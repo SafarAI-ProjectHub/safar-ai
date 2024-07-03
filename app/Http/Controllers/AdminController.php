@@ -51,7 +51,7 @@ class AdminController extends Controller
                 return 'Teacher'; // You can customize this as needed
             })
             ->addColumn('cv_link', function ($teacher) {
-                return '<a href="../' . $teacher->cv_link . '" class="view-cv" target="_blank">CV Link</a>';
+                return $teacher->cv_link;
             })
             ->rawColumns(['cv_link'])
             ->make(true);

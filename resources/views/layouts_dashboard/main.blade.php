@@ -2,7 +2,7 @@
 <html lang="en">
 <style>
     .alert {
-        z-index: 1055;
+        z-index: 5000;
     }
 </style>
 @yield('styles')

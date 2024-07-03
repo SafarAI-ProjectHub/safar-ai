@@ -95,7 +95,9 @@
                     },
                     {
                         data: 'cv_link',
-                        name: 'cv_link'
+                        render: function(data, type, row, meta) {
+                            return `<a href="{{ asset('${data}') }}" class="view-cv" target="_blank">View CV</a>`;
+                        }
                     },
                     {
                         data: 'years_of_experience',

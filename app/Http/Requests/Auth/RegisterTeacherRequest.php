@@ -17,7 +17,7 @@ class RegisterTeacherRequest extends FormRequest
             'first_name' => ['required', 'string', 'max:255'],
             'last_name' => ['required', 'string', 'max:255'],
             'email' => ['required', 'string', 'email', 'max:255', 'unique:users'],
-            'phone_number' => ['required', 'string', 'max:15'],
+            'phone_number' => ['required', 'string', 'max:25'],
             'country_code' => ['required', 'string', 'max:5'], // Added validation for country code
             'date_of_birth' => ['required', 'date'],
             'password' => [
@@ -30,7 +30,7 @@ class RegisterTeacherRequest extends FormRequest
 
             'country_location' => ['required', 'string', 'max:255'],
             'cv' => ['required', 'file', 'mimes:pdf,doc,docx', 'max:2048'],
-            'years_of_experience' => ['required', 'integer'],
+            'years_of_experience' => ['required', 'integer', 'min:0', 'max:100'],
         ];
     }
 

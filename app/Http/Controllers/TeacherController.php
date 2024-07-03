@@ -19,6 +19,17 @@ class TeacherController extends Controller
 {
     public function index()
     {
+        if (Auth::user()->hasRole('Student') && Auth::user()->status === 'pending') {
+            $completedLevelTest = LevelTestAssessment::where('user_id', Auth::id())->exists();
+
+            if (!$completedLevelTest) {
+                $levelTestQuestions = LevelTestQuestion::with('levelTest')->whereHas('levelTest', function ($query) {
+                    $query->where('exam_type', 'student')->where('active', true);
+                })->get();
+                return view('dashboard.student.level_test', compact('levelTestQuestions'));
+            }
+        }
+
         $courses = Course::where('teacher_id', auth()->id())->get();
         return view('dashboard.teacher.dashboard', compact('courses'));
     }
@@ -121,6 +132,12 @@ class TeacherController extends Controller
         ]);
 
         return redirect()->back()->with('success', 'Zoom meeting scheduled successfully.');
+    }
+
+    public function submit()
+    {
+
+
     }
 
 

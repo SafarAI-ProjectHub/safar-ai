@@ -35,6 +35,9 @@
                         uploaded.</p>
                     <p class="card-text">5. If you approve a payment, the user will have 1 month of subscription until their
                         account reverts to the free plan.</p>
+                    <p class="card-text">6. If you have any questions or concerns, please contact the user directly by
+                        contacting them through the phone number or email provided.</p>
+                    <p class="card-text">7. In case of rejection, please provide a reason for the rejection.</p>
                 </div>
             </div>
         </div>
@@ -47,23 +50,34 @@
     @else
         <div class="row row-cols-1 row-cols-sm-2 row-cols-lg-3 row-cols-xl-4 row-cols-xxl-5 product-grid">
             @foreach ($pendingPayments as $payment)
-                <div class="col">
-                    <div class="card">
+                <div class="col-md-4 mb-3">
+                    <div class="card h-100">
                         <img src="{{ asset($payment->payment_image) }}" class="card-img-top" alt="Payment Image"
                             onclick="viewImage(this)">
                         <div class="card-body">
-                            <h6 class="card-title">{{ $payment->user->name }}</h6>
+                            <h6 class="card-title">Name: {{ $payment->user->full_name }}</h6>
                             <p class="card-text">Amount: ${{ $payment->amount }}</p>
                             <p class="card-text">Date:
                                 {{ \Carbon\Carbon::parse($payment->transaction_date)->format('M d, Y') }}</p>
-                            <button class="btn btn-success btn-sm"
-                                onclick="approvePayment({{ $payment->id }})">Approve</button>
-                            <button class="btn btn-danger btn-sm"
-                                onclick="rejectPayment({{ $payment->id }})">Reject</button>
+                            <p class="card-text">Contact info:</p>
+                            <div class="phone-email mb-2">
+                                <p><i class="bi bi-telephone-fill me-2"></i><a
+                                        href="tel:{{ $payment->user->phone_number }}">{{ $payment->user->phone_number }}</a>
+                                </p>
+                                <p><i class="bi bi-envelope-fill me-2"></i><a
+                                        href="mailto:{{ $payment->user->email }}">{{ $payment->user->email }}</a></p>
+                            </div>
+                            <div class="d-grid gap-2 d-md-flex justify-content-md-end">
+                                <button class="btn btn-success btn-sm me-md-2"
+                                    onclick="approvePayment({{ $payment->id }})">Approve</button>
+                                <button class="btn btn-danger btn-sm"
+                                    onclick="rejectPayment({{ $payment->id }})">Reject</button>
+                            </div>
                         </div>
                     </div>
                 </div>
             @endforeach
+
         </div>
     @endif
 @endsection
