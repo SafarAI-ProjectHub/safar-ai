@@ -294,7 +294,7 @@
                     $('#last_name').val(data.user.last_name);
                     $('#email').val(data.user.email);
                     $('#phone_number').val(data.user.phone_number);
-                    $('#country_location').val(data.user.country_location);
+                    $('#country_location').val(countryLocationInput.value);
                     $('#english_proficiency_level').val(data.english_proficiency_level);
                     $('#subscription_status').val(data.subscription_status);
                     $('#status').val(data.user.status);

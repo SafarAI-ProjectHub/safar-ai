@@ -17,11 +17,33 @@
                  <li><a class="nav-link scrollto" href="#contact">Contact</a></li>
 
                  <div class="text-center text-lg-start">
-                     <a href="{{ route('login') }}"
-                         class="btn-login scrollto d-inline-flex align-items-center justify-content-center align-self-center">
-                         <span>Login</span>
-                         <i class="bi bi-arrow-right"></i>
-                     </a>
+                     @if (Auth::check())
+                         @if (Auth::user()->hasRole('Admin') || Auth::user()->hasRole('SuperAdmin'))
+                             <a href="{{ route('dashboard') }}"
+                                 class="btn-login scrollto d-inline-flex align-items-center justify-content-center align-self-center">
+                                 <span>Dashboard</span>
+                                 <i class="bi bi-arrow-right"></i>
+                             </a>
+                         @elseif(Auth::user()->hasRole('Student'))
+                             <a href="{{ route('student.dashboard') }}"
+                                 class="btn-login scrollto d-inline-flex align-items-center justify-content-center align-self-center">
+                                 <span>Dashboard</span>
+                                 <i class="bi bi-arrow-right"></i>
+                             </a>
+                         @elseif(Auth::user()->hasRole('Teacher'))
+                             <a href="{{ route('teacher.dashboard') }}"
+                                 class="btn-login scrollto d-inline-flex align-items-center justify-content-center align-self-center">
+                                 <span>Dashboard</span>
+                                 <i class="bi bi-arrow-right"></i>
+                             </a>
+                         @endif
+                     @else
+                         <a href="{{ route('login') }}"
+                             class="btn-login scrollto d-inline-flex align-items-center justify-content-center align-self-center">
+                             <span>Login</span>
+                             <i class="bi bi-arrow-right"></i>
+                         </a>
+                     @endif
                  </div>
 
                  <!-- <li><a href="blog.html">Blog</a></li>  -->

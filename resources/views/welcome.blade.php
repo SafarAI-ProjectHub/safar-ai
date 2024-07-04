@@ -18,7 +18,7 @@
             height: 300px !important;
         }
 
-        .img-fluid {
+        .member-img .img-fluid {
             max-width: 100%;
             height: auto;
             height: 150px;

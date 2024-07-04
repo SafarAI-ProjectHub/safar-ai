@@ -52,6 +52,14 @@
                             <div class="menu-title">Approved Teachers</div>
                         </a>
                     </li>
+
+                    <li>
+                        <a href="{{ route('admin.getTeachersAssessments') }}">
+                            <div class="parent-icon"><i class="bx bxs-graduation"></i></div>
+                            <div class="menu-title">Teachers Assessments</div>
+                        </a>
+                    </li>
+
                     <li>
                         <a href="{{ route('teacherTests.index') }}">
                             <div class="parent-icon"><i class="bx bx-bar-chart-alt"></i></div>
@@ -117,6 +125,14 @@
                                 <div class="menu-title">Students List</div>
                             </a>
                         </li>
+
+                        <li>
+                            <a href="{{ route('admin.getStudentsAssessments') }}">
+                                <div class="parent-icon"><i class="bx bxs-graduation"></i></div>
+                                <div class="menu-title">Students Assessments</div>
+                            </a>
+                        </li>
+
                         <li>
                             <a href="{{ route('studentTests.index') }}">
                                 <div class="parent-icon"><i class="bx bx-bar-chart-alt"></i></div>
@@ -222,6 +238,14 @@
                         </a>
                     </li>
                 </ul>
+            </li>
+        @endhasanyrole
+        @hasanyrole('Super Admin|Admin')
+            <li>
+                <a href="{{ route('admin.contact_forms.index') }}">
+                    <div class="parent-icon"><i class='bx bx-envelope'></i></div>
+                    <div class="menu-title">Contact Form</div>
+                </a>
             </li>
         @endhasanyrole
     </ul>

@@ -15,7 +15,7 @@ class LevelTestAssessment extends Model
         'response',
         'correct',
         'ai_review',
-        'teacher_review',
+        'Admin_review',
     ];
 
     public function question()

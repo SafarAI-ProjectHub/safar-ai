@@ -69,7 +69,7 @@
                 }).then((result) => {
                     if (result.isConfirmed) {
                         // Redirect to the level test page
-                        window.location.href = '{{ route('level.test') }}';
+                        window.location.href = '{{ route('student.dashboard') }}';
                     }
                 });
             });

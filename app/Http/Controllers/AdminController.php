@@ -12,6 +12,9 @@ use Illuminate\Support\Facades\Storage;
 use App\Models\CourseCategory;
 use Yajra\DataTables\DataTables;
 use Illuminate\Support\Facades\Validator;
+use App\Models\User;
+use App\Models\LevelTestAssessment;
+
 
 class AdminController extends Controller
 {
@@ -507,4 +510,139 @@ class AdminController extends Controller
 
         return response()->json(['message' => 'Student deleted successfully']);
     }
+
+
+
+    /*
+     *
+     * teacher level test assessments section
+     *
+     */
+
+
+    public function teacherAssessments()
+    {
+        return view('dashboard.admin.teacher_level_test_assessment');
+    }
+
+
+
+    public function getTeachersWithAssessments(DataTables $dataTables)
+    {
+        $query = User::whereHas('roles', function ($q) {
+            $q->where('name', 'Teacher');
+        })
+            ->whereHas('levelTestAssessments')
+            ->with(['levelTestAssessments.question', 'teacher'])
+            ->select('users.*');
+
+        return $dataTables->eloquent($query)
+            ->addColumn('full_name', function ($teacher) {
+                return $teacher->first_name . ' ' . $teacher->last_name;
+            })
+            ->addColumn('years_of_experience', function ($teacher) {
+                return $teacher->teacher->years_of_experience;
+            })
+            ->addColumn('actions', function ($teacher) {
+                return '<button class="btn btn-primary view-assessment" data-id="' . $teacher->id . '">View Assessment</button>';
+            })
+            ->rawColumns(['actions'])
+            ->make(true);
+    }
+
+
+    public function getTeacherAssessments($id)
+    {
+        $teacher = User::with(['levelTestAssessments.question.choices'])
+            ->whereHas('roles', function ($q) {
+                $q->where('name', 'Teacher');
+            })
+            ->findOrFail($id);
+        // dd($teacher->levelTestAssessments);
+        return response()->json([
+            'assessments' => $teacher->levelTestAssessments,
+        ]);
+    }
+
+    public function updateTeacherAssessment(Request $request, $teacherId, $assessmentId)
+    {
+        $assessment = LevelTestAssessment::where('user_id', $teacherId)->findOrFail($assessmentId);
+        $assessment->correct = $request->input('correct') ? 1 : 0;
+        $assessment->Admin_review = $request->input('admin_review');
+        $assessment->save();
+
+        return response()->json(['success' => true]);
+    }
+
+
+    /*
+     *
+     * student level test assessments section
+     *
+     */
+
+    public function studentAssessments()
+    {
+        return view('dashboard.admin.student_level_test_assessment');
+    }
+
+    public function getStudentsWithAssessments(DataTables $dataTables)
+    {
+        $query = User::whereHas('roles', function ($q) {
+            $q->where('name', 'Student');
+        })
+            ->whereHas('levelTestAssessments') // Ensure only students with assessments are included
+            ->with(['levelTestAssessments.question', 'student']) // Include the student relationship
+            ->select('users.*'); // Select only from users, we will access student details via relationship
+
+        return $dataTables->eloquent($query)
+            ->addColumn('full_name', function ($student) {
+                return $student->first_name . ' ' . $student->last_name;
+            })
+            ->addColumn('level', function ($student) {
+                return $student->student->english_proficiency_level;
+            })
+            ->addColumn('actions', function ($student) {
+                return '<button class="btn btn-primary view-assessment" data-id="' . $student->id . '">View Assessment</button>';
+            })
+            ->addColumn('age', function ($student) {
+                return \Carbon\Carbon::parse($student->date_of_birth)->diffInYears(now());
+
+            })
+            ->rawColumns(['actions'])
+            ->make(true);
+    }
+
+    public function getStudentAssessments($id)
+    {
+        $student = User::with(['levelTestAssessments.question.choices', 'student'])
+            ->whereHas('roles', function ($q) {
+                $q->where('name', 'Student');
+            })
+            ->findOrFail($id);
+
+        return response()->json([
+            'assessments' => $student->levelTestAssessments,
+            'student' => $student->student // Include student data in the response
+        ]);
+    }
+
+
+    public function updateStudentAssessment(Request $request, $studentId, $assessmentId)
+    {
+        $assessment = LevelTestAssessment::where('user_id', $studentId)->findOrFail($assessmentId);
+        $assessment->correct = $request->input('correct') ? 1 : 0;
+        $assessment->admin_review = $request->input('admin_review');
+        $assessment->save();
+
+        // Update student's English proficiency level if provided
+        if ($request->has('english_proficiency_level')) {
+            $student = User::findOrFail($studentId);
+            $student->student->english_proficiency_level = $request->input('english_proficiency_level');
+            $student->student->save();
+        }
+
+        return response()->json(['success' => true]);
+    }
+
 }

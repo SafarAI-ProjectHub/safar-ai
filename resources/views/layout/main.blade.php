@@ -1,16 +1,19 @@
 <!DOCTYPE html>
 <html lang="en">
 
-@include('layout.app')
+<head>
+    @include('layout.app')
+    @yield('styles')
+</head>
 
 <body>
 
-@include('layout.header')
+    @include('layout.header')
 
-@yield('content')
+    @yield('content')
 
 
-@include('layout.footer')
+    @include('layout.footer')
 </body>
 
 </html>

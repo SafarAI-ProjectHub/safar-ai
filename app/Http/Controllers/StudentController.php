@@ -18,6 +18,11 @@ use OpenAI\Laravel\Facades\OpenAI;
 use App\Models\CourseStudent;
 use Illuminate\Support\Facades\Storage;
 use ProtoneMedia\LaravelFFMpeg\Support\FFMpeg;
+use App\Models\User;
+use App\Models\Teacher;
+use Spatie\Permission\Models\Role;
+use App\Models\LevelTestChoice;
+
 
 class StudentController extends Controller
 {
@@ -33,6 +38,11 @@ class StudentController extends Controller
                 return view('dashboard.student.level_test', compact('levelTestQuestions'));
             }
         }
+
+        // if (Auth::user()->status == 'pending') {
+        //     Auth::user()->status = 'active';
+        //     Auth::user()->save();
+        // }
 
 
         $user = Auth::user();
@@ -207,256 +217,88 @@ class StudentController extends Controller
         $openAiRequests = [];
         $audioTranscriptions = [];
         \Log::info("before foreach data" . json_encode($data));
+
         // Map question keys to question IDs
-        $questions = LevelTestQuestion::all()->keyBy('id');
+        $questions = LevelTestQuestion::with('choices')->get()->keyBy('id');
 
         foreach ($data as $key => $value) {
-
             if (strpos($key, 'question_') !== false) {
                 $questionId = explode('_', $key)[1];
-
                 $question = $questions->get($questionId);
 
                 if (!$question) {
                     continue; // Skip if question does not exist
-
                 }
+
+                $assessment = new LevelTestAssessment();
+                $assessment->level_test_question_id = $questionId;
+                $assessment->user_id = $user->id;
 
                 if ($question->question_type === 'choice') {
-                    $choices = $question->choices;
-                    $correctChoice = $choices->where('is_correct', true)->first();
-                    $userChoice = $choices->where('id', $value)->first();
-                    $correct = $userChoice->is_correct ? 1 : 0;
-
+                    $choice = LevelTestChoice::find($value);
+                    $correctAnswer = $question->choices->where('is_correct', true)->first();
+                    $assessment->response = $choice->choice_text;
                     $openAiRequests[] = [
                         'question' => $question->question_text,
-                        'choices' => $choices->pluck('choice_text')->toArray(),
-                        'correct_answer' => $correctChoice->choice_text,
-                        'user_answer' => $userChoice->choice_text,
-                        'question_id' => $question->id
-                    ];
-                    dd($value);
-                    $assessments[] = [
-                        'level_test_question_id' => $question->id,
-                        'user_id' => $user->id,
-                        'response' => $value,
-                        'correct' => $correct,
-                        'ai_review' => null,
-                        'Admin_review' => null,
-                        'created_at' => now(),
-                        'updated_at' => now()
+                        'choices' => $question->choices->pluck('choice_text')->toArray(),
+                        'correct_answer' => $correctAnswer ? $correctAnswer->choice_text : null,
+                        'user_answer' => $choice->choice_text,
+                        'question_id' => $question->id,
+                        'question_type' => 'choice'
                     ];
                 } elseif ($question->question_type === 'text') {
+                    $assessment->response = $value;
                     $openAiRequests[] = [
                         'question' => $question->question_text,
-                        'notes' => $question->sub_text,
-                        'answer' => $value,
-                        'question_id' => $question->id
+                        'sub_text' => $question->sub_text,
+                        'user_answer' => $value,
+                        'question_id' => $question->id,
+                        'question_type' => 'text'
                     ];
-                    $assessments[] = [
-                        'level_test_question_id' => $question->id,
-                        'user_id' => $user->id,
-                        'response' => $value,
-                        'correct' => 0,
-                        'ai_review' => null,
-                        'Admin_review' => null,
-                        'created_at' => now(),
-                        'updated_at' => now()
-                    ];
-                } elseif ($question->question_type === 'voice' && $request->hasFile("question_{$questionId}_audio")) {
-                    // Save audio file
-
+                } elseif ($question->question_type === 'voice') {
                     $customFileName = sha1($value->getClientOriginalName()) . '.wav';
                     $path = $value->storeAs('audio_responses', $customFileName);
-                    \Log::info("Audio file path: " . $path);
-                    $audioTranscriptions[] = [
-                        'path' => $path,
-                        'question_text' => $question->question_text,
-                        'notes' => $question->sub_text,
-                        'question_id' => $question->id
-                    ];
-                    $assessments[] = [
-                        'level_test_question_id' => $question->id,
-                        'user_id' => $user->id,
-                        'response' => $path,
-                        'correct' => 0,
-                        'ai_review' => null,
-                        'Admin_review' => null,
-                        'created_at' => now(),
-                        'updated_at' => now()
+                    $transcription = $this->transcribeAudio(storage_path('app/public/' . $path));
+                    $assessment->response = $path;
+                    $audioTranscriptions[$questionId] = $transcription;
+                    $openAiRequests[] = [
+                        'question' => $question->question_text,
+                        'transcription' => $transcription,
+                        'question_id' => $question->id,
+                        'question_type' => 'voice'
                     ];
                 }
+
+                $assessment->correct = false; // Needs manual or AI review later
+                $assessment->save();
+                $assessments[] = $assessment;
             }
         }
 
-        LevelTestAssessment::insert($assessments);
+        // Send data to OpenAI for review
+        $aiResponse = $this->reviewWithAI($openAiRequests);
 
-        // Process text and choice data with OpenAI
-        if (!empty($openAiRequests)) {
-            $textPrompt = $this->generatePrompt($openAiRequests, $user->age);
-            $textResponse = OpenAI::chat()->create([
-                'model' => 'gpt-3.5-turbo',
-                'messages' => [
-                    ['role' => 'system', 'content' => 'You are an English proficiency evaluator. Please provide your response in JSON format.'],
-                    ['role' => 'user', 'content' => $textPrompt]
-                ],
-                'response_format' => ['type' => 'json_object'],
-                'max_tokens' => 2048
-            ]);
+        \Log::info("AI response: " . json_encode($aiResponse));
 
-            $textAiResults = json_decode($textResponse['choices'][0]['message']['content'], true);
-        } else {
-            $textAiResults = [];
-        }
+        // Update assessments with AI response
+        foreach ($aiResponse['questions'] as $review) {
+            $assessment = LevelTestAssessment::where('level_test_question_id', $review['question_id'])
+                ->where('user_id', $user->id)
+                ->first();
 
-        \Log::info("before foreach audioTranscriptions");
-        // Process audio transcriptions and send to OpenAI
-
-        foreach ($audioTranscriptions as $audio) {
-            \Log::info("inside foreach audioTranscriptions");
-
-            $audioPath = public_path('storage/' . $audio['path']);
-
-
-            // Log the audio path for debugging
-            \Log::info("Processing audio file at path: " . $audioPath);
-
-            if (!file_exists($audioPath)) {
-                \Log::error("File does not exist at path: " . $audioPath);
-                continue;
+            if ($assessment) {
+                $assessment->ai_review = $review['ai_review'];
+                $assessment->correct = $review['is_correct'];
+                $assessment->save();
             }
-            \Log::info("before transcribeAudio");
-            $transcription = $this->transcribeAudio($audioPath);
-            // dd($transcription);
-            \Log::info("after transcribeAudio");
-            $openAiRequests[] = [
-                'question' => $audio['question_text'],
-                'notes' => $audio['notes'],
-                'answer' => $transcription,
-                'question_id' => $audio['question_id']
-            ];
         }
 
-        // Send audio transcriptions to OpenAI
-        if (!empty($openAiRequests)) {
-            $audioPrompt = $this->generatePrompt($openAiRequests, $user->age);
-            $audioResponse = OpenAI::chat()->create([
-                'model' => 'gpt-3.5-turbo',
-                'messages' => [
-                    ['role' => 'system', 'content' => 'You are an English proficiency evaluator. Please provide your response in JSON format.'],
-                    ['role' => 'user', 'content' => $audioPrompt]
-                ],
-                'response_format' => ['type' => 'json_object'],
-                'max_tokens' => 1000
-            ]);
-            $audioAiResults = json_decode($audioResponse['choices'][0]['message']['content'], true);
-        } else {
-            $audioAiResults = [];
-        }
-
-        // Combine text and audio AI results
-        $combinedAiResults = array_merge($textAiResults, $audioAiResults);
-
-        // Process AI results and update assessments
-        $this->processAiResults($combinedAiResults, $assessments);
-
-        // Update user's English proficiency level
-        $user->student->english_proficiency_level = $this->determineProficiencyLevel($combinedAiResults);
+        $user->status = 'active';
         $user->save();
+        // Update the user's English proficiency level
+        $user->student->updateProficiencyLevel($aiResponse['english_proficiency_level']);
 
         return response()->json(['success' => true]);
-    }
-
-    private function generatePrompt($requests, $age)
-    {
-        $prompt = "
-    The following are responses from a non-native English speaking student aged $age. Please review and provide feedback in JSON format with the following fields: 
-    - id (question id)
-    - correct (0 or 1)
-    - review (brief comment on what the student should work on to improve: syntax, grammar, misunderstanding the question, etc.)
-    
-    Additionally, provide the overall English proficiency level from 1 to 6 based on the student's answers.
-    
-    Here is the JSON structure you will receive:
-    - question_id: the ID of the question
-    - question: the text of the question
-    - answer: the user's answer
-    - question_type: the type of question ('text', 'choice', 'voice')
-    - sub_text: additional information related to the question (optional)
-    - correct_answer: the correct answer for the question (only for 'choice' type questions)
-    - choices: array of possible choices (only for 'choice' type questions)
-    - is_correct: whether the user's answer is correct (only for 'choice' type questions)
-    - ai_review: a review of the user's answer. If the answer is incorrect, include a brief comment on what the student should work on to improve (syntax, grammar, misunderstanding the question, etc.)
-    
-    Evaluate the user's responses and return the results in the following JSON structure:
-    
-    {
-      \"questions\": [
-        {
-          \"question_id\": 1,
-          \"is_correct\": true,
-          \"ai_review\": \"The answer is correct.\"
-        },
-        {
-          \"question_id\": 2,
-          \"is_correct\": false,
-          \"ai_review\": \"The answer is incorrect. The student misunderstood the question.\"
-        }
-      ],
-      \"english_proficiency_level\": 3
-    }
-    
-    Evaluate the following questions:\n\n";
-
-        foreach ($requests as $request) {
-            $prompt .= "Question: {$request['question']}\n";
-            if (isset($request['choices'])) {
-                $prompt .= "Choices: " . implode(', ', $request['choices']) . "\n";
-                $prompt .= "Correct Answer: {$request['correct_answer']}\n";
-                $prompt .= "Student Answer: {$request['user_answer']}\n\n";
-            } else {
-                $prompt .= "Teacher Notes: {$request['sub_text']}\n";
-                $prompt .= "Student Answer: {$request['answer']}\n\n";
-            }
-        }
-
-        return $prompt;
-    }
-
-    private function processAiResults($aiResults, $assessments)
-    {
-        dd($assessments);
-        \Log::info("inside processAiResults");
-        // dd($aiResults);
-        foreach ($assessments as $index => $assessment) {
-            // Assuming aiResults is an array where each element corresponds to an assessment
-            $aiReview = $aiResults[$index]['review'] ?? ''; // Adjust this based on your JSON structure
-            $correctness = $aiResults[$index]['correct'] ?? false; // Adjust this based on your JSON structure
-
-            LevelTestAssessment::where('id', $assessment['id'])->update([
-                'correct' => $correctness,
-                'ai_review' => $aiReview
-            ]);
-        }
-    }
-
-
-    private function determineProficiencyLevel($aiResults)
-    {
-        $correctAnswers = substr_count($aiResults, 'Correct');
-        if ($correctAnswers >= 5) {
-            return 6; // Advanced
-        } elseif ($correctAnswers >= 4) {
-            return 5; // Upper-Intermediate
-        } elseif ($correctAnswers >= 3) {
-            return 4; // Intermediate
-        } elseif ($correctAnswers >= 2) {
-            return 3; // Pre-Intermediate
-        } elseif ($correctAnswers >= 1) {
-            return 2; // Elementary
-        } else {
-            return 1; // Beginner
-        }
     }
 
     private function transcribeAudio($audioPath)
@@ -489,11 +331,11 @@ class StudentController extends Controller
 
             // Check if the file type is supported by the transcription service
 
-
             $response = OpenAI::audio()->translate([
                 'model' => 'whisper-1',
                 'file' => fopen($audioContent->getRealPath(), 'r'),
-                'language' => 'en'
+                'language' => 'en',
+                'temperature' => 0, // Set temperature to 0 for deterministic output
             ]);
 
             \Log::info("Transcription response: " . json_encode($response));
@@ -503,4 +345,108 @@ class StudentController extends Controller
             dd("Invalid audio content provided.");
         }
     }
+
+    private function reviewWithAI($requests)
+    {
+        $user = Auth::user();
+        $age = Carbon::parse($user->date_of_birth)->age;
+
+        $prompt = $this->generatePrompt($requests, $age);
+
+        $response = OpenAI::chat()->create([
+            'model' => 'gpt-4o',
+            'messages' => [
+                [
+                    'role' => 'system',
+                    'content' => 'You are an AI assistant helping to evaluate student assessments for an educational platform. Your task is to review each question and the corresponding answer provided by the students. For each answer, determine if it is correct, and provide detailed feedback. Include suggestions for improvement, focusing on areas such as understanding of the subject matter, clarity of communication, and accuracy. Additionally, consider the overall quality of the answers in terms of their completeness and relevance. Also, provide an overall English proficiency level from 1 to 6 based on the students answers.'
+                ],
+                ['role' => 'user', 'content' => $prompt]
+            ],
+            'temperature' => 0.5,
+        ]);
+
+        \Log::info("response: " . json_encode($response));
+
+        // Extract and clean the JSON part of the response
+        $responseContent = $response->choices[0]->message->content;
+        $jsonString = $this->extractJsonString($responseContent);
+
+        $aiResponse = json_decode($jsonString, true);
+        \Log::info("aiResponse: " . json_encode($aiResponse));
+
+        return $aiResponse;
+    }
+
+    private function extractJsonString($responseContent)
+    {
+        $jsonStart = strpos($responseContent, '{');
+        $jsonEnd = strrpos($responseContent, '}') + 1;
+        $jsonString = substr($responseContent, $jsonStart, $jsonEnd - $jsonStart);
+
+        // Further clean-up if necessary
+        $jsonString = trim($jsonString, " \t\n\r\0\x0B");
+
+        return $jsonString;
+    }
+
+    private function generatePrompt($requests, $age)
+    {
+        $prompt = "
+        The following are responses from a non-native English speaking student aged $age. Please review and provide feedback in JSON format with the following fields: 
+        - id (question id)
+        - correct (0 or 1)
+        - review (brief comment on what the student should work on to improve: syntax, grammar, misunderstanding the question, etc.)
+        
+        Additionally, provide the overall English proficiency level from 1 to 6 based on the student's answers.
+        
+        Here is the JSON structure you will receive:
+        - question_id: the ID of the question
+        - question: the text of the question
+        - answer: the user's answer
+        - question_type: the type of question ('text', 'choice', 'voice')
+        - sub_text: additional information related to the question (optional)
+        - correct_answer: the correct answer for the question (only for 'choice' type questions)
+        - transcription: the text transcription of the voice response (only for 'voice' type questions) + any words that were not transcribed correctly that mainly would be from wrong spillings so that the Student can correct them.
+        - choices: array of possible choices (only for 'choice' type questions)
+        - is_correct: whether the user's answer is correct (only for 'choice' type questions)
+        - ai_review: a review of the user's answer. If the answer is incorrect, include a brief comment on what the student should work on to improve (syntax, grammar, misunderstanding the question, etc.)
+        
+        Evaluate the user's responses and return the results in the following JSON structure:
+        
+        {
+          \"questions\": [
+            {
+              \"question_id\": 1,
+              \"is_correct\": true,
+              \"ai_review\": \"The answer is correct.\"
+            },
+            {
+              \"question_id\": 2,
+              \"is_correct\": false,
+              \"ai_review\": \"The answer is incorrect. The student misunderstood the question.\"
+            }
+          ],
+          \"english_proficiency_level\": 3
+        }
+        
+        Evaluate the following questions:\n\n";
+
+        foreach ($requests as $request) {
+            $prompt .= "Question ID: {$request['question_id']}\n";
+            $prompt .= "Question: {$request['question']}\n";
+
+            if (isset($request['choices'])) {
+                $prompt .= "Choices: " . implode(', ', $request['choices']) . "\n";
+                $prompt .= "Correct Answer: {$request['correct_answer']}\n";
+                $prompt .= "Student Answer: {$request['user_answer']}\n\n";
+            } elseif ($request['question_type'] === 'text') {
+                $prompt .= "Student Answer: {$request['user_answer']}\n\n";
+            } elseif ($request['question_type'] === 'voice') {
+                $prompt .= "Transcription: {$request['transcription']}\n\n";
+            }
+        }
+
+        return $prompt;
+    }
+
 }

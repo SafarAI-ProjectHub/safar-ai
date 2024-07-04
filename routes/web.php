@@ -136,6 +136,26 @@ Route::middleware(['auth', 'role:Admin|Super Admin'])->prefix('admin')->group(fu
     Route::get('/pending-payments', [CliqController::class, 'showPendingPayments'])->name('showPendingPayments');
     Route::post('/approve-payment/{id}', [CliqController::class, 'approvePayment'])->name('admin.approvePayment');
     Route::post('/reject-payment/{id}', [CliqController::class, 'rejectPayment'])->name('admin.rejectPayment');
+
+    //contact us form 
+    Route::get('/contact-forms', [ContactController::class, 'index'])->name('admin.contact_forms.index');
+    Route::get('/contact-forms/data', [ContactController::class, 'getContactForms'])->name('admin.contact_forms.data');
+    Route::post('/contact-forms/{id}/resolved', [ContactController::class, 'markAsResolved'])->name('admin.contact_forms.resolved');
+    Route::delete('/contact-forms/{id}', [ContactController::class, 'destroy'])->name('admin.contact_forms.destroy');
+
+    // Teacher level test Assessment
+    Route::get('/teachers/levelTestAssessment', [AdminController::class, 'teacherAssessments'])->name('admin.getTeachersAssessments');
+    Route::get('/teachers/levelTest', [AdminController::class, 'getTeachersWithAssessments'])->name('admin.getTeachersWithAssessments');
+    Route::get('/teachers/{id}/assessments', [AdminController::class, 'getTeacherAssessments']);
+    Route::put('/teachers/{teacherId}/assessments/{assessmentId}', [AdminController::class, 'updateTeacherAssessment']);
+
+    // Student level test Assessment
+    Route::get('/students/levelTestAssessment', [AdminController::class, 'studentAssessments'])->name('admin.getStudentsAssessments');
+    Route::get('/students/levelTest', [AdminController::class, 'getStudentsWithAssessments'])->name('admin.getStudentsWithAssessments');
+    Route::get('/students/{id}/assessments', [AdminController::class, 'getStudentAssessments']);
+    Route::put('/students/{studentId}/assessments/{assessmentId}', [AdminController::class, 'updateStudentAssessment']);
+
+
 });
 
 // Routes for Super Admin, Admin, and Teacher
