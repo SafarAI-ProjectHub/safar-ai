@@ -173,6 +173,8 @@ Route::middleware(['auth', 'role:Super Admin|Admin|Teacher'])->group(function ()
     Route::put('units/{id}', [AdminController::class, 'updateUnit'])->name('admin.units.update');
     Route::delete('courses/units/delete/{id}', [AdminController::class, 'destroyUnit'])->name('units.destroy');
     Route::get('courses/getUnits/{courseId}', [QuizController::class, 'getUnits'])->name('quiz.getUnits');
+    Route::get('/units/{id}/script', [AdminController::class, 'getScript'])->name('units.getScript');
+    Route::post('/units/{id}/script', [AdminController::class, 'updateScript'])->name('units.updateScript');
 
     // Quizzes
     Route::post('quizzes/store', [QuizController::class, 'storeQuiz'])->name('quiz.storeQuiz');
@@ -197,6 +199,7 @@ Route::middleware(['auth', 'role:Super Admin|Admin|Teacher'])->group(function ()
     Route::get('zoom-meetings/{zoomMeeting}/edit', [ZoomMeetingController::class, 'edit'])->name('zoom-meetings.edit');
     Route::put('zoom-meetings/{zoomMeeting}', [ZoomMeetingController::class, 'update'])->name('zoom-meetings.update');
     Route::delete('zoom-meetings/{zoomMeeting}', [ZoomMeetingController::class, 'destroy'])->name('zoom-meetings.destroy');
+
 
 
 });

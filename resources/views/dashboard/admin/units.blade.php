@@ -86,7 +86,30 @@
             </div>
         </div>
     </div>
-
+    <!-- Show Script Modal -->
+    <div class="modal fade" id="showScriptModal" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content">
+                <form id="updateScriptForm">
+                    @csrf
+                    <div class="modal-header">
+                        <h5 class="modal-title" id="showScriptModalLabel">Script</h5>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                    </div>
+                    <div class="modal-body">
+                        <div class="mb-3">
+                            <label for="script" class="form-label">Script</label>
+                            <textarea class="form-control" id="script" name="script" rows="10" required></textarea>
+                        </div>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                        <button type="submit" class="btn btn-primary">Update Script</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
     <!-- Edit Unit Modal -->
     <div class="modal fade" id="editUnitModal" tabindex="-1" aria-hidden="true">
         <div class="modal-dialog modal-fullscreen">
@@ -176,16 +199,17 @@
                         name: 'actions',
                         orderable: false,
                         searchable: false,
-                        width: '20%',
+                        width: '25%',
                         render: function(data, type, row) {
                             return `
                         <div class="d-flex justify-content-around">
-                            <button class="btn btn-primary btn-sm edit-unit" data-id="${row.id}" data-status="${row.approval_status}">Edit</button>
+                            <button class="btn btn-primary btn-sm edit-unit" data-id="${row.id}">Edit</button>
+                            <button class="btn btn-info btn-sm show-script" data-id="${row.id}">Show Script</button>
                             <button class="btn btn-danger btn-sm delete-unit" data-id="${row.id}">Delete</button>
                         </div>
                     `;
                         }
-                    },
+                    }
                 ],
                 dom: 'Bfrtip',
                 buttons: [{
@@ -234,6 +258,41 @@
                 }
             });
 
+            $('#units-table').on('click', '.show-script', function() {
+                var unitId = $(this).data('id');
+                $.ajax({
+                    url: '/units/' + unitId + '/script',
+                    method: 'GET',
+                    success: function(response) {
+                        $('#script').val(response.script);
+                        $('#showScriptModal').modal('show');
+                        $('#updateScriptForm').data('unit-id', unitId);
+                    },
+                    error: function() {
+                        showAlert('danger', 'Error fetching script');
+                    }
+                });
+            });
+
+            $('#updateScriptForm').on('submit', function(e) {
+                e.preventDefault();
+                var unitId = $(this).data('unit-id');
+                var formData = $(this).serialize();
+
+                $.ajax({
+                    url: '/units/' + unitId + '/script',
+                    method: 'POST',
+                    data: formData,
+                    success: function(response) {
+                        $('#showScriptModal').modal('hide');
+                        showAlert('success', response.success);
+                        table.ajax.reload();
+                    },
+                    error: function() {
+                        showAlert('danger', 'Error updating script');
+                    }
+                });
+            });
             table.buttons().container().appendTo('#units-table_wrapper .col-md-6:eq(0)');
 
             var quillAdd = new Quill('#editor', {
@@ -374,18 +433,19 @@
                 }
             });
             const contentTypeSelect = document.getElementById('content_type');
-            contentTypeSelect.addEventListener('change', function() {
-                if (this.value === 'text') {
-                    textContentDiv.style.display = 'block';
-                    videoContentDiv.style.display = 'none';
-                } else if (this.value === 'video') {
-                    textContentDiv.style.display = 'none';
-                    videoContentDiv.style.display = 'block';
-                } else {
-                    textContentDiv.style.display = 'none';
-                    videoContentDiv.style.display = 'none';
-                }
-            });
+            contentTypeSelect
+                .addEventListener('change', function() {
+                    if (this.value === 'text') {
+                        textContentDiv.style.display = 'block';
+                        videoContentDiv.style.display = 'none';
+                    } else if (this.value === 'video') {
+                        textContentDiv.style.display = 'none';
+                        videoContentDiv.style.display = 'block';
+                    } else {
+                        textContentDiv.style.display = 'none';
+                        videoContentDiv.style.display = 'none';
+                    }
+                });
 
             const acceptedVideoTypes = ['video/*']; // Accepts all video types
 
@@ -445,8 +505,10 @@
                 }
 
                 // Get the file from FilePond
-                var file = pondEdit.getFile();
+                var file = pondAdd.getFile();
+                console.log(file);
                 if (file) {
+
                     newFormData.append('video', file.file);
                 }
 

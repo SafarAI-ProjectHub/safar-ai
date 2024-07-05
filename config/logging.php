@@ -133,7 +133,7 @@ return [
         ],
         'cliq' => [
             'driver' => 'single',
-            'path' => storage_path('Logs/cliq.log'),
+            'path' => storage_path('logs/cliq.log'),
             'level' => 'debug',
         ],
     ],

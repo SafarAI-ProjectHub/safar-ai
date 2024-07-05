@@ -5,7 +5,9 @@ namespace App\Http\Controllers;
 use Illuminate\Http\Request;
 use App\Models\Teacher;
 use App\Models\Student;
+use App\Jobs\ProcessUnitAI;
 use App\Models\Course;
+use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\Auth;
 use App\Models\Unit;
 use Illuminate\Support\Facades\Storage;
@@ -14,10 +16,16 @@ use Yajra\DataTables\DataTables;
 use Illuminate\Support\Facades\Validator;
 use App\Models\User;
 use App\Models\LevelTestAssessment;
-
+use OpenAI\Laravel\Facades\OpenAI;
+use App\Services\VideoToAudioService;
+use Illuminate\Support\Facades\Artisan;
 
 class AdminController extends Controller
 {
+    public function __construct(VideoToAudioService $videoToAudioService)
+    {
+        $this->videoToAudioService = $videoToAudioService;
+    }
 
     public function index()
     {
@@ -305,11 +313,11 @@ class AdminController extends Controller
         $units = Unit::where('course_id', $courseId)->get();
 
         return DataTables::of($units)
-            ->addColumn('actions', function ($row) {
-                return '<button class="btn btn-warning btn-sm edit-unit" data-id="' . $row->id . '">Edit</button>' .
-                    '<button class="btn btn-primary btn-sm update-status" data-id="' . $row->id . '" data-status="' . $row->approval_status . '">Update Status</button> ' .
-                    '<button class="btn btn-danger btn-sm delete-unit" data-id="' . $row->id . '">Delete</button>';
-            })
+            // ->addColumn('actions', function ($row) {
+            //     return '<button class="btn btn-warning btn-sm edit-unit" data-id="' . $row->id . '">Edit</button>' .
+            //         '<button class="btn btn-primary btn-sm update-status" data-id="' . $row->id . '" data-status="' . $row->approval_status . '">Update Status</button> ' .
+            //         '<button class="btn btn-danger btn-sm delete-unit" data-id="' . $row->id . '">Delete</button>';
+            // })
             ->rawColumns(['actions'])
             ->make(true);
     }
@@ -341,9 +349,10 @@ class AdminController extends Controller
 
         $unit->save();
 
+        ProcessUnitAI::dispatch($unit->id, $this->videoToAudioService);
+
         return response()->json(['success' => 'Unit added successfully']);
     }
-
 
     public function editUnit($id)
     {
@@ -396,6 +405,21 @@ class AdminController extends Controller
         } catch (\Exception $e) {
             return response()->json(['error' => 'Error deleting unit', 'message' => $e->getMessage()], 422);
         }
+    }
+
+    public function getScript($id)
+    {
+        $unit = Unit::findOrFail($id);
+        return response()->json(['script' => $unit->script]);
+    }
+
+    public function updateScript(Request $request, $id)
+    {
+        $unit = Unit::findOrFail($id);
+        $unit->script = $request->script;
+        $unit->save();
+
+        return response()->json(['success' => 'Script updated successfully!']);
     }
 
     /*
@@ -643,6 +667,116 @@ class AdminController extends Controller
         }
 
         return response()->json(['success' => true]);
+    }
+
+
+    private function scriptAi($prompt, $type = 'text')
+    {
+        if ($type == 'text') {
+            $text = 'You are an AI assistant tasked with turning the content of a course unit into a detailed script. This script will be used when the user takes a quiz for this unit. Please generate a script based strictly on the provided content. Ensure that the script explains the content thoroughly and comprehensively without adding any new details or elements. The script should clearly describe the original  content. Return the response in JSON format with the key "script". note: the script will not be for the Student it will be for the ai so just explain in a way the ai will understand the subject that the quastions and answerss revlove around but also insure that the content will be at the end of the script so the ai will be able to answer the questions and know what answers are wrong and what are corect fro example if there names or place could the quastio by about them and return in teh json script as a keyand even if the contetn is short and simple as hello  and do not need explanation then just removeing the html tags and return it as it is   and the value should not be multi line keep it on the same line to not get wrong json .';
+        } elseif ($type == 'video') {
+            // unit type is vedio and we need to tell that to the ai that the text is taken from the vedio audio
+            $text = 'You are an AI assistant tasked with turning the audio content of a course unit video into a detailed script. This script will be used when the user takes a quiz for this unit. Please generate a script based strictly on the provided audio content. Ensure that the script explains the content thoroughly and comprehensively without adding any new details or elements. The script should clearly describe the original content. Return the response in JSON format with the key "script". Note that the script will not be for the student, but for the AI, so explain the subject in a way that the AI will understand the questions and answers. Ensure the content is at the end of the script so the AI can answer the questions correctly. If there are names or places, the questions could be about them. The JSON should have the "script" key, and the value should be a single line to avoid incorrect JSON formatting. If the content is short and simple like "hello", return it as it is. Additionally, note that the text has been extracted from the video, so if some words do not make sense, correct them in the best way based on the context of the video.';
+
+        }
+        // dd('test');
+        $response = OpenAI::chat()->create([
+            'model' => 'gpt-4o',
+            'messages' => [
+                [
+                    'role' => 'system',
+                    'content' => $text
+                ],
+                ['role' => 'user', 'content' => $prompt]
+            ],
+            'temperature' => 0,
+        ]);
+        // dd($response);
+        \Log::info("response: ai-text-unit::::::::::::::: " . json_encode($response));
+
+        // Extract and clean the JSON part of the response
+        $responseContent = $response->choices[0]->message->content;
+        $jsonString = $this->extractJsonString($responseContent);
+
+        $aiResponse = json_decode($jsonString, true);
+        \Log::info("aiResponse: " . json_encode($aiResponse));
+
+        return $aiResponse;
+    }
+    private function extractJsonString($responseContent)
+    {
+        // Use regular expression to find JSON within backticks
+        if (preg_match('/```json\s*(\{[\s\S]*?\})\s*```/s', $responseContent, $matches)) {
+            $jsonString = $matches[1];
+            $jsonString = trim($jsonString); // Ensure the JSON string is trimmed of any leading/trailing spaces
+            \Log::info("Extracted JSON string: " . $jsonString);
+            // Remove any extraneous quotation marks or unwanted characters
+            $jsonString = str_replace(['“', '”', '“”', '""', '""""', '"""', '““', '””'], '', $jsonString);
+            \Log::info("Cleaned JSON string: " . $jsonString);
+            // Validate the JSON string
+            // dd($jsonString);
+            if ($this->isValidJson($jsonString)) {
+                \Log::info("Valid JSON string extracted: Paaaaaaaaasssssssssssss");
+                return $jsonString;
+            } else {
+                \Log::error("Invalid JSON string extracted:faillllllllllllllllllll");
+                return null;
+            }
+        } else {
+            \Log::error("Failed to extract JSON string from response content: " . $responseContent);
+            return null;
+        }
+    }
+
+    private function isValidJson($string)
+    {
+        json_decode($string);
+        return (json_last_error() == JSON_ERROR_NONE);
+    }
+
+    private function transcribeAudio($audioPath)
+    {
+        \Log::info("inside transcribeAudio");
+        \Log::info("Transcribing audio file at path: " . $audioPath);
+        $extension = pathinfo($audioPath, PATHINFO_EXTENSION);
+
+        if ($extension === 'webm' && is_string($audioPath) && file_exists($audioPath)) {
+            // Convert the webm file to wav format using laravel-ffmpeg
+            $wavPath = str_replace('.webm', '.wav', $audioPath);
+            FFMpeg::fromDisk('local')
+                ->open($audioPath)
+                ->export()
+                ->toDisk('local')
+                ->inFormat(new \FFMpeg\Format\Audio\Wav)
+                ->save($wavPath);
+
+            \Log::info("Converted audio file path: " . $wavPath);
+
+            // Use the wav file for transcription
+            $audioContent = new UploadedFile($wavPath, basename($wavPath));
+        } else {
+            $audioContent = new UploadedFile($audioPath, basename($audioPath));
+        }
+
+        // Ensure $audioContent is an instance of UploadedFile
+        if ($audioContent instanceof UploadedFile) {
+            \Log::info("File details - MimeType: " . $audioContent->getMimeType() . ", Size: " . $audioContent->getSize() . ", Original Name: " . $audioContent->getClientOriginalName() . ", Extension: " . $audioContent->getClientOriginalExtension());
+
+            // Check if the file type is supported by the transcription service
+
+            $response = OpenAI::audio()->translate([
+                'model' => 'whisper-1',
+                'file' => fopen($audioContent->getRealPath(), 'r'),
+                'language' => 'en',
+                'temperature' => 0, // Set temperature to 0 for deterministic output
+            ]);
+
+            \Log::info("Transcription response: " . json_encode($response));
+            return $response['text'];
+        } else {
+            \Log::info("fail on line 338: ");
+            dd("Invalid audio content provided.");
+        }
     }
 
 }
