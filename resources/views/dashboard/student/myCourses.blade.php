@@ -32,7 +32,7 @@
                                     <strong><i class="bi bi-calendar-event"></i> Enrollment Date:</strong>
                                     {{ $course->pivot->enrollment_date }}<br>
                                     <strong><i class="bi bi-graph-up-arrow"></i> Progress:</strong>
-                                    {{ $course->pivot->progress }}%
+                                    {{ $course->progress }}%
                                 </p>
                                 <p class="card-text">
                                     @if ($course->type == 'weekly')

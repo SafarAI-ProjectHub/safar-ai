@@ -225,6 +225,8 @@ Route::middleware(['auth', 'role:Student'])->prefix('student')->group(function (
     Route::post('/subscriptions/create', [SubscriptionController::class, 'create'])->name('subscriptions.create');
     Route::get('subscription/details', [SubscriptionController::class, 'showSubscriptionDetails'])->name('subscription.details');
 
+    // unit progress
+    Route::post('/course/update-unit-completion', [CourseController::class, 'updateUnitCompletion'])->name('course.updateUnitCompletion');
 
 });
 

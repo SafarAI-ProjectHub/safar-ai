@@ -50,8 +50,12 @@
 @section('content')
     @php
         $subscriptionStatus = $subscription ? $subscription->status : 'free';
-        $subscriptionDate = $subscription ? $subscription->start_date->format('M d, Y') : 'N/A';
-        $nextBillingDate = $subscription ? $subscription->next_billing_time->format('M d, Y') : 'N/A';
+        $subscriptionDate =
+            $subscription && $subscription->start_date ? $subscription->start_date->format('M d, Y') : 'N/A';
+        $nextBillingDate =
+            $subscription && $subscription->next_billing_time
+                ? $subscription->next_billing_time->format('M d, Y')
+                : 'N/A';
         $features = $planDetails ? json_decode($planDetails->features, true) : [];
         $payment = $payment ?? null;
     @endphp

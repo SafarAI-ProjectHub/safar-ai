@@ -43,7 +43,9 @@ class SubscriptionController extends Controller
             }
         } else {
             $planDetails = Subscription::where('is_active', true)->first();
-            $payment = collect();
+            $payment = new Payment();
+            $subscription = new UserSubscription();
+
         }
 
         $cliqUserName = config('cliq.username');

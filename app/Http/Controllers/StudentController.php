@@ -143,6 +143,23 @@ class StudentController extends Controller
     public function myCourses()
     {
         $courses = Auth::user()->courses;
+        $student = Auth::user()->student;
+
+        foreach ($courses as $course) {
+            // Total units in the course
+            $totalUnits = $course->units()->count();
+
+            // Completed units by the student in the course
+            $completedUnits = DB::table('student_units')
+                ->where('student_id', $student->id)
+                ->whereIn('unit_id', $course->units->pluck('id'))
+                ->where('completed', true)
+                ->count();
+
+            // Calculate progress percentage
+            $course->progress = $totalUnits > 0 ? ($completedUnits / $totalUnits) * 100 : 0;
+        }
+
         return view('dashboard.student.myCourses', compact('courses'));
     }
 

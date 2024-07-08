@@ -1,0 +1,8 @@
+  2024-07-08 19:15:01 App\Events\NotificationEvent ................... RUNNING
+  2024-07-08 19:15:02 App\Events\NotificationEvent ............. 420.00ms DONE
+  2024-07-08 19:15:02 App\Events\NotificationEvent ................... RUNNING
+  2024-07-08 19:15:02 App\Events\NotificationEvent ............. 101.08ms DONE
+  2024-07-08 19:15:02 App\Events\NotificationEvent ................... RUNNING
+  2024-07-08 19:15:02 App\Events\NotificationEvent ............. 102.89ms DONE
+  2024-07-08 19:17:32 App\Events\NotificationEvent ................... RUNNING
+  2024-07-08 19:17:33 App\Events\NotificationEvent ............. 256.75ms DONE

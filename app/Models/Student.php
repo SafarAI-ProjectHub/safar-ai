@@ -10,8 +10,8 @@ class Student extends Model
     use HasFactory;
 
     protected $guarded = [];
-    
-  /**
+
+    /**
      * Relationship with the User model.
      */
     public function user()
@@ -25,7 +25,7 @@ class Student extends Model
     public function courses()
     {
         return $this->belongsToMany(Course::class, 'course_student', 'student_id', 'course_id')
-                    ->withPivot(['enrollment_date', 'progress']);
+            ->withPivot(['enrollment_date', 'progress']);
     }
 
     /**
@@ -52,5 +52,10 @@ class Student extends Model
     {
         $this->initial_assessment_score = $score;
         $this->save();
+    }
+
+    public function units(): BelongsToMany
+    {
+        return $this->belongsToMany(Unit::class, 'student_units')->withPivot('completed')->withTimestamps();
     }
 }
