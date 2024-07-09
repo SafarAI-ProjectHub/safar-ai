@@ -32,6 +32,34 @@
                 </a>
             </li>
         @endhasanyrole
+        @hasanyrole('Student')
+            <li>
+                <a href="{{ route('student.dashboard') }}">
+                    <div class="parent-icon"><i class='bx bx-home'></i></div>
+                    <div class="menu-title">Home</div>
+                </a>
+            </li>
+            <li>
+                <a href="{{ route('student.myCourses') }}">
+                    <div class="parent-icon"><i class='bx bx-book'></i></div>
+                    <div class="menu-title">My Courses</div>
+                </a>
+            </li>
+            <li>
+                <a href="javascript:;" class="has-arrow">
+                    <div class="parent-icon"><i class='bx bx-task'></i></div>
+                    <div class="menu-title">Quizzes</div>
+                </a>
+                <ul>
+                    <li>
+                        <a href="{{ route('student.quizzes.list') }}">
+                            <div class="parent-icon"><i class="bx bx-list-ul"></i></div>
+                            <div class="menu-title">Available Quizzes</div>
+                        </a>
+                    </li>
+                </ul>
+            </li>
+        @endhasanyrole
 
         @hasanyrole('Super Admin|Admin')
             <li>

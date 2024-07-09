@@ -65,6 +65,7 @@ class User extends Authenticatable
     {
         return "{$this->first_name} {$this->last_name}";
     }
+    //example use : $user->full_name
 
 
     /**

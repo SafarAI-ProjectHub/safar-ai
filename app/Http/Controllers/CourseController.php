@@ -20,7 +20,12 @@ class CourseController extends Controller
         $unitnumber = Unit::where('course_id', $courseId)->count();
         $numberstd = Course::find($courseId)->students->count();
         $course = Course::with('units')->findOrFail($courseId);
+
         if (Auth::user()->hasRole('Student')) {
+            if (!Auth::user()->courses->contains($courseId)) {
+                abort(403, 'You are not enrolled in this course');
+            }
+
             $completedUnitIds = DB::table('student_units')
                 ->where('student_id', Auth::user()->student->id)
                 ->where('completed', true)

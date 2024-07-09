@@ -2,8 +2,35 @@
 
 @section('styles')
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-icons/1.8.1/font/bootstrap-icons.min.css">
-@endsection
+    <link rel="stylesheet" href="{{ asset('css/bootstrap.min.css') }}">
+    <link rel="stylesheet" href="{{ asset('css/line-awesome.css') }}">
+    <link rel="stylesheet" href="{{ asset('css/owl.carousel.min.css') }}">
+    <link rel="stylesheet" href="{{ asset('css/owl.theme.default.min.css') }}">
+    <link rel="stylesheet" href="{{ asset('css/bootstrap-select.min.css') }}">
+    <link rel="stylesheet" href="{{ asset('css/fancybox.css') }}">
+    <link rel="stylesheet" href="{{ asset('css/tooltipster.bundle.css') }}">
+    <link rel="stylesheet" href="{{ asset('css/style.css') }}">
+    <style>
+        .card.card-item {
+            height: 500px;
+        }
 
+        .card-text.description {
+            height: 80px;
+            /* Adjust based on your design */
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        .bg-primary {
+            background-color: #be09cd !important;
+        }
+
+        .skillbar-box {
+            width: 100%;
+        }
+    </style>
+@endsection
 
 @section('content')
     <div class="container my-5">
@@ -17,39 +44,86 @@
                 </div>
             @else
                 @foreach ($courses as $course)
-                    <div class="col-md-4 mb-4">
-                        <div class="card h-100">
-                            <div class="card-img-top text-center" style="background-color: #f8f9fa;">
-                                <img src="{{ $course->image }}" class="img-fluid" alt="Course Image"
-                                    style="width: 80%; padding: 10px;">
+                    <div class="col-lg-4 responsive-column-half mb-4">
+                        <div class="card card-item">
+                            <div class="card-image">
+                                <a href="{{ route('admin.showcourse', $course->id) }}" class="d-block">
+                                    <img class="card-img-top lazy" src="{{ $course->image }}" alt="Card image cap">
+                                    <div class="play-button">
+                                        <svg version="1.1" xmlns="http://www.w3.org/2000/svg" x="0px" y="0px"
+                                            viewBox="-307.4 338.8 91.8 91.8" xml:space="preserve">
+                                            <style type="text/css">
+                                                .st0 {
+                                                    opacity: 0.6;
+                                                    fill: #000000;
+                                                    border-radius: 100px;
+                                                }
+
+                                                .st1 {
+                                                    fill: #ffffff;
+                                                }
+                                            </style>
+                                            <g>
+                                                <circle class="st0" cx="-261.5" cy="384.7" r="45.9"></circle>
+                                                <path class="st1"
+                                                    d="M-272.9,363.2l35.8,20.7c0.7,0.4,0.7,1.3,0,1.7l-35.8,20.7c-0.7,0.4-1.5-0.1-1.5-0.9V364
+                                                                                                                            C-274.4,363.3-273.5,362.8-272.9,363.2z">
+                                                </path>
+                                            </g>
+                                        </svg>
+                                    </div>
+                                </a>
                             </div>
-                            <div class="card-body d-flex flex-column">
-                                <h5 class="card-title">{{ $course->title }}</h5>
-                                <p class="card-text">
-                                    <i class="bi bi-person"></i> {{ $course->students->count() }} Students
-                                </p>
-                                <p class="card-text">
-                                    <strong><i class="bi bi-calendar-event"></i> Enrollment Date:</strong>
-                                    {{ $course->pivot->enrollment_date }}<br>
-                                    <strong><i class="bi bi-graph-up-arrow"></i> Progress:</strong>
-                                    {{ $course->progress }}%
-                                </p>
-                                <p class="card-text">
-                                    @if ($course->type == 'weekly')
-                                        <i class="bi bi-calendar-week"></i> Weekly Course
+                            <!-- end card-image -->
+                            <div class="card-body">
+                                <h5 class="card-title">
+                                    <a href="{{ route('admin.showcourse', $course->id) }}">{{ $course->title }}</a>
+                                </h5>
+                                <p class="card-text description lh-22 pt-2">
+                                    @if (strlen($course->description) > 100)
+                                        {{ substr($course->description, 0, 100) }}...
                                     @else
-                                        <i class="bi bi-lightning"></i> Intensive Course
+                                        {{ $course->description }}
                                     @endif
                                 </p>
-                                <div class="mt-auto">
-                                    <a href="{{ route('admin.showcourse', $course->id) }}"
-                                        class="btn btn-primary w-100">View Course</a>
+                                <p class="card-text lh-22 pt-2">
+                                    {{ $course->teacher ? $course->teacher->user->full_name : 'No teacher assigned yet' }}
+                                </p>
+                                <div
+                                    class="my-course-progress-bar-wrap d-flex flex-wrap align-items-center mt-3 position-relative w-100">
+
+                                    <div class="skillbar-box">
+                                        <div class="skillbar skillbar-skillbar-2" data-percent="{{ $course->progress }}%">
+                                            <div class="skillbar-bar skillbar--bar-2 bg-primary"
+                                                style="width: {{ $course->progress }}%;"></div>
+                                        </div>
+                                        <!-- End Skill Bar -->
+                                    </div>
+                                    <div class="skill-bar-percent">{{ $course->progress }}%</div>
                                 </div>
+                                <a href="{{ route('admin.showcourse', $course->id) }}"
+                                    class="btn btn-primary mt-3 d-block">View Course</a>
                             </div>
+                            <!-- end card-body -->
                         </div>
                     </div>
                 @endforeach
             @endif
         </div>
     </div>
+@endsection
+
+@section('scripts')
+    <script src="{{ asset('js/bootstrap.bundle.min.js') }}"></script>
+    <script src="{{ asset('js/bootstrap-select.min.js') }}"></script>
+    <script src="{{ asset('js/owl.carousel.min.js') }}"></script>
+    <script src="{{ asset('js/isotope.js') }}"></script>
+    <script src="{{ asset('js/waypoint.min.js') }}"></script>
+    <script src="{{ asset('js/jquery.counterup.min.js') }}"></script>
+    <script src="{{ asset('js/fancybox.js') }}"></script>
+    <script src="{{ asset('js/datedropper.min.js') }}"></script>
+    <script src="{{ asset('js/emojionearea.min.js') }}"></script>
+    <script src="{{ asset('js/tooltipster.bundle.min.js') }}"></script>
+    <script src="{{ asset('js/jquery.lazy.min.js') }}"></script>
+    <script src="{{ asset('js/main.js') }}"></script>
 @endsection

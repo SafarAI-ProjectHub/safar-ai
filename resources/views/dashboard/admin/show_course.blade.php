@@ -844,9 +844,13 @@
     <script>
         var player = new Plyr('#player');
     </script>
+    @php
+        $firstUnit = $course->units->first();
+    @endphp
     <script>
-        updateContent('{{ $course->units->first()->content_type }}', `{!! $course->units->first()->content !!}`,
-            '{{ $course->units->first()->title }}');
+        @if ($course->units->count() > 0 && $firstUnit != null)
+            updateContent('{{ $firstUnit->content_type }}', `{!! $firstUnit->content !!}`, '{{ $firstUnit->title }}');
+        @endif
 
         function updateContent(contentType, content, title) {
             console.log(content);
@@ -858,25 +862,25 @@
             // Generate and insert appropriate content based on type
             if (contentType === 'video') {
                 viewerContainer.innerHTML = `
-            <div class="lecture-video-item">
-                <video controls crossorigin playsinline id="player">
-                    <source src="${content}" type="video/mp4">
-                    Your browser does not support the video tag.
-                </video>
-            </div>
-        `;
+    <div class="lecture-video-item">
+        <video controls crossorigin playsinline id="player">
+            <source src="${content}" type="video/mp4">
+            Your browser does not support the video tag.
+        </video>
+    </div>
+    `;
                 // Reinitialize Plyr
                 new Plyr('#player');
             } else { // Assuming 'text' type content
                 viewerContainer.innerHTML = `
-            <div class="lecture-viewer-text-wrap active">
-                <div class="lecture-viewer-text-content custom-scrollbar-styled">
-                    <div class="lecture-viewer-text-body">
-                        ${content}
-                    </div>
-                </div>
+    <div class="lecture-viewer-text-wrap active">
+        <div class="lecture-viewer-text-content custom-scrollbar-styled">
+            <div class="lecture-viewer-text-body">
+                ${content}
             </div>
-        `;
+        </div>
+    </div>
+    `;
             }
         }
 
@@ -886,44 +890,26 @@
                     $(".wrapper").removeClass("toggled");
                 } else {
                     $(".wrapper").addClass("toggled");
-
                     if ($(".wrapper").hasClass("toggled")) {
-                        $(".sidebar-wrapper").hover(
-                            function() {
-                                $(".wrapper").addClass("sidebar-hovered");
-                            },
-                            function() {
-                                $(".wrapper").removeClass("sidebar-hovered");
-                            }
-                        );
+                        $(".sidebar-wrapper").hover(function() {
+                            $(".wrapper").addClass("sidebar-hovered");
+                        }, function() {
+                            $(".wrapper").removeClass("sidebar-hovered");
+                        });
                     } else {
                         $(".sidebar-wrapper").unbind("hover");
                     }
                 }
-
-
-            }
-
-            // Default state: closed
-            $(".wrapper").removeClass("toggled");
-
-            toggleWrapper();
-
-            // Reapply the toggle on window resize
-            $(window).resize(function() {
-                toggleWrapper();
-            });
-
+            } // Default state: closed $(".wrapper").removeClass("toggled");
+            toggleWrapper
+                (); // Reapply the toggle on window resize $(window).resize(function() { toggleWrapper(); });
             $('.course-dashboard-sidebar-column, .course-dashboard-column, .sidebar-open').addClass('active');
         });
-
-
-
         $(document).ready(function() {
             $('.custom-control-input').change(function() {
                 var unitId = $(this).val();
-                var completed = $(this).is(':checked') ? 1 : 0;
-
+                var
+                    completed = $(this).is(':checked') ? 1 : 0;
                 $.ajax({
                     url: '{{ route('course.updateUnitCompletion') }}',
                     method: 'POST',

@@ -16,6 +16,8 @@ class Assessment extends Model
         'response',
         'teacher_mark',
         'ai_notes',
+        'ai_assessment',
+        'teacher_review',
         'score',
         'teacher_notes',
         'assessment_date'
@@ -28,6 +30,11 @@ class Assessment extends Model
     public function user()
     {
         return $this->belongsTo(User::class, 'user_id');
+    }
+
+    public function userResponses()
+    {
+        return $this->hasMany(UserResponse::class, 'assessment_id');
     }
 
     public function setAiMark($mark)

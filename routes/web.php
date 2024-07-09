@@ -14,6 +14,7 @@ use App\Http\Controllers\ZoomMeetingController;
 use App\Http\Controllers\CourseController;
 use App\Http\Controllers\levelTest\TeacherTestController;
 use App\Http\Controllers\levelTest\StudentTestController;
+use App\Http\Controllers\StudentQuizController;
 use App\Http\Controllers\NotificationController;
 use Illuminate\Support\Facades\Broadcast;
 use App\Http\Controllers\SubscriptionController;
@@ -252,6 +253,12 @@ Route::middleware(['auth', 'role:Student'])->group(function () {
     // Cliq payments 
     Route::post('/pay-with-cliq', [CliqController::class, 'payWithCliq'])->name('payWithCliq');
     Route::post('/reupload-payment-proof/{id}', [CliqController::class, 'reuploadPaymentProof'])->name('reuploadPaymentProof');
+
+    // Quiz 
+    Route::get('/student/quizzes', [StudentQuizController::class, 'listQuizzes'])->name('student.quizzes.list');
+    Route::get('/student/quizzes/{id}', [StudentQuizController::class, 'showQuiz'])->name('student.quiz.show');
+    Route::post('/student/quizzes/{id}/submit', [StudentQuizController::class, 'submitQuiz'])->name('student.quiz.submit');
+    Route::get('/quiz/{id}/result', [StudentQuizController::class, 'showQuizResult'])->name('student.quiz.result');
 });
 
 

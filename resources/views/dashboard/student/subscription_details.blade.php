@@ -63,13 +63,22 @@
     <div class="card mb-4">
         <div class="card-body">
             @if ($subscriptionStatus == 'active')
-                <h2 class="fw-bold mb-0">${{ $planDetails->price }}/Monthly</h2>
-                <p class="mb-0">
-                    Your next monthly charge of
-                    <span class="text-success">${{ $planDetails->price }}</span>
-                    will be applied on
-                    <span class="text-success">{{ $nextBillingDate }}</span>.
-                </p>
+                <h2 class="fw-bold mb-0">
+                    ${{ $planDetails->price }}/{{ $subscriptionStatus == 'active' ? ($payment->payment_type == 'paypal' ? 'Monthly ' : 'one time paymen') : 'Monthly' }}
+                </h2>
+                @if ($subscriptionStatus == 'active' && $payment->payment_type != 'paypal')
+                    <p class="mb-0">
+                        Your subscription will expire on
+                        <span class="text-success">{{ $nextBillingDate }}</span>.
+                    </p>
+                @else
+                    <p class="mb-0">
+                        Your next monthly charge of
+                        <span class="text-success">${{ $planDetails->price }}</span>
+                        will be applied on
+                        <span class="text-success">{{ $nextBillingDate }}</span>.
+                    </p>
+                @endif
             @else
                 <h2 class="fw-bold mb-0">Free Plan</h2>
                 <p class="mb-0">
@@ -156,9 +165,10 @@
                             {{ $subscriptionStatus == 'active' ? 'Access All Courses' : 'Access YouTube Videos' }}</h6>
                     </div>
                     <div class="col-lg-3 col-md-3 col-6 mb-2 mb-lg-0">
-                        <span class="fs-6">Billing Date</span>
+                        <span
+                            class="fs-6">{{ $subscriptionStatus == 'active' ? ($payment->payment_type == 'paypal' ? 'Billing Date ' : 'Expire Date') : 'Billing Date' }}</span>
                         <h6 class="mb-0">
-                            {{ $subscriptionStatus == 'active' ? 'Next Billing on ' . $nextBillingDate : 'N/A' }}</h6>
+                            {{ $subscriptionStatus == 'active' ? ($payment->payment_type == 'paypal' ? 'Next Billing on ' . $nextBillingDate : 'expire on ' . $nextBillingDate) : 'N/A' }}
                     </div>
                 </div>
                 @if ($features)

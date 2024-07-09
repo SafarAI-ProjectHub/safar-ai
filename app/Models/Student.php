@@ -54,7 +54,7 @@ class Student extends Model
         $this->save();
     }
 
-    public function units(): BelongsToMany
+    public function units()
     {
         return $this->belongsToMany(Unit::class, 'student_units')->withPivot('completed')->withTimestamps();
     }

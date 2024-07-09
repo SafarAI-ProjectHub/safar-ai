@@ -391,6 +391,7 @@ class AdminController extends Controller
         }
 
         $unit->save();
+        ProcessUnitAI::dispatch($unit->id, $this->videoToAudioService);
 
         return response()->json(['success' => 'Unit updated successfully']);
     }

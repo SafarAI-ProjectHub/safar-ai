@@ -20,7 +20,7 @@ class Unit extends Model
     {
         return $this->hasMany(Quiz::class, 'unit_id');
     }
-    public function students(): BelongsToMany
+    public function students()
     {
         return $this->belongsToMany(Student::class, 'student_units')->withPivot('completed')->withTimestamps();
     }

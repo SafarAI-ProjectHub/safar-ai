@@ -2,8 +2,35 @@
 
 @section('styles')
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-icons/1.8.1/font/bootstrap-icons.min.css">
-
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-icons/1.8.1/font/bootstrap-icons.min.css">
+    <link rel="stylesheet" href="{{ asset('css/bootstrap.min.css') }}">
+    <link rel="stylesheet" href="{{ asset('css/line-awesome.css') }}">
+    <link rel="stylesheet" href="{{ asset('css/owl.carousel.min.css') }}">
+    <link rel="stylesheet" href="{{ asset('css/owl.theme.default.min.css') }}">
+    <link rel="stylesheet" href="{{ asset('css/bootstrap-select.min.css') }}">
+    <link rel="stylesheet" href="{{ asset('css/fancybox.css') }}">
+    <link rel="stylesheet" href="{{ asset('css/tooltipster.bundle.css') }}">
+    <link rel="stylesheet" href="{{ asset('css/style.css') }}">
     <style>
+        .card.card-item {
+            height: 450px;
+        }
+
+        .card-text.description {
+            height: 80px;
+            /* Adjust based on your design */
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        .bg-primary {
+            background-color: #be09cd !important;
+        }
+
+        .skillbar-box {
+            width: 100%;
+        }
+
         .modal-dialog {
             max-width: 600px;
             margin: 30px auto;
@@ -89,14 +116,39 @@
                 @else
                     @foreach ($courses as $course)
                         <div class="col-md-4 mb-4">
-                            <div class="card h-100">
-                                <div class="card-img-top text-center" style="background-color: #f8f9fa;">
-                                    <img src="{{ $course->image }}" class="img-fluid" alt="Course Image"
-                                        style="width: 80%; padding: 10px;">
+                            <div class="card card-item">
+                                <div class="card-image">
+                                    <a href="javascript:void(0);" class="d-block course-link"
+                                        data-course-id="{{ $course->id }}"
+                                        data-enrolled="{{ in_array($course->id, $enrolledCourseIds) }}">
+                                        <img class="card-img-top lazy" src="{{ $course->image }}" alt="Card image cap">
+                                        <div class="play-button">
+                                            <svg version="1.1" xmlns="http://www.w3.org/2000/svg" x="0px" y="0px"
+                                                viewBox="-307.4 338.8 91.8 91.8" xml:space="preserve">
+                                                <style type="text/css">
+                                                    .st0 {
+                                                        opacity: 0.6;
+                                                        fill: #000000;
+                                                        border-radius: 100px;
+                                                    }
+
+                                                    .st1 {
+                                                        fill: #ffffff;
+                                                    }
+                                                </style>
+                                                <g>
+                                                    <circle class="st0" cx="-261.5" cy="384.7" r="45.9"></circle>
+                                                    <path class="st1"
+                                                        d="M-272.9,363.2l35.8,20.7c0.7,0.4,0.7,1.3,0,1.7l-35.8,20.7c-0.7,0.4-1.5-0.1-1.5-0.9V364
+                                                                                                                                            C-274.4,363.3-273.5,362.8-272.9,363.2z">
+                                                    </path>
+                                                </g>
+                                            </svg>
+                                        </div>
+                                    </a>
                                 </div>
                                 <div class="card-body d-flex flex-column">
                                     <h5 class="card-title">{{ $course->title }}</h5>
-                                    {{-- the number of student in htis coures  --}}
                                     <p class="card-text">
                                         <i class="bi bi-person"></i> {{ $course->students->count() }} Students
                                     </p>
@@ -195,11 +247,41 @@
                 $('#subscriptionModal').modal('show');
             @endif
 
+            // Course link click event
+            $('.course-link').click(function() {
+                var courseId = $(this).data('course-id');
+                var isEnrolled = $(this).data('enrolled');
+
+                if (isEnrolled) {
+                    window.location.href = '/courses/' + courseId + '/show';
+                } else {
+                    $.ajax({
+                        url: '{{ route('student.getCourseDetails') }}',
+                        type: 'GET',
+                        data: {
+                            course_id: courseId
+                        },
+                        success: function(response) {
+                            $('#courseTitle').text(response.course.title);
+                            $('#courseDescription').text(response.course.description);
+                            $('#teacherName').text(response.course.teacher_name || 'N/A');
+                            $('#teacherExperience').text(response.course.years_of_experience ||
+                                'N/A');
+                            $('#enrollButton').data('course-id', courseId);
+                            $('#courseModal').modal('show');
+                        },
+                        error: function(xhr) {
+                            console.log(xhr.responseText);
+                        }
+                    });
+                }
+            });
+
             // Enroll button click event
             $('.enroll-btn').click(function() {
                 var courseId = $(this).data('course-id');
                 $.ajax({
-                    url: '{{ route('student.getCourseDetails') }}', // Adjust this route
+                    url: '{{ route('student.getCourseDetails') }}',
                     type: 'GET',
                     data: {
                         course_id: courseId
@@ -223,7 +305,7 @@
             $('#enrollButton').click(function() {
                 var courseId = $(this).data('course-id');
                 $.ajax({
-                    url: '{{ route('student.enroll') }}', // Adjust this route
+                    url: '{{ route('student.enroll') }}',
                     type: 'POST',
                     data: {
                         course_id: courseId,
