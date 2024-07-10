@@ -18,7 +18,7 @@
 
                  <div class="text-center text-lg-start">
                      @if (Auth::check())
-                         @if (Auth::user()->hasRole('Admin') || Auth::user()->hasRole('SuperAdmin'))
+                         @if (Auth::user()->hasRole('Admin') || Auth::user()->hasRole('Super Admin'))
                              <a href="{{ route('dashboard') }}"
                                  class="btn-login scrollto d-inline-flex align-items-center justify-content-center align-self-center">
                                  <span>Dashboard</span>
