@@ -135,9 +135,16 @@
                             <div class="menu-title">Add Quiz</div>
                         </a>
                     </li>
+                    <li>
+                        <a href="{{ route('quizResults.index') }}">
+                            <div class="parent-icon"><i class="bx bx-clipboard"></i></div>
+                            <div class="menu-title">Quiz Results</div>
+                        </a>
+                    </li>
                 </ul>
             </li>
         @endhasanyrole
+
 
         @hasanyrole('Super Admin|Admin|Teacher')
             <li>

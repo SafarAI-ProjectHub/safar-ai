@@ -6,12 +6,10 @@
             border: 1px solid #ddd;
             border-radius: 5px;
             margin-bottom: 15px;
-            background-color: #f8f9fa;
             padding: 15px;
         }
 
         .question-header {
-            background-color: #e9ecef;
             padding: 10px;
             border-bottom: 1px solid #ddd;
         }
@@ -26,7 +24,6 @@
 
         .sub-text {
             font-style: italic;
-            color: #6c757d;
             margin-bottom: 10px;
         }
 
@@ -70,6 +67,85 @@
 
         .recording {
             background-color: red !important;
+        }
+
+        .animated-arrow {
+            display: inline-flex;
+            align-items: center;
+            transition: transform 0.3s ease;
+        }
+
+        .animated-arrow:hover {
+            transform: translateX(-5px);
+        }
+
+        /* Light Theme */
+        .light-theme .question-card {
+            background-color: #f8f9fa;
+        }
+
+        .light-theme .question-header {
+            background-color: #e9ecef;
+        }
+
+        .light-theme .sub-text {
+            color: #6c757d;
+        }
+
+        .light-theme .correct-answer {
+            color: green;
+        }
+
+        .light-theme .incorrect-answer {
+            color: red;
+        }
+
+        .light-theme .note-text {
+            color: blue;
+        }
+
+        /* Dark Theme */
+        .dark-theme .question-card {
+            background-color: #2c2c2c;
+            border-color: #444;
+        }
+
+        .dark-theme .question-header {
+            background-color: #3c3c3c;
+            border-bottom-color: #444;
+        }
+
+        .dark-theme .question-body {
+            color: #ddd;
+        }
+
+        .dark-theme .question-text {
+            color: #fff;
+        }
+
+        .dark-theme .sub-text {
+            color: #999;
+        }
+
+        .dark-theme .correct-answer {
+            color: #28a745;
+        }
+
+        .dark-theme .incorrect-answer {
+            color: #dc3545;
+        }
+
+        .dark-theme .note-text {
+            color: #17a2b8;
+        }
+
+        .dark-theme .assessment-info th {
+            background-color: #444;
+        }
+
+        .dark-theme .assessment-info td,
+        .dark-theme .assessment-info th {
+            border-color: #555;
         }
     </style>
 @endsection

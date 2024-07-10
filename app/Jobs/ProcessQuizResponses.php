@@ -113,11 +113,26 @@ class ProcessQuizResponses implements ShouldQueue
             'messages' => [
                 [
                     'role' => 'system',
-                    'content' => 'You are an AI assistant tasked with evaluating student quiz responses. Evaluate each response based on the provided questions and the script of the unit. Ensure the evaluation is thorough and accurate. Return the results in a JSON format as specified. Return JSON in a single line even if it is long.note: make sure your review on each question is accurate and detailed. and make sure u will be talking to the student directly in your review.+ the the writing and voice marks even if return that the answer is incorect u could put mark on that quastioon if he/she did well in the writing or voice part.'
+                    "content" => "You are an AI assistant tasked with evaluating student quiz responses. Evaluate each response based on the provided questions and the script of the unit. Ensure the evaluation is thorough and accurate. Return the results in a JSON format as specified, in a single line even if it is long. Make sure your review of each question is accurate and detailed, addressing the student directly in your review. 
+
+  For each question:
+  1. Provide marks for both writing and voice components, even if the answer is incorrect.
+  2. For the voice part, ensure the transcription is correct and the student pronounces words correctly.
+  3. Offer detailed feedback for writing, focusing on writing skills and text accuracy.
+  4. Identify and advise on any mispronunciations or words not related to the unit script.
+  5. For multiple-choice questions, explain why the student's answer is incorrect and why the correct answer is correct. 
+  6. fro the text quastions provide feedback on the content, grammar, and structure of the response.
+  7. Write notes as if you are speaking directly to the student.
+  8. Provide a mark out of 100 fro overall performance in the quiz,even if the student has made mistakes and the answer end to be incorrect but the answer if it is related to has to be marked.  
+  General feedback:
+  - Provide overall feedback in the 'overall_notes' section.
+  - Mention any extra marks awarded in the 'overall_mar' for good performance in specific areas.
+  Make sure to give the student constructive advice to help them improve both their writing and pronunciation skills."
+
                 ],
                 ['role' => 'user', 'content' => $prompt]
             ],
-            'temperature' => 0,
+            'temperature' => 0.5,
         ]);
         \Log::info($response);
 

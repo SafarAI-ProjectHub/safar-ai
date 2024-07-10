@@ -75,7 +75,7 @@ class StudentController extends Controller
         }
         // $courses = Course::all();
         $subscription = UserSubscription::where('user_id', Auth::id())->first();
-        $enrolledCourseIds = Auth::user()->courses->pluck('id')->toArray();
+        $enrolledCourseIds = Auth::user()->courses ? Auth::user()->courses->pluck('id')->toArray() : [];
         $planDetails = \App\Models\Subscription::where('is_active', 1)->first();
         return view('dashboard.student.dashboard', compact('courses', 'planDetails', 'subscription', 'enrolledCourseIds'));
     }
@@ -144,7 +144,9 @@ class StudentController extends Controller
     {
         $courses = Auth::user()->courses;
         $student = Auth::user()->student;
-
+        if (!$courses) {
+            $courses = collect();
+        }
         foreach ($courses as $course) {
             // Total units in the course
             $totalUnits = $course->units()->count();
@@ -156,8 +158,9 @@ class StudentController extends Controller
                 ->where('completed', true)
                 ->count();
 
-            // Calculate progress percentage
-            $course->progress = $totalUnits > 0 ? ($completedUnits / $totalUnits) * 100 : 0;
+            // Calculate progress percentage fixed to 2 decimal places
+            $course->progress = $totalUnits > 0 ? number_format(($completedUnits / $totalUnits) * 100, 2) : 0;
+
         }
 
         return view('dashboard.student.myCourses', compact('courses'));

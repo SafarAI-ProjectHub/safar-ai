@@ -10,6 +10,8 @@ use App\Models\Question;
 use App\Models\Choice;
 use Illuminate\Support\Facades\Auth;
 use Yajra\DataTables\DataTables;
+use App\Models\Assessment;
+use App\Models\Student;
 
 class QuizController extends Controller
 {
@@ -113,26 +115,35 @@ class QuizController extends Controller
             ->make(true);
     }
 
-    public function showResults($quizId)
+    public function showResults(Request $request, $quizId)
     {
         $quiz = Quiz::findOrFail($quizId);
+
+        if (Auth::user()->hasRole(['Teacher'])) {
+            if (Auth::user()->teacher->courses->where('id', $quiz->unit->course->id)->count() == 0) {
+                abort(403, 'YOU ARE NOT AUTHORIZED TO VIEW THIS PAGE');
+            }
+        }
+
+
         return view('dashboard.quiz.results', compact('quiz'));
     }
 
-    public function resultsDataTable($quizId)
+    public function resultsDataTable(Request $request, $quizId)
     {
-        $quiz = Quiz::with(['unit.course.students', 'assessments'])->findOrFail($quizId);
-        $students = $quiz->unit->course->students;
+        $assessments = Assessment::with('user.student')
+            ->where('quiz_id', $quizId)
+            ->get();
 
-        $data = $students->map(function ($student) use ($quiz) {
-            $assessment = $quiz->assessments->firstWhere('user_id', $student->id);
+        $data = $assessments->map(function ($assessment) {
+            $student = $assessment->user->student;
             return [
-                'name' => $student->name,
+                'name' => $assessment->user->full_name,
                 'status' => $assessment ? 'Submitted' : 'Not Submitted',
                 'ai_mark' => $assessment->ai_mark ?? '-',
                 'teacher_mark' => $assessment->teacher_mark ?? '-',
                 'score' => $assessment->score ?? '-',
-                'actions' => $assessment ? '<button class="btn btn-info btn-sm view-response" data-id="' . $assessment->id . '">View Response</button>' : ''
+                'actions' => '<a href="' . route('quizResults.show', $assessment->id) . '" class="btn btn-info btn-sm">View Result</a>'
             ];
         });
 

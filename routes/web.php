@@ -3,6 +3,7 @@
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\FileUploadController;
 use App\Http\Controllers\AdminSubscriptionController;
+use App\Http\Controllers\QuizResultController;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\AdminController;
 use App\Http\Controllers\CliqController;
@@ -11,6 +12,7 @@ use App\Http\Controllers\TeacherController;
 use App\Http\Controllers\AdminBillingController;
 use App\Http\Controllers\StudentController;
 use App\Http\Controllers\ZoomMeetingController;
+use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\CourseController;
 use App\Http\Controllers\levelTest\TeacherTestController;
 use App\Http\Controllers\levelTest\StudentTestController;
@@ -44,9 +46,9 @@ Route::get('/', function () {
 // PayPal webhook
 Route::post('/paypal/webhook', [PayPalWebhookController::class, 'handleWebhook'])->name('paypal.webhook');
 
-Route::get('/dashboard', function () {
-    return view('dashboard.index');
-})->middleware(['auth', 'verified', 'role:Admin|Super Admin'])->name('dashboard');
+Route::get('/dashboard', [DashboardController::class, 'index'])
+    ->middleware(['auth', 'role:Admin|Super Admin'])
+    ->name('dashboard');
 
 
 
@@ -190,6 +192,13 @@ Route::middleware(['auth', 'role:Super Admin|Admin|Teacher'])->group(function ()
     Route::get('quizzes/{quizId}/results/data', [QuizController::class, 'resultsDataTable'])->name('quiz.resultsDataTable');
     Route::get('assessments/{assessmentId}/response', [QuizController::class, 'getStudentResponse'])->name('assessment.getStudentResponse');
     Route::post('assessments/{assessmentId}/review', [QuizController::class, 'saveReview'])->name('assessment.saveReview');
+
+    //quiz results
+    Route::get('/quiz-results', [QuizResultController::class, 'index'])->name('quizResults.index');
+    Route::get('/quiz-results/{id}', [QuizResultController::class, 'show'])->name('quizResults.show');
+    Route::post('/quiz-results/{id}/update', [QuizResultController::class, 'update'])->name('quizResults.update');
+    Route::get('/units/byCourse', [QuizResultController::class, 'byCourse'])->name('units.byCourse');
+
 
     // Meeting Routes
     Route::get('zoom-meetings', [ZoomMeetingController::class, 'index'])->name('zoom-meetings.index');

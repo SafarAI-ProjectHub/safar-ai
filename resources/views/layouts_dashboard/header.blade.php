@@ -722,7 +722,14 @@
                         let truncatedMessage = truncateMessage(notification.message, 30);
                         if (notification.type === 'meeting') {
                             notificationUrl = `/student/meetings/${notification.model_id}`;
+                        } else if (notification.type === 'subscription') {
+                            notificationUrl = `{{ route('subscription.details') }}`;
+                        } else if (notification.type === 'admin-subscription') {
+                            notificationUrl = `{{ route('showPendingPayments') }}`;
+                        } else {
+                            notificationUrl = '#';
                         }
+
                         let notificationItem = `
                             <a class="dropdown-item" href="${notificationUrl}">
                                 <div class="d-flex align-items-center">

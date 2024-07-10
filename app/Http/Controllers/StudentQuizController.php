@@ -99,7 +99,6 @@ class StudentQuizController extends Controller
                 'ai_assessment' => false,
                 'teacher_review' => false,
                 'assessment_date' => now(),
-
                 'response' => ''
             ]
         );
@@ -133,7 +132,7 @@ class StudentQuizController extends Controller
                         $missingAudioQuestions[] = $question->id;
                     }
                 }
-
+                $userResponse->ai_review = null;
                 $userResponse->save();
             }
         }

@@ -67,7 +67,7 @@
                                                 <circle class="st0" cx="-261.5" cy="384.7" r="45.9"></circle>
                                                 <path class="st1"
                                                     d="M-272.9,363.2l35.8,20.7c0.7,0.4,0.7,1.3,0,1.7l-35.8,20.7c-0.7,0.4-1.5-0.1-1.5-0.9V364
-                                                                                                                            C-274.4,363.3-273.5,362.8-272.9,363.2z">
+                                                                                                                                            C-274.4,363.3-273.5,362.8-272.9,363.2z">
                                                 </path>
                                             </g>
                                         </svg>
@@ -90,16 +90,16 @@
                                     {{ $course->teacher ? $course->teacher->user->full_name : 'No teacher assigned yet' }}
                                 </p>
                                 <div
-                                    class="my-course-progress-bar-wrap d-flex flex-wrap align-items-center mt-3 position-relative w-100">
+                                    class="my-course-progress-bar-wrap justify-content-between d-flex flex-nowrap align-items-center mt-3 position-relative w-100">
 
                                     <div class="skillbar-box">
                                         <div class="skillbar skillbar-skillbar-2" data-percent="{{ $course->progress }}%">
-                                            <div class="skillbar-bar skillbar--bar-2 bg-primary"
+                                            <div class="skillbar-bar skillbar--bar-2 bg-primary "
                                                 style="width: {{ $course->progress }}%;"></div>
                                         </div>
                                         <!-- End Skill Bar -->
                                     </div>
-                                    <div class="skill-bar-percent">{{ $course->progress }}%</div>
+                                    <div class="skill-bar-percent text-nowrap">{{ $course->progress }}%</div>
                                 </div>
                                 <a href="{{ route('admin.showcourse', $course->id) }}"
                                     class="btn btn-primary mt-3 d-block">View Course</a>

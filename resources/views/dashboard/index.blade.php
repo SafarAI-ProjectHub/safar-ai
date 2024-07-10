@@ -1,5 +1,6 @@
 @extends('layouts_dashboard.main')
-
+@section('styles')
+@endsection
 @section('content')
     <!--start page wrapper -->
 
@@ -10,17 +11,15 @@
                     <div class="d-flex align-items-center">
                         <div>
                             <p class="mb-0 text-secondary">
-                                Total
-                                Orders
+                                Total Active Subscriptions
                             </p>
                             <h4 class="my-1 text-info">
-                                4805
+                                {{ $data['total_Active_subscription'] }}
                             </h4>
-                            <p class="mb-0 font-13">
-                                +2.5%
-                                from
-                                last
-                                week
+                            <p class="mb-0 font-13"
+                                style="color: {{ $data['wow_active_subscription'] < 0 ? 'red' : 'green' }}">
+                                {{ $data['wow_active_subscription'] < 0 ? '' : '+' }}
+                                {{ number_format($data['wow_active_subscription'], 2) }}% from last week
                             </p>
                         </div>
                         <div class="widgets-icons-2 rounded-circle bg-gradient-blues text-white ms-auto">
@@ -36,17 +35,14 @@
                     <div class="d-flex align-items-center">
                         <div>
                             <p class="mb-0 text-secondary">
-                                Total
-                                Revenue
+                                Total Revenue
                             </p>
                             <h4 class="my-1 text-danger">
-                                $84,245
+                                ${{ number_format($data['total_payment'], 2) }}
                             </h4>
-                            <p class="mb-0 font-13">
-                                +5.4%
-                                from
-                                last
-                                week
+                            <p class="mb-0 font-13" style="color: {{ $data['wow_payment'] < 0 ? 'red' : 'green' }}">
+                                {{ $data['wow_payment'] < 0 ? '' : '+' }}
+                                {{ number_format($data['wow_payment'], 2) }}% from last week
                             </p>
                         </div>
                         <div class="widgets-icons-2 rounded-circle bg-gradient-burning text-white ms-auto">
@@ -62,17 +58,14 @@
                     <div class="d-flex align-items-center">
                         <div>
                             <p class="mb-0 text-secondary">
-                                Bounce
-                                Rate
+                                Month-over-Month Revenue Growth
                             </p>
                             <h4 class="my-1 text-success">
-                                34.6%
+                                {{ number_format($data['mom_growth'], 2) }}%
                             </h4>
-                            <p class="mb-0 font-13">
-                                -4.5%
-                                from
-                                last
-                                week
+                            <p class="mb-0 font-13" style="color: {{ $data['mom_growth'] < 0 ? 'red' : 'green' }}">
+                                {{ $data['mom_growth'] < 0 ? '' : '+' }}
+                                {{ number_format($data['mom_growth'], 2) }}% from last month
                             </p>
                         </div>
                         <div class="widgets-icons-2 rounded-circle bg-gradient-ohhappiness text-white ms-auto">
@@ -88,17 +81,14 @@
                     <div class="d-flex align-items-center">
                         <div>
                             <p class="mb-0 text-secondary">
-                                Total
-                                Customers
+                                Total Students
                             </p>
                             <h4 class="my-1 text-warning">
-                                8.4K
+                                {{ $data['total_student'] }}
                             </h4>
-                            <p class="mb-0 font-13">
-                                +8.4%
-                                from
-                                last
-                                week
+                            <p class="mb-0 font-13" style="color: {{ $data['wow_student'] < 0 ? 'red' : 'green' }}">
+                                {{ $data['wow_student'] < 0 ? '' : '+' }}
+                                {{ number_format($data['wow_student'], 2) }}% from last week
                             </p>
                         </div>
                         <div class="widgets-icons-2 rounded-circle bg-gradient-orange text-white ms-auto">
@@ -108,7 +98,10 @@
                 </div>
             </div>
         </div>
-    </div><!--end row-->
+    </div>
+    <!--end row-->
+
+
 
     <div class="row">
         <div class="col-12 col-lg-8 d-flex">

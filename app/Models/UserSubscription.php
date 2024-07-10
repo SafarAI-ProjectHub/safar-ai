@@ -27,7 +27,7 @@ class UserSubscription extends Model
         return $this->belongsTo(User::class);
     }
     // payment relationship
-    public function payment()
+    public function payments()
     {
         return $this->hasMany(Payment::class, 'user_subscription_id', 'id');
     }

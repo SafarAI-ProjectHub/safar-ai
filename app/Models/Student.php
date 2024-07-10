@@ -58,4 +58,5 @@ class Student extends Model
     {
         return $this->belongsToMany(Unit::class, 'student_units')->withPivot('completed')->withTimestamps();
     }
+
 }

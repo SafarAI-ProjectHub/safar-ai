@@ -89,14 +89,14 @@
                         @if ($assessment->ai_assessment)
                             <tr>
                                 <td>AI Assessment</td>
-                                <td>{{ $assessment->ai_mark }}</td>
+                                <td>{{ $assessment->ai_mark }} / 100</td>
                                 <td>{{ $assessment->ai_notes }}</td>
                             </tr>
                         @endif
                         @if ($assessment->teacher_review)
                             <tr>
                                 <td>Teacher Review</td>
-                                <td>{{ $assessment->teacher_mark }}</td>
+                                <td>{{ $assessment->teacher_mark }} / 100</td>
                                 <td>{{ $assessment->teacher_notes }}</td>
                             </tr>
                         @endif
