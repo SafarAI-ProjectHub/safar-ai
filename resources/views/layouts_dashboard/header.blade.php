@@ -665,7 +665,7 @@
         authEndpoint: '/broadcasting/auth',
         auth: {
             headers: {
-                Authorization: 'Bearer ' + '{{ csrf_token() }}', // Fixed the 'Bearer ' prefix
+                Authorization: 'Bearer:' + '{{ csrf_token() }}',
             },
         },
     });
@@ -707,4 +707,49 @@
         }
         return Math.floor(seconds) + ' seconds ago';
     }
+
+    $(document).ready(function() {
+        function fetchNotifications() {
+            $.ajax({
+                url: "{{ route('notifications.get') }}",
+                method: "GET",
+                success: function(response) {
+                    console.log('Notifications:', response);
+                    $('.alert-count').text(response.unread_count);
+                    $('.msg-header-badge').text(response.unread_count + ' New');
+                    $('#notification-list').empty();
+                    response.notifications.forEach(function(notification) {
+                        let truncatedMessage = truncateMessage(notification.message, 30);
+                        if (notification.type === 'meeting') {
+                            notificationUrl = `/student/meetings/${notification.model_id}`;
+                        }
+                        let notificationItem = `
+                            <a class="dropdown-item" href="${notificationUrl}">
+                                <div class="d-flex align-items-center">
+                                    <div class="notify bg-light-primary p-2 fs-4">
+                                        <i class='bx ${notification.icon}'></i>
+                                    </div>
+                                    <div class="flex-grow-1">
+                                        <h6 class="msg-name">${notification.title}<span class="msg-time float-end">${timeAgo(notification.created_at)}</span></h6>
+                                        <p class="msg-info">${truncatedMessage}</p>
+                                    </div>
+                                </div>
+                            </a>
+                        `;
+                        $('#notification-list').append(notificationItem);
+                    });
+                },
+                error: function(xhr, status, error) {
+                    console.error('Error fetching notifications:', error);
+                }
+            });
+        }
+
+        fetchNotifications();
+
+        Echo.private('notifications.' + '{{ Auth::id() }}')
+            .listen('NotificationEvent', (e) => {
+                fetchNotifications();
+            });
+    });
 </script>
