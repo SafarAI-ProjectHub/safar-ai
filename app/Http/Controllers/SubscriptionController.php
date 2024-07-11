@@ -114,14 +114,12 @@ class SubscriptionController extends Controller
         $subscriptionId = $user->paypal_subscription_id;
         $response = $this->paypalService->cancelSubscription($subscriptionId);
 
-        if (isset($response['status']) && $response['status'] == 'CANCELLED') {
-            UserSubscription::where('user_id', $user->id)->update(['status' => 'cancelled']);
-            $user->student->subscription_status = 'cancelled';
-            $user->student->save();
-            return response()->json(['success' => true, 'message' => 'Subscription cancelled successfully.']);
-        } else {
-            return response()->json(['success' => false, 'message' => $response['message']]);
-        }
+
+        UserSubscription::where('user_id', $user->id)->update(['status' => 'cancelled']);
+        $user->student->subscription_status = 'cancelled';
+        $user->student->save();
+        return response()->json(['success' => true, 'message' => 'Subscription cancelled successfully.']);
+
     }
 
     public function reactivate(Request $request)

@@ -142,7 +142,7 @@
                             </span>
                             <span
                                 class="badge {{ $subscriptionStatus == 'active' ? 'bg-success' : ($subscriptionStatus == 'suspended' ? 'bg-warning' : 'bg-danger') }} ms-2">
-                                {{ ucfirst($subscriptionStatus) }}
+                                {{ $subscriptionStatus ? ucfirst($subscriptionStatus) : 'InActive' }}
                             </span>
                         </span>
                         <p class="mb-0 fs-6">Subscription ID:
@@ -312,12 +312,12 @@
                             window.location.href = response.approval_url;
                         } else {
                             hideLoader();
-                            showAlert('danger', response.message);
+                            showAlert('error', response.message);
                         }
                     },
                     error: function(error) {
                         hideLoader();
-                        showAlert('danger', 'Failed to subscribe. Please try again.');
+                        showAlert('error', 'Failed to subscribe. Please try again.');
                     }
                 });
             });
@@ -336,12 +336,12 @@
                             listenForEvent('cancelled', '{{ Auth::id() }}');
                         } else {
                             hideLoader();
-                            showAlert('danger', response.message);
+                            showAlert('error', response.message);
                         }
                     },
                     error: function(error) {
                         hideLoader();
-                        showAlert('danger', 'Failed to cancel subscription. Please try again.');
+                        showAlert('error', 'Failed to cancel subscription. Please try again.');
                     }
                 });
             });
@@ -360,12 +360,12 @@
                             listenForEvent('reactivated', '{{ Auth::id() }}');
                         } else {
                             hideLoader();
-                            showAlert('danger', response.message);
+                            showAlert('error', response.message);
                         }
                     },
                     error: function(error) {
                         hideLoader();
-                        showAlert('danger',
+                        showAlert('error',
                             'Failed to reactivate subscription. Please try again.');
                     }
                 });

@@ -10,6 +10,14 @@
     </div>
     <!--navigation-->
     <ul class="metismenu" id="menu">
+        @if (auth()->user()->hasRole('Teacher') && auth()->user()->teacher->approval_status == 'pending')
+            <li>
+                <a href="#">
+                    <div class="parent-icon"><i class='bx bx-time-five'></i></div>
+                    <div class="menu-title">Pending Approval</div>
+                </a>
+            </li>
+        @endif
         @hasanyrole('Super Admin|Admin')
             <li>
                 <a href="{{ route('dashboard') }}">
@@ -18,20 +26,7 @@
                 </a>
             </li>
         @endhasanyrole
-        @hasanyrole('Student')
-            <li>
-                <a href="{{ route('student.dashboard') }}">
-                    <div class="parent-icon"><i class='bx bx-home'></i></div>
-                    <div class="menu-title">Home</div>
-                </a>
-            </li>
-            <li>
-                <a href="{{ route('student.myCourses') }}">
-                    <div class="parent-icon"><i class='bx bx-book'></i></div>
-                    <div class="menu-title">My Courses</div>
-                </a>
-            </li>
-        @endhasanyrole
+
         @hasanyrole('Student')
             <li>
                 <a href="{{ route('student.dashboard') }}">
@@ -105,125 +100,134 @@
         @endhasanyrole
 
         @hasanyrole('Super Admin|Admin|Teacher')
-            <li>
-                <a href="javascript:;" class="has-arrow">
-                    <div class="parent-icon"><i class='bx bx-book-open'></i></div>
-                    <div class="menu-title">Courses</div>
-                </a>
-                <ul>
-                    <li>
-                        <a href="{{ route('admin.courses') }}">
-                            <div class="parent-icon"><i class="bx bx-book"></i></div>
-                            <div class="menu-title">
-                                @hasanyrole('Super Admin|Admin')
-                                    Courses
-                                @else
-                                    My Courses
-                                @endhasanyrole
-                            </div>
-                        </a>
-                    </li>
-                    <li>
-                        <a href="{{ route('quizzes.index') }}">
-                            <div class="parent-icon"><i class="bx bx-brain"></i></div>
-                            <div class="menu-title">Quizzes</div>
-                        </a>
-                    </li>
-                    <li>
-                        <a href="{{ route('quiz.addPage') }}">
-                            <div class="parent-icon"><i class="bx bx-plus-circle"></i></div>
-                            <div class="menu-title">Add Quiz</div>
-                        </a>
-                    </li>
-                    <li>
-                        <a href="{{ route('quizResults.index') }}">
-                            <div class="parent-icon"><i class="bx bx-clipboard"></i></div>
-                            <div class="menu-title">Quiz Results</div>
-                        </a>
-                    </li>
-                </ul>
-            </li>
+            @if (auth()->user()->hasRole('Teacher') && auth()->user()->teacher->approval_status == 'pending')
+            @else
+                <li>
+                    <a href="javascript:;" class="has-arrow">
+                        <div class="parent-icon"><i class='bx bx-book-open'></i></div>
+                        <div class="menu-title">Courses</div>
+                    </a>
+                    <ul>
+                        <li>
+                            <a href="{{ route('admin.courses') }}">
+                                <div class="parent-icon"><i class="bx bx-book"></i></div>
+                                <div class="menu-title">
+                                    @hasanyrole('Super Admin|Admin')
+                                        Courses
+                                    @else
+                                        My Courses
+                                    @endhasanyrole
+                                </div>
+                            </a>
+                        </li>
+                        <li>
+                            <a href="{{ route('quizzes.index') }}">
+                                <div class="parent-icon"><i class="bx bx-brain"></i></div>
+                                <div class="menu-title">Quizzes</div>
+                            </a>
+                        </li>
+                        <li>
+                            <a href="{{ route('quiz.addPage') }}">
+                                <div class="parent-icon"><i class="bx bx-plus-circle"></i></div>
+                                <div class="menu-title">Add Quiz</div>
+                            </a>
+                        </li>
+                        <li>
+                            <a href="{{ route('quizResults.index') }}">
+                                <div class="parent-icon"><i class="bx bx-clipboard"></i></div>
+                                <div class="menu-title">Quiz Results</div>
+                            </a>
+                        </li>
+                    </ul>
+                </li>
+            @endif
         @endhasanyrole
 
 
         @hasanyrole('Super Admin|Admin|Teacher')
-            <li>
-                <a href="javascript:;" class="has-arrow">
-                    <div class="parent-icon"><i class='bx bx-user'></i></div>
-                    <div class="menu-title">Students</div>
-                </a>
-                <ul>
-                    @hasanyrole('Super Admin|Admin')
-                        <li>
-                            <a href="{{ route('admin.students') }}">
-                                <div class="parent-icon"><i class="bx bx-group"></i></div>
-                                <div class="menu-title">Students List</div>
-                            </a>
-                        </li>
+            @if (auth()->user()->hasRole('Teacher') && auth()->user()->teacher->approval_status == 'pending')
+            @else
+                <li>
+                    <a href="javascript:;" class="has-arrow">
+                        <div class="parent-icon"><i class='bx bx-user'></i></div>
+                        <div class="menu-title">Students</div>
+                    </a>
+                    <ul>
+                        @hasanyrole('Super Admin|Admin')
+                            <li>
+                                <a href="{{ route('admin.students') }}">
+                                    <div class="parent-icon"><i class="bx bx-group"></i></div>
+                                    <div class="menu-title">Students List</div>
+                                </a>
+                            </li>
 
-                        <li>
-                            <a href="{{ route('admin.getStudentsAssessments') }}">
-                                <div class="parent-icon"><i class="bx bxs-graduation"></i></div>
-                                <div class="menu-title">Students Assessments</div>
-                            </a>
-                        </li>
+                            <li>
+                                <a href="{{ route('admin.getStudentsAssessments') }}">
+                                    <div class="parent-icon"><i class="bx bxs-graduation"></i></div>
+                                    <div class="menu-title">Students Assessments</div>
+                                </a>
+                            </li>
 
-                        <li>
-                            <a href="{{ route('studentTests.index') }}">
-                                <div class="parent-icon"><i class="bx bx-bar-chart-alt"></i></div>
-                                <div class="menu-title">Manage Level Tests</div>
-                            </a>
-                        </li>
-                        <li>
-                            <a href="{{ route('studentTest.addPage') }}">
-                                <div class="parent-icon"><i class="bx bx-plus-circle"></i></div>
-                                <div class="menu-title">Add Level Test</div>
-                            </a>
-                        </li>
-                    @endhasanyrole
-                    @hasanyrole('Super Admin|Teacher')
-                        <li>
-                            <a href="{{ route('teacher.getStudentProfiles') }}">
-                                <div class="parent-icon"><i class="bx bx-group"></i></div>
-                                <div class="menu-title">Student Profiles</div>
-                            </a>
-                        </li>
-                    @endhasanyrole
-                </ul>
-            </li>
+                            <li>
+                                <a href="{{ route('studentTests.index') }}">
+                                    <div class="parent-icon"><i class="bx bx-bar-chart-alt"></i></div>
+                                    <div class="menu-title">Manage Level Tests</div>
+                                </a>
+                            </li>
+                            <li>
+                                <a href="{{ route('studentTest.addPage') }}">
+                                    <div class="parent-icon"><i class="bx bx-plus-circle"></i></div>
+                                    <div class="menu-title">Add Level Test</div>
+                                </a>
+                            </li>
+                        @endhasanyrole
+                        @hasanyrole('Super Admin|Teacher')
+                            <li>
+                                <a href="{{ route('teacher.getStudentProfiles') }}">
+                                    <div class="parent-icon"><i class="bx bx-group"></i></div>
+                                    <div class="menu-title">Student Profiles</div>
+                                </a>
+                            </li>
+                        @endhasanyrole
+                    </ul>
+                </li>
+            @endif
         @endhasanyrole
 
         @hasanyrole('Super Admin|Admin|Teacher|Student')
-            <li>
-                <a href="javascript:;" class="has-arrow">
-                    <div class="parent-icon"><i class='bx bx-video'></i></div>
-                    <div class="menu-title">Zoom</div>
-                </a>
-                <ul>
-                    @hasanyrole('Super Admin|Admin|Teacher')
-                        <li>
-                            <a href="{{ route('zoom-meetings.index') }}">
-                                <div class="parent-icon"><i class="bx bx-calendar"></i></div>
-                                <div class="menu-title">Zoom Meetings</div>
-                            </a>
-                        </li>
-                        <li>
-                            <a href="{{ route('zoom-meetings.create') }}">
-                                <div class="parent-icon"><i class="bx bx-plus-circle"></i></div>
-                                <div class="menu-title">Schedule Meeting</div>
-                            </a>
-                        </li>
-                    @endhasanyrole
-                    @hasanyrole('Student')
-                        <li>
-                            <a href="{{ route('student.meetings.index') }}">
-                                <div class="parent-icon"><i class="bx bx-meeting"></i></div>
-                                <div class="menu-title">My Zoom Meetings</div>
-                            </a>
-                        </li>
-                    @endhasanyrole
-                </ul>
-            </li>
+            @if (auth()->user()->hasRole('Teacher') && auth()->user()->teacher->approval_status == 'pending')
+            @else
+                <li>
+                    <a href="javascript:;" class="has-arrow">
+                        <div class="parent-icon"><i class='bx bx-video'></i></div>
+                        <div class="menu-title">Zoom</div>
+                    </a>
+                    <ul>
+                        @hasanyrole('Super Admin|Admin|Teacher')
+                            <li>
+                                <a href="{{ route('zoom-meetings.index') }}">
+                                    <div class="parent-icon"><i class="bx bx-calendar"></i></div>
+                                    <div class="menu-title">Zoom Meetings</div>
+                                </a>
+                            </li>
+                            <li>
+                                <a href="{{ route('zoom-meetings.create') }}">
+                                    <div class="parent-icon"><i class="bx bx-plus-circle"></i></div>
+                                    <div class="menu-title">Schedule Meeting</div>
+                                </a>
+                            </li>
+                        @endhasanyrole
+                        @hasanyrole('Student')
+                            <li>
+                                <a href="{{ route('student.meetings.index') }}">
+                                    <div class="parent-icon"><i class="bx bx-meeting"></i></div>
+                                    <div class="menu-title">My Zoom Meetings</div>
+                                </a>
+                            </li>
+                        @endhasanyrole
+                    </ul>
+                </li>
+            @endif
         @endhasanyrole
         @hasanyrole('Student')
             <li>

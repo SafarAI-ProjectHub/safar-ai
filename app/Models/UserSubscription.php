@@ -31,6 +31,11 @@ class UserSubscription extends Model
     {
         return $this->hasMany(Payment::class, 'user_subscription_id', 'id');
     }
+
+    public function latestPayment()
+    {
+        return $this->hasOne(Payment::class, 'user_subscription_id')->latest();
+    }
     // public function subscription()
     // {
     //     return $this->belongsTo(Subscription::class);

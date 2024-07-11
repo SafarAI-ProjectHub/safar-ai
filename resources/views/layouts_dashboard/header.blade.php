@@ -665,7 +665,7 @@
         authEndpoint: '/broadcasting/auth',
         auth: {
             headers: {
-                Authorization: 'Bearer:' + '{{ csrf_token() }}',
+                Authorization: 'Bearer ' + '{{ csrf_token() }}',
             },
         },
     });
@@ -720,6 +720,8 @@
                     $('#notification-list').empty();
                     response.notifications.forEach(function(notification) {
                         let truncatedMessage = truncateMessage(notification.message, 30);
+                        let notificationUrl;
+
                         if (notification.type === 'meeting') {
                             notificationUrl = `/student/meetings/${notification.model_id}`;
                         } else if (notification.type === 'subscription') {
@@ -756,6 +758,15 @@
 
         Echo.private('notifications.' + '{{ Auth::id() }}')
             .listen('NotificationEvent', (e) => {
+                console.log('Notification:', e.notification.title);
+                if (e.notification.type == 'subscription' || e.notification.title ==
+                    'Payment Completed' || e.notification.title ===
+                    'Subscription Activated' || e.notification.title == 'Subscription Approved' || e
+                    .notification.type == 'Subscription Cancelled') {
+
+
+                    window.location.reload();
+                }
                 fetchNotifications();
             });
     });

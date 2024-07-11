@@ -64,7 +64,14 @@ class AdminController extends Controller
             ->addColumn('cv_link', function ($teacher) {
                 return $teacher->cv_link;
             })
-            ->rawColumns(['cv_link'])
+            ->addColumn('exam_result', function ($teacher) {
+                if ($teacher->user->levelTestAssessments()->exists()) {
+                    return '<button class="btn btn-primary btn-sm view-assessment" data-id="' . $teacher->user->id . '">View Result</button>';
+                } else {
+                    return 'No attempt yet';
+                }
+            })
+            ->rawColumns(['cv_link', 'exam_result'])
             ->make(true);
     }
 

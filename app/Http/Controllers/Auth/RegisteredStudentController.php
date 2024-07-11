@@ -31,7 +31,7 @@ class RegisteredStudentController extends Controller
             'password' => Hash::make($request->password),
             'country_location' => $request->country_location,
             'role_id' => 2,
-            'status' => 'pinding',
+            'status' => 'pending',
         ]);
         $user->assignRole('Student');
         Student::create([
