@@ -18,9 +18,11 @@ class CourseController extends Controller
     public function showcourse($courseId)
     {
         $unitnumber = Unit::where('course_id', $courseId)->count();
-        $numberstd = Course::find($courseId)->students->count();
-        $course = Course::with('units')->findOrFail($courseId);
+        $course = Course::find($courseId);
+        $numberstd = CourseStudent::where('course_id', $courseId)->count();
 
+        $course = Course::with('units')->findOrFail($courseId);
+        $unitsIds = $course->units->pluck('id')->toArray();
         if (Auth::user()->hasRole('Student')) {
             if (!Auth::user()->courses->contains($courseId)) {
                 abort(403, 'You are not enrolled in this course');
@@ -28,15 +30,28 @@ class CourseController extends Controller
 
             $completedUnitIds = DB::table('student_units')
                 ->where('student_id', Auth::user()->student->id)
-                ->where('completed', true)
-                ->pluck('unit_id')
+                ->where('completed', 1)
+                ->get('unit_id')
                 ->toArray();
+
+            $completedUnitIds = array_filter($completedUnitIds, function ($unit) use ($unitsIds) {
+                return in_array($unit->unit_id, $unitsIds);
+            });
+
+            $completedUnitIds = array_map(function ($unit) {
+                return $unit->unit_id;
+            }, $completedUnitIds);
+
+            $completedUnitIds = array_values($completedUnitIds);
+
+            $completedUnitCount = count($completedUnitIds);
 
         } else {
             $completedUnitIds = [];
+            $completedUnitCount = 0;
         }
 
-        return view('dashboard.admin.show_course', compact('course', 'unitnumber', 'numberstd', 'completedUnitIds'));
+        return view('dashboard.admin.show_course', compact('course', 'unitnumber', 'numberstd', 'completedUnitIds', 'completedUnitCount'));
     }
 
     public function updateUnitCompletion(Request $request)

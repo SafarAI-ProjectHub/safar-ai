@@ -188,6 +188,7 @@ class AdminController extends Controller
     {
         $categories = CourseCategory::all();
         $teachers = Teacher::with('user')->get();
+
         return view('dashboard.admin.courses', compact('categories', 'teachers'));
     }
 
@@ -216,6 +217,9 @@ class AdminController extends Controller
                 ->addColumn('teacher', function ($row) {
                     return $row->teacher ? $row->teacher->user->first_name . ' ' . $row->teacher->user->last_name : 'N/A';
                 })
+                ->addColumn('completed', function ($row) {
+                    return $row->completed;
+                })
                 ->addColumn('actions', function ($row) {
                     $actions = '';
 
@@ -239,6 +243,14 @@ class AdminController extends Controller
         }
 
         return null;
+    }
+
+    public function toggleComplete(Request $request, Course $course)
+    {
+        $course->completed = $request->completed;
+        $course->save();
+
+        return response()->json(['success' => true]);
     }
 
     public function storeCourse(Request $request)

@@ -1,4 +1,3 @@
-
 @extends('layouts_dashboard.main')
 
 
@@ -149,6 +148,7 @@
                                     </div>
                                     <div class="col-sm-9 text-secondary">
                                         <input type="email" name="email" class="form-control @error('email') is-invalid @enderror" value="{{ old('email', Auth::user()->email) }}" />
+                                       
                                         @error('email')
                                             <div class="invalid-feedback">
                                                 {{ $message }}
@@ -174,7 +174,7 @@
                                         <h6 class="mb-0">Date of Birth</h6>
                                     </div>
                                     <div class="col-sm-9 text-secondary">
-                                        <input type="date" name="date_of_birth" class="form-control @error('date_of_birth') is-invalid @enderror" value="{{ old('date_of_birth', Auth::user()->date_of_birth) }}" />
+                                        <input type="date" name="date_of_birth" class="form-control @error('date_of_birth') is-invalid @enderror" value="{{ old('date_of_birth') ?: Auth::user()->date_of_birth->format('Y-m-d') }}"  />
                                         @error('date_of_birth')
                                             <div class="invalid-feedback">
                                                 {{ $message }}
@@ -187,7 +187,8 @@
                                         <h6 class="mb-0">Country</h6>
                                     </div>
                                     <div class="col-sm-9 text-secondary">
-                                        <input type="text" name="country_location" class="form-control @error('country_location') is-invalid @enderror" value="{{ old('country_location', Auth::user()->country_location) }}" />
+                                        <input type="text" name="country_location" class="form-control @error('country_location') is-invalid @enderror" value="{{ old('country_location', Auth::user()->country_location) }} " disabled/>
+                                        <input type="hidden" name="country_location" value="{{ old('country_location', Auth::user()->country_location) }}" />
                                         @error('country_location')
                                             <div class="invalid-feedback">
                                                 {{ $message }}

@@ -12,7 +12,7 @@
     <link rel="preconnect" href="https://fonts.gstatic.com">
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@100;200;300;400;500;600;700;800&display=swap"
         rel="stylesheet">
-
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/sweetalert2@10/dist/sweetalert2.min.css">
     {{-- <!-- Favicon -->
     <link rel="icon" sizes="16x16" href="{{ asset('assets/images/logo-icon.png') }}"> --}}
 
@@ -41,7 +41,9 @@
     <div class="card g-3 mt-5">
         <div class="card-body row g-3">
             <h4 class="pt-3 mb-0">
-                <span class="text-muted fw-light">Coureses /</span> {{ $course->title }}
+                <span class="text-muted fw-light">Courses /</span> {{ $course->title }} <span
+                    class="{{ $course->completed ? 'badge bg-success' : 'badge bg-warning text-dark' }} rounded-pill">{{ $course->completed ? 'Completed' : 'In Progress' }}</span>
+
             </h4>
             <section class="course-dashboard">
 
@@ -175,7 +177,8 @@
                                                                 <span class="fs-15">{{ $course->title }} :
                                                                     {{-- {{ $course->description }}</span> --}}
                                                                     <span class="course-duration">
-                                                                        <span>1 / {{ $course->units->count() }}</span>
+                                                                        <span>{{ $completedUnitCount }} /
+                                                                            {{ $course->units->count() }}</span>
                                                                         {{-- <span>21min</span> --}}
                                                                     </span>
                                                             </button>
@@ -266,8 +269,9 @@
                                                         <p class="pb-3">Get Safar AI certificate by completing entire
                                                             course
                                                         </p>
-                                                        <a href="#"
-                                                            class="btn theme-btn theme-btn-transparent">Safar AI
+                                                        <a class="btn theme-btn theme-btn-small theme-btn-transparent bg-primary text-white"
+                                                            id="certificate-button">Safar
+                                                            AI
                                                             Certificate</a>
                                                     </div><!-- end lecture-overview-stats-item -->
                                                 </div><!-- end lecture-overview-stats-wrap -->
@@ -558,7 +562,7 @@
                                                     <i class="la la-angle-down"></i><i class="la la-angle-up"></i>
                                                     <span class="fs-15">{{ $course->title }} :
                                                         {{-- {{ $course->description }}</span> --}}
-                                                        <span class="course-duration"><span>1 /
+                                                        <span class="course-duration"><span>{{ $completedUnitCount }} /
                                                                 {{ $course->units->count() }}</span>{{-- <span>21min</span> --}}</span>
                                                 </button>
                                             </div>
@@ -841,6 +845,9 @@
     <script src="{{ asset('js/emojionearea.min.js') }}"></script>
     <script src="{{ asset('js/jquery.MultiFile.min.js') }}"></script>
     <script src="{{ asset('js/main.js') }}"></script>
+    {{-- swwet alet cdn and style --}}
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@10"></script>
+
     <script>
         var player = new Plyr('#player');
     </script>
@@ -853,7 +860,6 @@
         @endif
 
         function updateContent(contentType, content, title) {
-            console.log(content);
             const viewerContainer = document.querySelector('.lecture-viewer-container');
 
             // Clear existing content
@@ -922,6 +928,35 @@
                         if (response.success) {
                             console.log('Unit completion status updated.');
                         }
+                    }
+                });
+            });
+        });
+        $(document).ready(function() {
+            $('#certificate-button').click(function(e) {
+                e.preventDefault();
+                $.ajax({
+                    url: '{{ route('certificate.check') }}',
+                    type: 'GET',
+                    data: {
+                        course_id: '{{ $course->id }}',
+                        user_id: '{{ auth()->user()->id }}',
+                    },
+                    success: function(response) {
+                        if (response.allow_Certificate) {
+                            window.location.href =
+                                '{{ route('certificate.review', $course->id) }}';
+                        } else {
+                            Swal.fire({
+                                icon: 'warning',
+                                title: 'Oops...',
+                                text: 'You have to complete the course first!',
+                                confirmButtonText: 'OK'
+                            });
+                        }
+                    },
+                    error: function() {
+                        Swal.fire('An error occurred. Please try again.');
                     }
                 });
             });

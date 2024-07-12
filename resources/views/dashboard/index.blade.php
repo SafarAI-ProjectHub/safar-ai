@@ -369,7 +369,7 @@
         </div>
     </div><!--end row-->
 
-    <div class="row row-cols-1 row-cols-lg-3">
+    <div class="row row-cols-1 row-cols-lg-12">
 
         <div class="col-12 d-flex">
             <div class="card radius-10 w-100">

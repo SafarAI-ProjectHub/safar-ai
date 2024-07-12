@@ -39,7 +39,11 @@ class TeacherController extends Controller
                 return view('dashboard.teacher.level_test', compact('levelTestQuestions'));
             }
 
+            if (auth()->user()->hasRole('Teacher') && auth()->user()->teacher->approval_status == 'pending') {
+                return view('dashboard.teacher.pending_approval');
 
+            }
+            
             return redirect()->route('teacher.courses');
         } else {
             abourt(403, 'Unauthorized action.');

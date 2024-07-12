@@ -10,9 +10,14 @@
     </div>
     <!--navigation-->
     <ul class="metismenu" id="menu">
+        @php
+            $currentPath = parse_url(url()->current(), PHP_URL_PATH);
+            $teacherPath = parse_url(asset('/teacher'), PHP_URL_PATH);
+            $href = $currentPath != $teacherPath ? $teacherPath : '#';
+        @endphp
         @if (auth()->user()->hasRole('Teacher') && auth()->user()->teacher->approval_status == 'pending')
             <li>
-                <a href="#">
+                <a href="{{ $href }}" onclick="showPendingApprovalAlert()">
                     <div class="parent-icon"><i class='bx bx-time-five'></i></div>
                     <div class="menu-title">Pending Approval</div>
                 </a>

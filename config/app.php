@@ -171,6 +171,9 @@ return [
         App\Providers\EventServiceProvider::class,
         App\Providers\RouteServiceProvider::class,
         Srmklive\PayPal\Providers\PayPalServiceProvider::class,
+        Barryvdh\DomPDF\ServiceProvider::class,
+        Barryvdh\Snappy\ServiceProvider::class,
+
     ])->toArray(),
 
     /*
@@ -188,7 +191,8 @@ return [
         // 'Example' => App\Facades\Example::class,
         'Zoom' => Jubaer\Zoom\Facades\Zoom::class,
         'PayPal' => Srmklive\PayPal\Facades\PayPal::class,
-
+        // 'PDF' => Barryvdh\DomPDF\Facade::class,
+        'PDF' => Barryvdh\Snappy\Facades\SnappyPdf::class,
     ])->toArray(),
 
 ];

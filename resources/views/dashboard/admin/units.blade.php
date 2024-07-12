@@ -21,9 +21,16 @@
     <div class="card">
         <div class="card-body">
             <h5>Units for Course: <a href="{{ route('admin.courses') }}">{{ $course->title }}</a></h5>
-            <div class="d-flex justify-content-end mb-3">
-                <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#addUnitModal">Add New Unit</button>
-            </div>
+            @if ($course->completed)
+                <div class="alert alert-success" role="alert">
+                    This course is marked as completed. You can no longer add units to it.
+                </div>
+            @else
+                <div class="d-flex justify-content-end mb-3">
+                    <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#addUnitModal">Add New
+                        Unit</button>
+                </div>
+            @endif
             <div class="table-responsive">
                 <table id="units-table" class="table table-striped table-bordered">
                     <thead>

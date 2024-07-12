@@ -33,6 +33,7 @@
                             <th>Level</th>
                             <th>Type</th>
                             <th>Teacher</th>
+                            <th>Completed</th>
                             <th>Actions</th>
                         </tr>
                     </thead>
@@ -154,11 +155,8 @@
                     {
                         data: 'description',
                         name: 'description',
-                        render: function(data, type, row) {
-                            var truncated = data.length > 100 ? data.substring(0, 50) + '...' :
-                                data;
-                            return '<span class="description" data-toggle="tooltip" data-placement="top" data-original-title="' +
-                                data + '">' + truncated + '</span>';
+                        render: function(data) {
+                            return data.length > 100 ? data.substring(0, 50) + '...' : data;
                         }
                     },
                     {
@@ -177,6 +175,18 @@
                         data: 'teacher',
                         name: 'teacher',
                         defaultContent: 'N/A'
+                    },
+                    {
+                        data: 'completed',
+                        name: 'completed',
+                        orderable: false,
+                        searchable: false,
+                        render: function(data, type, row) {
+                            return `<div class="form-check form-switch">
+                                    <input class="form-check-input toggle-complete" type="checkbox" data-id="${row.id}" ${data ? 'checked' : ''}>
+                                </div>`;
+
+                        }
                     },
                     {
                         data: 'actions',
@@ -204,6 +214,37 @@
                     }
                 ],
                 lengthChange: false
+            });
+
+
+            // Handle toggle complete switch
+            $('#courses-table').on('change', '.toggle-complete', function() {
+                var courseId = $(this).data('id');
+                var completed = $(this).is(':checked') ? 1 : 0;
+
+                $.ajax({
+                    url: `/courses/${courseId}/toggle-complete`,
+                    method: 'POST',
+                    data: {
+                        _token: '{{ csrf_token() }}',
+                        completed: completed
+                    },
+                    success: function(response) {
+                        if (response.success) {
+                            table.ajax.reload(null, false);
+                            showAlert('success',
+                                'Course completion status updated successfully!',
+                                'bxs-check-circle');
+                        } else {
+                            showAlert('danger', 'Error updating course completion status',
+                                'bxs-message-square-x');
+                        }
+                    },
+                    error: function() {
+                        showAlert('danger', 'Error updating course completion status',
+                            'bxs-message-square-x');
+                    }
+                });
             });
 
             // Initialize tooltips

@@ -8,6 +8,7 @@ use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\AdminController;
 use App\Http\Controllers\CliqController;
 use App\Http\Controllers\QuizController;
+use App\Http\Controllers\CertificateController;
 use App\Http\Controllers\TeacherController;
 use App\Http\Controllers\AdminBillingController;
 use App\Http\Controllers\StudentController;
@@ -165,8 +166,8 @@ Route::middleware(['auth', 'role:Admin|Super Admin'])->prefix('admin')->group(fu
 Route::middleware(['auth', 'role:Super Admin|Admin|Teacher'])->group(function () {
     // Courses
     Route::get('courses', [AdminController::class, 'courses'])->name('admin.courses');
-
     Route::get('courses/data', [AdminController::class, 'getCourses'])->name('admin.getCourses');
+    Route::post('/courses/{course}/toggle-complete', [AdminController::class, 'toggleComplete'])->name('courses.toggleComplete');
 
     // Units
     Route::get('courses/{courseId}/units', [AdminController::class, 'showUnits'])->name('admin.showUnits');
@@ -237,6 +238,12 @@ Route::middleware(['auth', 'role:Student'])->prefix('student')->group(function (
 
     // unit progress
     Route::post('/course/update-unit-completion', [CourseController::class, 'updateUnitCompletion'])->name('course.updateUnitCompletion');
+
+    //Certificate
+    Route::get('/certificate/check', [CertificateController::class, 'check'])->name('certificate.check');
+    Route::get('/certificate/download', [CertificateController::class, 'download'])->name('certificate.download');
+    Route::get('/certificate/page/{course_id}', [CertificateController::class, 'certificatePage'])->name('certificate.review');
+    Route::post('/certificate/download', [CertificateController::class, 'generatePDF'])->name('certificate.generatePDF');
 
 });
 
