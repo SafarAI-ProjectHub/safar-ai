@@ -9,7 +9,9 @@ use App\Models\Quiz;
 use App\Models\Teacher;
 use App\Models\Student;
 use App\Models\CourseStudent;
+use App\Models\StudentUnit;
 use Illuminate\Support\Facades\DB;
+use Carbon\Carbon;
 use Illuminate\Support\Facades\Auth;
 
 
@@ -61,9 +63,13 @@ class CourseController extends Controller
         $completed = $request->input('completed');
 
 
-        DB::table('student_units')->updateOrInsert(
+        StudentUnit::updateOrInsert(
             ['student_id' => $studentId, 'unit_id' => $unitId],
-            ['completed' => $completed]
+            [
+                'completed' => $completed,
+                'updated_at' => Carbon::now(), // Set the current timestamp for updated_at
+                'created_at' => DB::raw('IFNULL(created_at, "' . Carbon::now() . '")') // Only set created_at if it's a new record
+            ]
         );
 
         return response()->json(['success' => true]);

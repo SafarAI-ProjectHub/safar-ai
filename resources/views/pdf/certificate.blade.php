@@ -1,30 +1,14 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 
 <head>
-    <title>Certificate of Completion</title>
+    <meta charset="UTF-8">
+    <title>Certificate</title>
     <style>
-        @page {
-            size: A4;
-            margin: 0;
-        }
-
-        @media (max-width: 641px) {
-            html {
-                font-size: small;
-            }
-        }
-
-        @media (max-width: 321px) {
-            html {
-                font-size: x-small;
-            }
-        }
-
         html,
         body,
         .content {
-            margin: 0;
+            margin: 10px 0 10px 0;
             height: 100%;
             width: 100%;
         }
@@ -41,81 +25,78 @@
             display: flex;
             justify-content: center;
             align-items: center;
-            height: 100vh;
-            /* Ensure content covers the viewport height */
+            height: 100%;
         }
 
         .certificate-wrapper {
-            width: 100%;
-            max-width: 800px;
-            /* Adjust to fit content within A4 */
-            padding: 2rem;
+            width: 500mm;
+            height: 300mm;
+            padding: 0;
             box-sizing: border-box;
+            display: flex;
+            justify-content: center;
+            align-items: center;
         }
 
         .certificate {
-            padding: 2rem;
             text-align: center;
             background-color: #ffffff;
-            border: 1px solid #C45ACD;
-            /* Add a border to fit within A4 */
-            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
-            /* Optional shadow for aesthetics */
+            padding: 2rem;
+            box-sizing: border-box;
+            width: 90%;
+            height: 90%;
         }
 
         .certificate__header {
-            margin-bottom: 2rem;
-            /* Add spacing */
-        }
-
-        .certificate__body {
-            padding: 2rem 0;
+            margin-bottom: 1.5rem;
         }
 
         .certificate__title {
             font-family: Palatino;
-            font-size: 3rem;
-            /* Adjust font size */
-            margin-bottom: 1rem;
+            font-size: 5rem;
         }
 
         .certificate__recipient-name {
             font-family: cursive;
-            font-size: 2.5rem;
-            /* Adjust font size */
-            margin-bottom: 1rem;
+            font-size: 5rem;
+            margin: 1rem 0;
         }
 
         .certificate__content {
-            font-size: 2rem;
-            white-space: nowrap;
-            margin-bottom: 1rem;
+            font-size: 2.5rem;
         }
 
         .certificate__description {
-            font-size: 1.2rem;
-            /* Adjust font size */
+            font-size: 1.5rem;
             margin: 0 auto 1rem auto;
-            max-width: 80%;
-            /* Adjust width */
+            max-width: 90%;
         }
 
         .certificate__date,
         .certificate__signature {
-            font-size: 1.2rem;
-            /* Adjust font size */
-            display: inline-block;
-            width: 40%;
-            /* Adjust width */
-            vertical-align: top;
-            margin: 0 5%;
-            text-align: center;
+            font-size: 1.8rem;
+        }
+
+        .certificate__footer {
+            display: flex;
+            justify-content: space-between;
+            margin-top: 2rem;
+        }
+
+        .entry-column {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        .entry-column__input {
+            font-size: 1.8rem;
+            font-family: cursive;
         }
 
         .entry-column__label {
-            border-top: 1px solid #606c76;
-            margin-top: 0.5rem;
-            display: block;
+            border-top: 1px solid;
+            font-size: 1.2rem;
         }
 
         .ribbon {
@@ -124,11 +105,11 @@
             height: 2em;
             line-height: 2em;
             text-align: center;
-            padding: 0 2em;
+            padding: 0 3em;
             background: #C45ACD;
             color: #FFF;
-            box-sizing: border-box;
-            margin: 1rem 0;
+            margin: 10px 0;
+            font-size: 2rem;
         }
 
         .ribbon:before,
@@ -143,7 +124,7 @@
         .ribbon:before {
             top: 0;
             left: 0;
-            border-width: 1em 0 1em 0.5em;
+            border-width: 1em 0 1em 0.75em;
             border-color: transparent transparent transparent #fff;
             border-style: solid;
         }
@@ -151,27 +132,27 @@
         .ribbon:after {
             top: 0;
             right: 0;
-            border-width: 1em 0.5em 1em 0;
+            border-width: 1em 0.75em 1em 0;
             border-color: transparent #fff transparent transparent;
             border-style: solid;
         }
 
         .frame {
             position: relative;
-            padding: 1.5rem;
+            padding: 1.25rem;
             background:
-                radial-gradient(circle at top left, transparent 1.5rem, #C45ACD 1.5rem, #C45ACD 1.75rem, transparent 1.75rem) left top / 1.75rem 1.75rem no-repeat,
-                radial-gradient(circle at top right, transparent 1.5rem, #C45ACD 1.5rem, #C45ACD 1.75rem, transparent 1.75rem) right top / 1.75rem 1.75rem no-repeat,
-                radial-gradient(circle at bottom left, transparent 1.5rem, #C45ACD 1.5rem, #C45ACD 1.75rem, transparent 1.75rem) left bottom / 1.75rem 1.75rem no-repeat,
-                radial-gradient(circle at bottom right, transparent 1.5rem, #C45ACD 1.5rem, #C45ACD 1.75rem, transparent 1.75rem) right bottom / 1.75rem 1.75rem no-repeat,
-                linear-gradient(90deg, transparent 1.5rem, #C45ACD 1.75rem) left top / 51% 0.25rem no-repeat,
-                linear-gradient(-90deg, transparent 1.5rem, #C45ACD 1.75rem) right top / 51% 0.25rem no-repeat,
-                linear-gradient(90deg, transparent 1.5rem, #C45ACD 1.75rem) left bottom / 51% 0.25rem no-repeat,
-                linear-gradient(-90deg, transparent 1.5rem, #C45ACD 1.75rem) right bottom / 51% 0.25rem no-repeat,
-                linear-gradient(180deg, transparent 1.5rem, #C45ACD 1.75rem) left top / 0.25rem 51% no-repeat,
-                linear-gradient(0deg, transparent 1.5rem, #C45ACD 1.75rem) left bottom / 0.25rem 51% no-repeat,
-                linear-gradient(180deg, transparent 1.5rem, #C45ACD 1.75rem) right top / 0.25rem 51% no-repeat,
-                linear-gradient(0deg, transparent 1.5rem, #C45ACD 1.75rem) right bottom / 0.25rem 51% no-repeat;
+                radial-gradient(circle at top left, transparent 1.25rem, #C45ACD 1.25rem, #C45ACD 1.5rem, transparent 1.5rem) left top / 1.5rem 1.5rem no-repeat,
+                radial-gradient(circle at top right, transparent 1.25rem, #C45ACD 1.25rem, #C45ACD 1.5rem, transparent 1.5rem) right top / 1.5rem 1.5rem no-repeat,
+                radial-gradient(circle at bottom left, transparent 1.25rem, #C45ACD 1.25rem, #C45ACD 1.5rem, transparent 1.5rem) left bottom / 1.5rem 1.5rem no-repeat,
+                radial-gradient(circle at bottom right, transparent 1.25rem, #C45ACD 1.25rem, #C45ACD 1.5rem, transparent 1.5rem) right bottom / 1.5rem 1.5rem no-repeat,
+                linear-gradient(90deg, transparent 1.25rem, #C45ACD 1.5rem) left top / 51% 0.25rem no-repeat,
+                linear-gradient(-90deg, transparent 1.25rem, #C45ACD 1.5rem) right top / 51% 0.25rem no-repeat,
+                linear-gradient(90deg, transparent 1.25rem, #C45ACD 1.5rem) left bottom / 51% 0.25rem no-repeat,
+                linear-gradient(-90deg, transparent 1.25rem, #C45ACD 1.5rem) right bottom / 51% 0.25rem no-repeat,
+                linear-gradient(180deg, transparent 1.25rem, #C45ACD 1.5rem) left top / 0.25rem 51% no-repeat,
+                linear-gradient(0deg, transparent 1.25rem, #C45ACD 1.5rem) left bottom / 0.25rem 51% no-repeat,
+                linear-gradient(180deg, transparent 1.25rem, #C45ACD 1.5rem) right top / 0.25rem 51% no-repeat,
+                linear-gradient(0deg, transparent 1.25rem, #C45ACD 1.5rem) right bottom / 0.25rem 51% no-repeat;
         }
 
         .frame:before {
@@ -186,21 +167,26 @@
         }
 
         .certificate__logo {
-            width: 200px;
+            width: 300px;
             margin-bottom: 20px;
         }
 
-        @media print {
-            .certificate__description {
-                max-width: 90%;
-            }
+        @page {
+            size: A4 landscape;
+            margin: 0;
+        }
 
+        @media print {
             .ribbon:before {
                 left: -0.25px;
             }
 
             .ribbon:after {
                 right: -0.25px;
+            }
+
+            .certificate__description {
+                max-width: 100%;
             }
         }
     </style>

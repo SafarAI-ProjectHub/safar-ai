@@ -870,7 +870,7 @@
                 viewerContainer.innerHTML = `
     <div class="lecture-video-item">
         <video controls crossorigin playsinline id="player">
-            <source src="${content}" type="video/mp4">
+            <source src="/${content}" type="video/mp4">
             Your browser does not support the video tag.
         </video>
     </div>
@@ -947,12 +947,21 @@
                             window.location.href =
                                 '{{ route('certificate.review', $course->id) }}';
                         } else {
-                            Swal.fire({
-                                icon: 'warning',
-                                title: 'Oops...',
-                                text: 'You have to complete the course first!',
-                                confirmButtonText: 'OK'
-                            });
+                            if (response.completed) {
+                                Swal.fire({
+                                    icon: 'warning',
+                                    title: 'Oops...',
+                                    text: 'You have to complete the course first!',
+                                    confirmButtonText: 'OK',
+                                });
+                            } else {
+                                Swal.fire({
+                                    icon: 'warning',
+                                    title: 'Oops...',
+                                    text: 'The course is not yet completed! ,the course still has more lessons will be available soon',
+                                    confirmButtonText: 'OK'
+                                });
+                            }
                         }
                     },
                     error: function() {

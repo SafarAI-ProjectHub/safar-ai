@@ -40,10 +40,24 @@
                 </a>
             </li>
             <li>
-                <a href="{{ route('student.myCourses') }}">
-                    <div class="parent-icon"><i class='bx bx-book'></i></div>
-                    <div class="menu-title">My Courses</div>
+                <a href="javascript:;" class="has-arrow">
+                    <div class="parent-icon"><i class='bx bx-book-open'></i></div>
+                    <div class="menu-title">Courses</div>
                 </a>
+                <ul>
+                    <li>
+                        <a href="{{ route('student.myCourses') }}">
+                            <div class="parent-icon"><i class='bx bx-book'></i></div>
+                            <div class="menu-title">My Courses</div>
+                        </a>
+                    </li>
+                    <li>
+                        <a href="{{ route('student.myCertificates') }}">
+                            <div class="parent-icon"><i class='bx bx-award'></i></div>
+                            <div class="menu-title">My Certificates</div>
+                        </a>
+                    </li>
+                </ul>
             </li>
             <li>
                 <a href="javascript:;" class="has-arrow">

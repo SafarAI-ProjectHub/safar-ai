@@ -244,7 +244,7 @@ Route::middleware(['auth', 'role:Student'])->prefix('student')->group(function (
     Route::get('/certificate/download', [CertificateController::class, 'download'])->name('certificate.download');
     Route::get('/certificate/page/{course_id}', [CertificateController::class, 'certificatePage'])->name('certificate.review');
     Route::post('/certificate/download', [CertificateController::class, 'generatePDF'])->name('certificate.generatePDF');
-
+    Route::get('/my-certificates', [CertificateController::class, 'myCertificates'])->name('student.myCertificates');
 });
 
 // Routes for Admin access only

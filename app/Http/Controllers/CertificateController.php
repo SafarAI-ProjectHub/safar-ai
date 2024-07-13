@@ -9,6 +9,8 @@ use App\Models\Course;
 use App\Models\Unit;
 use PDF;
 use Illuminate\Support\Facades\DB;
+use Yajra\DataTables\DataTables;
+use App\Models\Certificate;
 
 
 class CertificateController extends Controller
@@ -20,7 +22,7 @@ class CertificateController extends Controller
         $course = Course::find($request->course_id);
         $completed = false;
         if ($course) {
-            $completed = $user->courses()->where('course_id', $request->course_id)->exists();
+            $completed = $user->courses()->where('course_id', $request->course_id)->where('completed', 1)->count() == 1;
         }
 
         if ($isStudent && $completed) {
@@ -104,8 +106,26 @@ class CertificateController extends Controller
             $completedUnitCount = count($completedUnitIds);
 
             if ($completedUnitCount == $unitnumber) {
+                $lastCompletedUnit = DB::table('student_units')
+                    ->where('student_id', $user->student->id)
+                    ->where('completed', 1)
+                    ->whereIn('unit_id', $unitsIds)
+                    ->orderBy('updated_at', 'desc')
+                    ->first();
 
-                return view('dashboard.student.certificate', compact('course'));
+                $completedAt = $lastCompletedUnit->updated_at;
+
+                Certificate::firstOrCreate(
+                    [
+                        'user_id' => $user->id,
+                        'course_id' => $course->id
+                    ],
+                    [
+                        'completed_at' => $completedAt
+                    ]
+                );
+
+                return view('dashboard.student.certificate', compact('course', 'completedAt'));
             } else {
                 abort(403, 'You have not completed the course yet.');
             }
@@ -118,14 +138,77 @@ class CertificateController extends Controller
     {
         $user = Auth::user();
         $course = Course::find($request->course_id);
+        $certificate = Certificate::where('user_id', $user->id)->where('course_id', $course->id)->first();
         $data = [
             'user' => $user,
             'course' => $course,
-            'date' => date('F j, Y')
+            'date' => $certificate->completed_at->format('F j, Y')
         ];
         $pdf = PDF::loadView('pdf.certificate', $data);
-
+        $pdf->setOption('orientation', 'landscape');
 
         return $pdf->download('certificate.pdf');
+    }
+
+    public function myCertificates(Request $request)
+    {
+        if ($request->ajax()) {
+            $user = Auth::user();
+            $courses = $user->courses()->where('completed', 1)->get();
+            $completedCourses = [];
+            foreach ($courses as $course) {
+                $unitnumber = Unit::where('course_id', $course->id)->count();
+                $unitsIds = $course->units->pluck('id')->toArray();
+                $completedUnitIds = DB::table('student_units')
+                    ->where('student_id', $user->student->id)
+                    ->where('completed', 1)
+                    ->whereIn('unit_id', $unitsIds)
+                    ->pluck('unit_id')
+                    ->toArray();
+
+                $completedUnitCount = count($completedUnitIds);
+
+                if ($unitnumber == $completedUnitCount) {
+                    $lastCompletedUnit = DB::table('student_units')
+                        ->where('student_id', $user->student->id)
+                        ->where('completed', 1)
+                        ->whereIn('unit_id', $unitsIds)
+                        ->orderBy('updated_at', 'desc')
+                        ->first();
+
+                    $completedAt = $lastCompletedUnit->updated_at;
+
+                    // Store or update certificate record
+                    Certificate::firstOrCreate(
+                        [
+                            'user_id' => $user->id,
+                            'course_id' => $course->id
+                        ],
+                        [
+                            'completed_at' => $completedAt
+                        ]
+                    );
+
+                    $completedCourses[] = $course;
+                }
+            }
+
+            // Get the certificates data to return to DataTables
+            $certificates = Certificate::where('user_id', $user->id)->with('course')->get();
+
+            return DataTables::of($certificates)
+                ->addColumn('course', function ($certificate) {
+                    return $certificate->course->title;
+                })
+                ->addColumn('completed_at', function ($certificate) {
+                    return $certificate->completed_at;
+                })
+                ->addColumn('action', function ($certificate) {
+                    return '<a href="' . route('certificate.review', $certificate->course->id) . '" class="btn btn-primary">Show</a>';
+                })
+                ->make(true);
+        }
+
+        return view('dashboard.student.my_certificates');
     }
 }

@@ -227,7 +227,8 @@
                 </div>
                 <div class="certificate__footer">
                     <div class="certificate__date entry-column">
-                        <span class="entry-column__input">{{ date('F j, Y') }}</span>
+                        <span class="entry-column__input">{{ \Carbon\Carbon::parse($completedAt)->format('F j, Y') }}</span>
+
                         <span class="entry-column__label">Date Completed</span>
                     </div>
                     <form id="ssn-form">

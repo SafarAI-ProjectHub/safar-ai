@@ -6919,7 +6919,7 @@ div.datedropper .picker .pick-lg-b li {
     margin-right: 0; }
   .question-overview-filter-item .generic-action-wrap .theme-btn {
     font-weight: 400;
-    color: #7f8897;
+    color: #C45ACD;
     text-align: left; }
     .question-overview-filter-item .generic-action-wrap .theme-btn:before {
       position: absolute;
@@ -7767,7 +7767,7 @@ div.datedropper .picker .pick-lg-b li {
   .dark-theme .owl-action-styled .owl-nav div {
     color: #eeeeee; }
     .dark-theme .owl-action-styled .owl-nav div:hover {
-      background-color: #c45acd; }
+      background-color: #C45ACD; }
   .dark-theme .theme-btn-white {
     background-color: #3a3a3a;
     color: #eeeeee; }
@@ -10280,7 +10280,7 @@ div.datedropper .picker .pick-lg-b li {
 
 /*========= theme-btn ========*/
 .theme-btn {
-  background-color: #ec5252;
+  background-color: #C45ACD;
   color: #fff;
   font-weight: 600;
   padding: 10px 20px;
@@ -12183,7 +12183,7 @@ div.datedropper .picker .pick-lg-b li {
   }
 }
 .owl-action-styled .owl-nav div:hover {
-  background-color: #ec5252;
+  background-color: #C45ACD;
   color: #fff;
 }
 .owl-action-styled .owl-nav div.owl-prev {
@@ -12247,7 +12247,7 @@ div.datedropper .picker .pick-lg-b li {
   transform: scale(0);
 }
 .owl-action-styled .owl-dots div.active {
-  background-color: #ec5252;
+  background-color: #C45ACD;
 }
 .owl-action-styled .owl-dots div.active::after {
   -webkit-transform: scale(0.4);
@@ -17497,7 +17497,7 @@ textarea {
   color: #eeeeee;
 }
 .dark-theme .owl-action-styled .owl-nav div:hover {
-  background-color: #ec5252;
+  background-color: #C45ACD;
 }
 .dark-theme .theme-btn-white {
   background-color: #3a3a3a;
