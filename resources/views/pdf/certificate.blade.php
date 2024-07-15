@@ -9,8 +9,9 @@
         body,
         .content {
             margin: 10px 0 10px 0;
-            height: 100%;
+            height: 97%;
             width: 100%;
+            overflow: hidden;
         }
 
         body {
@@ -172,7 +173,7 @@
         }
 
         @page {
-            size: A4 landscape;
+            size: 1000mm 300mm;
             margin: 0;
         }
 

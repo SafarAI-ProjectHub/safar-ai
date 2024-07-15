@@ -16,6 +16,7 @@ use App\Http\Controllers\ZoomMeetingController;
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\CourseController;
 use App\Http\Controllers\levelTest\TeacherTestController;
+use App\Http\Controllers\OfferController;
 use App\Http\Controllers\levelTest\StudentTestController;
 use App\Http\Controllers\StudentQuizController;
 use App\Http\Controllers\NotificationController;
@@ -63,7 +64,16 @@ require __DIR__ . '/auth.php';
 
 // contact us
 Route::post('/forms/contact', [ContactController::class, 'submit']);
+Route::middleware(['auth', 'role:Super Admin'])->prefix('admin')->group(function () {
 
+    Route::get('list', [AdminController::class, 'listAdmin'])->name('admin.list');
+    Route::get('create', [AdminController::class, 'createAdmin'])->name('admin.create');
+    Route::post('store', [AdminController::class, 'storeAdmin'])->name('admin.store');
+    Route::get('edit/{id}', [AdminController::class, 'editAdmin'])->name('admin.edit');
+    Route::put('update/{id}', [AdminController::class, 'updateAdmin'])->name('admin.update');
+    Route::delete('delete/{id}', [AdminController::class, 'deleteAdmin'])->name('admin.delete');
+
+});
 
 // Routes for Admin and Super Admin only
 Route::middleware(['auth', 'role:Admin|Super Admin'])->prefix('admin')->group(function () {
@@ -159,6 +169,13 @@ Route::middleware(['auth', 'role:Admin|Super Admin'])->prefix('admin')->group(fu
     Route::get('/students/{id}/assessments', [AdminController::class, 'getStudentAssessments']);
     Route::put('/students/{studentId}/assessments/{assessmentId}', [AdminController::class, 'updateStudentAssessment']);
 
+    // offers
+    Route::get('offers', [OfferController::class, 'index'])->name('offers.index');
+    Route::post('offers', [OfferController::class, 'store'])->name('offers.store');
+    Route::get('offers/{offer}', [OfferController::class, 'show'])->name('offers.show');
+    Route::put('offers/{offer}', [OfferController::class, 'update'])->name('offers.update');
+    Route::delete('offers/{offer}', [OfferController::class, 'destroy'])->name('offers.destroy');
+    Route::post('offers/{offer}/toggle', [OfferController::class, 'toggle'])->name('offers.toggle');
 
 });
 

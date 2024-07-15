@@ -74,7 +74,28 @@
                 </ul>
             </li>
         @endhasanyrole
-
+        @hasanyrole('Super Admin')
+            <li>
+                <a href="javascript:;" class="has-arrow">
+                    <div class="parent-icon"><i class='bx  bxs-user-detail'></i></div>
+                    <div class="menu-title">Admins</div>
+                </a>
+                <ul>
+                    <li>
+                        <a href="{{ route('admin.list') }}">
+                            <div class="parent-icon"><i class="bx bx-list-ul"></i></div>
+                            <div class="menu-title">Admins List</div>
+                        </a>
+                    </li>
+                    <li>
+                        <a href="{{ route('admin.create') }}">
+                            <div class="parent-icon"><i class="bx bx-plus-circle"></i></div>
+                            <div class="menu-title">Create Admin</div>
+                        </a>
+                    </li>
+                </ul>
+            </li>
+        @endhasanyrole
         @hasanyrole('Super Admin|Admin')
             <li>
                 <a href="javascript:;" class="has-arrow">

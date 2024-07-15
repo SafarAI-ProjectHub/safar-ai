@@ -19,6 +19,8 @@ use App\Models\LevelTestAssessment;
 use OpenAI\Laravel\Facades\OpenAI;
 use App\Services\VideoToAudioService;
 use Illuminate\Support\Facades\Artisan;
+use Carbon\Carbon;
+use Illuminate\Support\Facades\Hash;
 
 class AdminController extends Controller
 {
@@ -31,6 +33,123 @@ class AdminController extends Controller
     {
         return view('dashboard.index');
     }
+
+    /* 
+     *
+     *
+     *Admin functions 
+     *
+     *
+     */
+
+    public function listAdmin(Request $request)
+    {
+        if ($request->ajax()) {
+            $admins = User::whereHas('roles', function ($query) {
+                $query->where('name', 'Admin');
+            })->select(['id', 'first_name', 'last_name', 'email', 'phone_number', 'date_of_birth', 'country_location', 'status']);
+
+            return DataTables::of($admins)
+                ->addColumn('action', function ($admin) {
+                    return '<div class="d-flex justify-content-around gap-2" ><a href="' . route('admin.edit', $admin->id) . '" class="btn btn-sm btn-primary">Edit</a>
+                              <button class="btn btn-sm btn-danger" onclick="deleteAdmin(' . $admin->id . ')">Delete</button></div>';
+                })
+                ->editColumn('date_of_birth', function ($admin) {
+                    return $admin->date_of_birth ? with(new Carbon($admin->date_of_birth))->format('Y-m-d') : '';
+                })
+                ->rawColumns(['action'])
+                ->make(true);
+        }
+
+        return view('dashboard.admin.list_admin');
+    }
+
+    public function createAdmin()
+    {
+        return view('dashboard.admin.create_admin');
+    }
+
+    public function storeAdmin(Request $request)
+    {
+        $validator = Validator::make($request->all(), [
+            'first_name' => 'required|string|max:255',
+            'last_name' => 'required|string|max:255',
+            'email' => 'required|string|email|max:255|unique:users',
+            'phone_number' => 'required|string|max:15',
+            'date_of_birth' => 'required|date',
+            'country_code' => 'required|string|max:5',
+            'password' => 'required|string|min:8|confirmed',
+        ]);
+
+        if ($validator->fails()) {
+            return response()->json(['errors' => $validator->errors()], 422);
+        }
+
+        $user = User::create([
+            'first_name' => $request->first_name,
+            'last_name' => $request->last_name,
+            'email' => $request->email,
+            'phone_number' => $request->country_code . $request->phone_number,
+            'date_of_birth' => $request->date_of_birth,
+            'password' => Hash::make($request->password),
+            'country_location' => $request->country_location,
+            'role_id' => 1,
+            'status' => 'active',
+        ]);
+
+        $user->assignRole('Admin');
+
+        return response()->json(['message' => 'Admin created successfully']);
+    }
+
+    public function editAdmin($id)
+    {
+        $user = User::findOrFail($id);
+        return view('dashboard.admin.edit_admin', compact('user'));
+    }
+
+    public function updateAdmin(Request $request, $id)
+    {
+        $validator = Validator::make($request->all(), [
+            'first_name' => 'required|string|max:255',
+            'last_name' => 'required|string|max:255',
+            'email' => 'required|string|email|max:255|unique:users,email,' . $id,
+            'phone_number' => 'required|string|max:15',
+            'date_of_birth' => 'required|date',
+            'country_code' => 'required|string|max:5',
+            'password' => 'nullable|string|min:8|confirmed',
+        ]);
+
+        if ($validator->fails()) {
+            return response()->json(['errors' => $validator->errors()], 422);
+        }
+
+        $user = User::findOrFail($id);
+        $user->update([
+            'first_name' => $request->first_name,
+            'last_name' => $request->last_name,
+            'email' => $request->email,
+            'phone_number' => $request->country_code . $request->phone_number,
+            'date_of_birth' => $request->date_of_birth,
+            'country_location' => $request->country_location,
+        ]);
+
+        if ($request->password) {
+            $user->update(['password' => Hash::make($request->password)]);
+        }
+
+        return response()->json(['message' => 'Admin updated successfully']);
+    }
+
+    public function deleteAdmin($id)
+    {
+
+        $user = User::findOrFail($id);
+        $user->delete();
+
+        return response()->json(['message' => 'Admin deleted successfully']);
+    }
+
 
     /* 
      *

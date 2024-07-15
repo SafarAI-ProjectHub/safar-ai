@@ -2151,9 +2151,9 @@ div.datedropper .picker .pick-lg-b li {
     @media only screen and (min-width: 480px) and (max-width: 767px) {
       .info-box::before {
         width: 640px; } }
-  .info-box:hover {
+  /* .info-box:hover {
     border-color: #c45acd;
-    background-color: #c45acd; }
+    background-color: #c45acd; } */
     .info-box:hover .info__title,
     .info-box:hover .info__text {
       color: #fff; }
@@ -10557,10 +10557,10 @@ div.datedropper .picker .pick-lg-b li {
     width: 640px;
   }
 }
-.info-box:hover {
+/* .info-box:hover {
   border-color: #ec5252;
   background-color: #ec5252;
-}
+} */
 .info-box:hover .info__title,
 .info-box:hover .info__text {
   color: #fff;

@@ -167,6 +167,8 @@
             phoneInput.addEventListener("keyup", validatePhoneNumber);
 
             phoneInput.addEventListener("countrychange", function() {
+
+
                 const countryData = iti.getSelectedCountryData();
                 countryCodeInput.value = "+" + countryData.dialCode;
                 const countryName = countryData.name.split(" (")[0];
