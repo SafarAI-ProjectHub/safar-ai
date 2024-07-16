@@ -121,6 +121,19 @@
                                                 Overview
                                             </a>
                                         </li>
+                                        <li class="nav-item">
+                                            <a class="nav-link" id="rating-tab" data-toggle="tab" href="#rating"
+                                                role="tab" aria-controls="rating" aria-selected="false">
+                                                <i class="la la-star me-1"></i> Leave a Rating
+                                            </a>
+                                        </li>
+                                        <li class="nav-item">
+                                            <a class="nav-link" id="reviews-tab" data-toggle="tab" href="#reviews"
+                                                role="tab" aria-controls="reviews" aria-selected="false">
+                                                Reviews
+                                            </a>
+                                        </li>
+
                                         {{-- <li class="nav-item">
                                                             <a class="nav-link" id="question-and-ans-tab" data-toggle="tab"
                                                                 href="#question-and-ans" role="tab" aria-controls="question-and-ans"
@@ -414,63 +427,230 @@
                                         </div><!-- end tab-pane -->
 
                                     </div><!-- end tab-content -->
-                                </div><!-- end lecture-video-detail-body -->
-                            </div><!-- end lecture-video-detail -->
-                            <div class="cta-area py-4 bg-gray">
-                                <div class="container-fluid">
-                                    <div class="row align-items-center">
-                                        <div class="col-lg-6">
-                                            <div class="cta-content-wrap">
-                                                <h3 class="fs-18 font-weight-semi-bold">Top companies choose <a
-                                                        href="for-business.html" class="text-color hover-underline">Safar
-                                                        AI
-                                                        for Business</a> to build in-demand career skills.</h3>
+
+                                    <div class="tab-pane fade" id="rating" role="tabpanel"
+                                        aria-labelledby="rating-tab">
+                                        <div class="modal-header border-bottom-gray">
+                                            <div class="pr-2">
+                                                <h5 class="modal-title fs-19 font-weight-semi-bold lh-24"
+                                                    id="ratingModalTitle">
+                                                    How would you rate this course?
+                                                </h5>
                                             </div>
-                                        </div><!-- end col-lg-6 -->
-                                        <div class="col-lg-6">
-                                            <div class="client-logo-wrap text-right">
-                                                <a href="#" class="client-logo-item client--logo-item-2 pr-3"><img
-                                                        src="/images/sponsor-img.png" alt="brand image"></a>
-                                                <a href="#" class="client-logo-item client--logo-item-2 pr-3"><img
-                                                        src="/images/sponsor-img2.png" alt="brand image"></a>
-                                                <a href="#" class="client-logo-item client--logo-item-2 pr-3"><img
-                                                        src="/images/sponsor-img3.png" alt="brand image"></a>
-                                            </div><!-- end client-logo-wrap -->
-                                        </div><!-- end col-lg-6 -->
-                                    </div><!-- end row -->
-                                </div><!-- end container-fluid -->
-                            </div><!-- end cta-area -->
-                            <div class="footer-area pt-50px">
-                                <div class="container-fluid">
-                                    <div class="row">
-                                        <div class="col-lg-6 responsive-column-half">
-                                            <div class="footer-item">
-                                                <a href="index.html">
-                                                    <img src="{{ asset('assets/images/logo-img.png') }}"
-                                                        alt="footer logo" class="footer__logo"
-                                                        style="width:100%;height:100%;">
-                                                </a>
-                                                <ul class="generic-list-item pt-4">
-                                                    <li><a href="tel:+1631237884">+163 123 7884</a></li>
-                                                    <li><a href="mailto:support@wbsite.com">support@website.com</a></li>
-                                                    <li>Melbourne, Australia, 105 South Park Avenue</li>
-                                                </ul>
-                                            </div><!-- end footer-item -->
-                                        </div><!-- end col-lg-3 -->
-                                        <div class="col-lg-6 responsive-column-half">
-                                            <div class="footer-item">
-                                                <h3 class="fs-20 font-weight-semi-bold pb-3">Company</h3>
-                                                <ul class="generic-list-item">
-                                                    <li><a href="/#about">About us</a></li>
-                                                    <li><a href="/#contact">Contact us</a></li>
-                                                    <li><a href="/register-teacher">Become a Teacher</a></li>
-                                                    <li><a href="/#team">Team</a></li>
-                                                    {{-- <li><a href="#">FAQs</a></li>
+                                        </div>
+                                        <div class="modal-body text-center py-5">
+                                            <form id="ratingForm">
+                                                <div class="leave-rating mt-5">
+                                                    <input type="radio" name="rate" id="star5"
+                                                        value="5" />
+                                                    <label for="star5" class="fs-45"></label>
+                                                    <input type="radio" name="rate" id="star4"
+                                                        value="4" />
+                                                    <label for="star4" class="fs-45"></label>
+                                                    <input type="radio" name="rate" id="star3"
+                                                        value="3" />
+                                                    <label for="star3" class="fs-45"></label>
+                                                    <input type="radio" name="rate" id="star2"
+                                                        value="2" />
+                                                    <label for="star2" class="fs-45"></label>
+                                                    <input type="radio" name="rate" id="star1" value="1"
+                                                        checked />
+                                                    <label for="star1" class="fs-45"></label>
+                                                    <div class="rating-result-text fs-20 pb-4"></div>
+                                                </div>
+                                                <div class="mt-4">
+                                                    <textarea class="form-control" id="comment" rows="4" placeholder="Leave a comment"></textarea>
+                                                </div>
+                                                <div class="mt-4">
+                                                    <button type="submit" class="btn btn-primary">Submit</button>
+                                                </div>
+                                            </form>
+                                        </div>
+                                    </div>
+
+                                    <div class="tab-pane fade" id="reviews" role="tabpanel"
+                                        aria-labelledby="reviews-tab">
+                                        <div class="new-question-body pt-40px">
+                                            <h3 class="fs-20 font-weight-semi-bold">Reviews ({{ $reviewsCount }})</h3>
+                                        </div>
+
+                                        @if ($reviews->isEmpty())
+                                            <p>No reviews yet.</p>
+                                        @else
+                                            <div class="replay-question-body pt-30px">
+                                                @foreach ($reviews as $review)
+                                                    <div class="question-list-item">
+                                                        <div
+                                                            class="media media-card border-bottom border-bottom-gray py-4">
+                                                            <div class="media-img rounded-full flex-shrink-0 avatar-sm">
+                                                                <img class="rounded-full"
+                                                                    src="{{ asset($review->user->profile_image ? $review->user->profile_image : 'assets/images/avatars/profile-Img.png') }}"
+                                                                    alt="User image">
+                                                            </div>
+                                                            <div class="media-body">
+                                                                <div class="d-flex justify-content-between">
+                                                                    <div class="question-meta-content">
+                                                                        <a href="javascript:void(0)" class="d-block">
+                                                                            <h5 class="fs-16 pb-1">{{ $review->comment }}
+                                                                            </h5>
+                                                                            <p class="meta-tags fs-13">
+                                                                                <a
+                                                                                    href="#">{{ $review->user->full_name }}</a>
+                                                                                <span>
+                                                                                    @php
+                                                                                        $created_at =
+                                                                                            $review->created_at;
+                                                                                        $updated_at =
+                                                                                            $review->updated_at;
+
+                                                                                        if ($updated_at > $created_at) {
+                                                                                            $created_at = $updated_at;
+                                                                                        }
+                                                                                        $now = \Carbon\Carbon::now();
+
+                                                                                        $diffInSeconds = $created_at->diffInSeconds(
+                                                                                            $now,
+                                                                                        );
+                                                                                        $diffInMinutes = $created_at->diffInMinutes(
+                                                                                            $now,
+                                                                                        );
+                                                                                        $diffInHours = $created_at->diffInHours(
+                                                                                            $now,
+                                                                                        );
+                                                                                        $diffInDays = $created_at->diffInDays(
+                                                                                            $now,
+                                                                                        );
+                                                                                        $diffInWeeks = $created_at->diffInWeeks(
+                                                                                            $now,
+                                                                                        );
+                                                                                        $diffInMonths = $created_at->diffInMonths(
+                                                                                            $now,
+                                                                                        );
+                                                                                        $diffInYears = $created_at->diffInYears(
+                                                                                            $now,
+                                                                                        );
+
+                                                                                        $timeDiff = '';
+
+                                                                                        if ($diffInSeconds < 60) {
+                                                                                            $timeDiff =
+                                                                                                $diffInSeconds .
+                                                                                                ' seconds ago';
+                                                                                        } elseif ($diffInMinutes < 60) {
+                                                                                            $timeDiff =
+                                                                                                $diffInMinutes .
+                                                                                                ' minutes ago';
+                                                                                        } elseif ($diffInHours < 24) {
+                                                                                            $timeDiff =
+                                                                                                $diffInHours .
+                                                                                                ' hours ago';
+                                                                                        } elseif ($diffInDays < 7) {
+                                                                                            $timeDiff =
+                                                                                                $diffInDays .
+                                                                                                ' days ago';
+                                                                                        } elseif ($diffInWeeks < 4) {
+                                                                                            $timeDiff =
+                                                                                                $diffInWeeks .
+                                                                                                ' weeks ago';
+                                                                                        } elseif ($diffInMonths < 12) {
+                                                                                            $timeDiff =
+                                                                                                $diffInMonths .
+                                                                                                ' months ago';
+                                                                                        } else {
+                                                                                            $timeDiff =
+                                                                                                $diffInYears .
+                                                                                                ' years ago';
+                                                                                        }
+                                                                                    @endphp
+                                                                                    {{ $timeDiff }}
+                                                                                </span>
+                                                                            </p>
+                                                                        </a>
+                                                                    </div>
+                                                                    <div class="question-upvote-action">
+                                                                        <div
+                                                                            class="number-upvotes pb-2 d-flex align-items-center">
+                                                                            <span class="rating-stars">
+                                                                                {{ str_repeat('★', $review->rate) . '' . str_repeat('☆', 5 - $review->rate) }}
+                                                                            </span>
+                                                                        </div>
+                                                                    </div>
+                                                                </div>
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                @endforeach
+
+                                            </div>
+                                            <div class="d-felx justify-content-center">
+
+                                                {{ $reviews->links() }}
+
+                                            </div>
+                                        @endif
+                                    </div>
+
+                                </div><!-- end lecture-video-detail -->
+                                <div class="cta-area py-4 bg-gray">
+                                    <div class="container-fluid">
+                                        <div class="row align-items-center">
+                                            <div class="col-lg-6">
+                                                <div class="cta-content-wrap">
+                                                    <h3 class="fs-18 font-weight-semi-bold">Top companies choose <a
+                                                            href="for-business.html"
+                                                            class="text-color hover-underline">Safar
+                                                            AI
+                                                            for Business</a> to build in-demand career skills.</h3>
+                                                </div>
+                                            </div><!-- end col-lg-6 -->
+                                            <div class="col-lg-6">
+                                                <div class="client-logo-wrap text-right">
+                                                    <a href="#"
+                                                        class="client-logo-item client--logo-item-2 pr-3"><img
+                                                            src="/images/sponsor-img.png" alt="brand image"></a>
+                                                    <a href="#"
+                                                        class="client-logo-item client--logo-item-2 pr-3"><img
+                                                            src="/images/sponsor-img2.png" alt="brand image"></a>
+                                                    <a href="#"
+                                                        class="client-logo-item client--logo-item-2 pr-3"><img
+                                                            src="/images/sponsor-img3.png" alt="brand image"></a>
+                                                </div><!-- end client-logo-wrap -->
+                                            </div><!-- end col-lg-6 -->
+                                        </div><!-- end row -->
+                                    </div><!-- end container-fluid -->
+                                </div><!-- end cta-area -->
+                                <div class="footer-area pt-50px">
+                                    <div class="container-fluid">
+                                        <div class="row">
+                                            <div class="col-lg-6 responsive-column-half">
+                                                <div class="footer-item">
+                                                    <a href="index.html">
+                                                        <img src="{{ asset('assets/images/logo-img.png') }}"
+                                                            alt="footer logo" class="footer__logo"
+                                                            style="width:100%;height:100%;">
+                                                    </a>
+                                                    <ul class="generic-list-item pt-4">
+                                                        <li><a href="tel:+1631237884">+163 123 7884</a></li>
+                                                        <li><a href="mailto:support@wbsite.com">support@website.com</a>
+                                                        </li>
+                                                        <li>Melbourne, Australia, 105 South Park Avenue</li>
+                                                    </ul>
+                                                </div><!-- end footer-item -->
+                                            </div><!-- end col-lg-3 -->
+                                            <div class="col-lg-6 responsive-column-half">
+                                                <div class="footer-item">
+                                                    <h3 class="fs-20 font-weight-semi-bold pb-3">Company</h3>
+                                                    <ul class="generic-list-item">
+                                                        <li><a href="/#about">About us</a></li>
+                                                        <li><a href="/#contact">Contact us</a></li>
+                                                        <li><a href="/register-teacher">Become a Teacher</a></li>
+                                                        <li><a href="/#team">Team</a></li>
+                                                        {{-- <li><a href="#">FAQs</a></li>
                                                                 <li><a href="#">Blog</a></li> --}}
-                                                </ul>
-                                            </div><!-- end footer-item -->
-                                        </div><!-- end col-lg-3 -->
-                                        {{-- <div class="col-lg-3 responsive-column-half">
+                                                    </ul>
+                                                </div><!-- end footer-item -->
+                                            </div><!-- end col-lg-3 -->
+                                            {{-- <div class="col-lg-3 responsive-column-half">
                                                         <div class="footer-item">
                                                             <h3 class="fs-20 font-weight-semi-bold pb-3">Courses</h3>
                                                             <ul class="generic-list-item">
@@ -495,16 +675,16 @@
                                                             </div>
                                                         </div><!-- end footer-item -->
                                                     </div><!-- end col-lg-3 --> --}}
-                                    </div><!-- end row -->
-                                </div><!-- end container-fluid -->
-                                <div class="section-block"></div>
-                                <div class="copyright-content py-4">
-                                    <div class="container-fluid">
-                                        <div class="row align-items-center">
-                                            <div class="col-lg-12 text-center">
-                                                <p class="copy-desc">&copy; 2021 Safar AI. All Rights Reserved.
-                                            </div><!-- end col-lg-6 -->
-                                            {{-- <div class="col-lg-6">
+                                        </div><!-- end row -->
+                                    </div><!-- end container-fluid -->
+                                    <div class="section-block"></div>
+                                    <div class="copyright-content py-4">
+                                        <div class="container-fluid">
+                                            <div class="row align-items-center">
+                                                <div class="col-lg-12 text-center">
+                                                    <p class="copy-desc">&copy; 2021 Safar AI. All Rights Reserved.
+                                                </div><!-- end col-lg-6 -->
+                                                {{-- <div class="col-lg-6">
                                                             <div class="d-flex flex-wrap align-items-center justify-content-end">
                                                                 <ul class="generic-list-item d-flex flex-wrap align-items-center fs-14">
                                                                     <li class="mr-3"><a href="terms-and-conditions.html">Terms &
@@ -536,299 +716,313 @@
                                                                 </div>
                                                             </div>
                                                         </div><!-- end col-lg-6 --> --}}
-                                        </div><!-- end row -->
-                                    </div><!-- end container-fluid -->
-                                </div><!-- end copyright-content -->
-                            </div><!-- end footer-area -->
-                        </div><!-- end course-dashboard-column -->
+                                            </div><!-- end row -->
+                                        </div><!-- end container-fluid -->
+                                    </div><!-- end copyright-content -->
+                                </div><!-- end footer-area -->
+                            </div><!-- end course-dashboard-column -->
 
-                        <div class="course-dashboard-sidebar-column">
-                            <button class="sidebar-open" type="button"><i class="la la-angle-left"></i> Course
-                                Content</button>
-                            <div class="course-dashboard-sidebar-wrap custom-scrollbar-styled">
-                                <div
-                                    class="course-dashboard-side-heading d-flex align-items-center justify-content-between">
-                                    <h3 class="fs-18 font-weight-semi-bold">Course content</h3>
-                                    <button class="sidebar-close" type="button"><i class="la la-times"></i></button>
-                                </div>
-                                <div class="course-dashboard-side-content">
-                                    <div class="accordion generic-accordion generic--accordion"
-                                        id="accordionCourseExample">
-                                        <div class="card">
-                                            <div class="card-header" id="headingOne">
-                                                <button class="btn btn-link" type="button" data-toggle="collapse"
-                                                    data-target="#collapseOne" aria-expanded="true"
-                                                    aria-controls="collapseOne">
-                                                    <i class="la la-angle-down"></i><i class="la la-angle-up"></i>
-                                                    <span class="fs-15">{{ $course->title }} :
-                                                        {{-- {{ $course->description }}</span> --}}
-                                                        <span class="course-duration"><span>{{ $completedUnitCount }} /
-                                                                {{ $course->units->count() }}</span>{{-- <span>21min</span> --}}</span>
-                                                </button>
-                                            </div>
-                                            <div id="collapseOne" class="collapse show" aria-labelledby="headingOne"
-                                                data-parent="#accordionCourseExample">
-                                                <div class="card-body p-0">
-                                                    <ul class="curriculum-sidebar-list">
-                                                        @if ($course->units->count() > 0)
-                                                            @foreach ($course->units as $unit)
-                                                                <li class="course-item-link  {{ $unit->content_type == 'video' ? '' : 'active-resource' }} {{ $loop->first ? 'active' : '' }}"
-                                                                    @if ($unit->content_type == 'video') onclick="updateContent('{{ $unit->content_type }}', `{{ asset($unit->content) }}`, '{{ $unit->title }}')">
+                            <div class="course-dashboard-sidebar-column">
+                                <button class="sidebar-open" type="button"><i class="la la-angle-left"></i> Course
+                                    Content</button>
+                                <div class="course-dashboard-sidebar-wrap custom-scrollbar-styled">
+                                    <div
+                                        class="course-dashboard-side-heading d-flex align-items-center justify-content-between">
+                                        <h3 class="fs-18 font-weight-semi-bold">Course content</h3>
+                                        <button class="sidebar-close" type="button"><i class="la la-times"></i></button>
+                                    </div>
+                                    <div class="course-dashboard-side-content">
+                                        <div class="accordion generic-accordion generic--accordion"
+                                            id="accordionCourseExample">
+                                            <div class="card">
+                                                <div class="card-header" id="headingOne">
+                                                    <button class="btn btn-link" type="button" data-toggle="collapse"
+                                                        data-target="#collapseOne" aria-expanded="true"
+                                                        aria-controls="collapseOne">
+                                                        <i class="la la-angle-down"></i><i class="la la-angle-up"></i>
+                                                        <span class="fs-15">{{ $course->title }} :
+                                                            {{-- {{ $course->description }}</span> --}}
+                                                            <span class="course-duration"><span>{{ $completedUnitCount }}
+                                                                    /
+                                                                    {{ $course->units->count() }}</span>{{-- <span>21min</span> --}}</span>
+                                                    </button>
+                                                </div>
+                                                <div id="collapseOne" class="collapse show" aria-labelledby="headingOne"
+                                                    data-parent="#accordionCourseExample">
+                                                    <div class="card-body p-0">
+                                                        <ul class="curriculum-sidebar-list">
+                                                            @if ($course->units->count() > 0)
+                                                                @foreach ($course->units as $unit)
+                                                                    <li class="course-item-link  {{ $unit->content_type == 'video' ? '' : 'active-resource' }} {{ $loop->first ? 'active' : '' }}"
+                                                                        @if ($unit->content_type == 'video') onclick="updateContent('{{ $unit->content_type }}', `{{ asset($unit->content) }}`, '{{ $unit->title }}')">
                                                                             @else
                                                                             onclick="updateContent('{{ $unit->content_type }}', `{{ $unit->content }}`, '{{ $unit->title }}')"> @endif
-                                                                    <div class="course-item-content-wrap">
-                                                                    {{-- if hasRole('Student') show the checkbox --}}
-                                                                    @if (auth()->user()->hasRole('Student'))
-                                                                        <div class="custom-control custom-checkbox">
-                                                                            <input type="checkbox"
-                                                                                class="custom-control-input"
-                                                                                id="courseCheckbox{{ $unit->id }}"
-                                                                                value="{{ $unit->id }}"
-                                                                                {{ in_array($unit->id, $completedUnitIds) ? 'checked' : '' }}>
-                                                                            <label
-                                                                                class="custom-control-label custom--control-label"
-                                                                                for="courseCheckbox{{ $unit->id }}"></label>
-                                                                        </div>
-                                                                    @endif
+                                                                        <div class="course-item-content-wrap">
+                                                                        {{-- if hasRole('Student') show the checkbox --}}
+                                                                        @if (auth()->user()->hasRole('Student'))
+                                                                            <div class="custom-control custom-checkbox">
+                                                                                <input type="checkbox"
+                                                                                    class="custom-control-input"
+                                                                                    id="courseCheckbox{{ $unit->id }}"
+                                                                                    value="{{ $unit->id }}"
+                                                                                    {{ in_array($unit->id, $completedUnitIds) ? 'checked' : '' }}>
+                                                                                <label
+                                                                                    class="custom-control-label custom--control-label"
+                                                                                    for="courseCheckbox{{ $unit->id }}"></label>
+                                                                            </div>
+                                                                        @endif
 
-                                                                    <div class="course-item-content">
-                                                                        <h4 class="fs-15">{{ $unit->title }}</h4>
-                                                                        <div class="courser-item-meta-wrap">
-                                                                            <p class="course-item-meta">
-                                                                                <i
-                                                                                    class="la la-{{ $unit->content_type === 'video' ? 'play-circle' : 'file' }}"></i>
-                                                                                {{ $unit->content_type === 'video' ? 'video' : 'text' }}
-                                                                            </p>
+                                                                        <div class="course-item-content">
+                                                                            <h4 class="fs-15">{{ $unit->title }}</h4>
+                                                                            <div class="courser-item-meta-wrap">
+                                                                                <p class="course-item-meta">
+                                                                                    <i
+                                                                                        class="la la-{{ $unit->content_type === 'video' ? 'play-circle' : 'file' }}"></i>
+                                                                                    {{ $unit->content_type === 'video' ? 'video' : 'text' }}
+                                                                                </p>
+                                                                            </div>
                                                                         </div>
-                                                                    </div>
-                                                </div>
-                                                </li>
-                                                @endforeach
-                                            @else
-                                                <li class="course-item-link">
-                                                    <div class="course-item-content-wrap">
-                                                        <div class="course-item-content">
-                                                            <h4 class="fs-15">No content available Yet</h4>
-                                                        </div>
                                                     </div>
-                                                </li>
-                                                @endif
-                                                </ul>
-                                            </div><!-- end card-body -->
-                                        </div><!-- end collapse -->
-                                    </div><!-- end card -->
-                                </div><!-- end accordion-->
-                            </div><!-- end course-dashboard-side-content -->
-                        </div><!-- end course-dashboard-sidebar-wrap -->
-                    </div><!-- end course-dashboard-sidebar-column -->
-                </div><!-- end course-dashboard-container -->
-        </div><!-- end course-dashboard-wrap -->
-        </section>
-        {{-- <div id="scroll-top">
+                                                    </li>
+                                                    @endforeach
+                                                @else
+                                                    <li class="course-item-link">
+                                                        <div class="course-item-content-wrap">
+                                                            <div class="course-item-content">
+                                                                <h4 class="fs-15">No content available Yet</h4>
+                                                            </div>
+                                                        </div>
+                                                    </li>
+                                                    @endif
+                                                    </ul>
+                                                </div><!-- end card-body -->
+                                            </div><!-- end collapse -->
+                                        </div><!-- end card -->
+                                    </div><!-- end accordion-->
+                                </div><!-- end course-dashboard-side-content -->
+                            </div><!-- end course-dashboard-sidebar-wrap -->
+                        </div><!-- end course-dashboard-sidebar-column -->
+                    </div><!-- end course-dashboard-container -->
+                </div><!-- end course-dashboard-wrap -->
+            </section>
+            {{-- <div id="scroll-top">
             <i class="la la-arrow-up" title="Go top"></i>
         </div> --}}
-        <!-- end scroll top -->
+            <!-- end scroll top -->
 
-        <!-- Modal -->
-        <div class="modal fade modal-container" id="ratingModal" tabindex="-1" role="dialog"
-            aria-labelledby="ratingModalTitle" aria-hidden="true">
-            <div class="modal-dialog modal-dialog-centered" role="document">
-                <div class="modal-content">
-                    <div class="modal-header border-bottom-gray">
-                        <div class="pr-2">
-                            <h5 class="modal-title fs-19 font-weight-semi-bold lh-24" id="ratingModalTitle">
-                                How would you rate this course?
-                            </h5>
-                        </div>
-                        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
-                            <span aria-hidden="true" class="la la-times"></span>
-                        </button>
-                    </div><!-- end modal-header -->
-                    <div class="modal-body text-center py-5">
-                        <div class="leave-rating mt-5">
-                            <input type="radio" name='rate' id="star5" />
-                            <label for="star5" class="fs-45"></label>
-                            <input type="radio" name='rate' id="star4" />
-                            <label for="star4" class="fs-45"></label>
-                            <input type="radio" name='rate' id="star3" />
-                            <label for="star3" class="fs-45"></label>
-                            <input type="radio" name='rate' id="star2" />
-                            <label for="star2" class="fs-45"></label>
-                            <input type="radio" name='rate' id="star1" />
-                            <label for="star1" class="fs-45"></label>
-                            <div class="rating-result-text fs-20 pb-4"></div>
-                        </div><!-- end leave-rating -->
-                    </div><!-- end modal-body -->
-                </div><!-- end modal-content -->
-            </div><!-- end modal-dialog -->
-        </div><!-- end modal -->
-
-        <!-- Modal -->
-        <div class="modal fade modal-container" id="shareModal" tabindex="-1" role="dialog"
-            aria-labelledby="shareModalTitle" aria-hidden="true">
-            <div class="modal-dialog modal-dialog-centered" role="document">
-                <div class="modal-content">
-                    <div class="modal-header border-bottom-gray">
-                        <h5 class="modal-title fs-19 font-weight-semi-bold" id="shareModalTitle">Share this course</h5>
-                        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
-                            <span aria-hidden="true" class="la la-times"></span>
-                        </button>
-                    </div><!-- end modal-header -->
-                    <div class="modal-body">
-                        <div class="copy-to-clipboard">
-                            <span class="success-message">Copied!</span>
-                            <div class="input-group">
-                                <input type="text" class="form-control form--control copy-input pl-3"
-                                    value="https://www.aduca.com/share/101WxMB0oac1hVQQ==/">
-                                <div class="input-group-append">
-                                    <button class="btn theme-btn theme-btn-sm copy-btn shadow-none"><i
-                                            class="la la-copy mr-1"></i> Copy</button>
-                                </div>
+            <!-- Modal -->
+            <div class="modal fade modal-container" id="ratingModal" tabindex="-1" role="dialog"
+                aria-labelledby="ratingModalTitle" aria-hidden="true">
+                <div class="modal-dialog modal-dialog-centered" role="document">
+                    <div class="modal-content">
+                        <div class="modal-header border-bottom-gray">
+                            <div class="pr-2">
+                                <h5 class="modal-title fs-19 font-weight-semi-bold lh-24" id="ratingModalTitle">
+                                    How would you rate this course?
+                                </h5>
                             </div>
-                        </div><!-- end copy-to-clipboard -->
-                    </div><!-- end modal-body -->
-                    <div class="modal-footer justify-content-center border-top-gray">
-                        <ul class="social-icons social-icons-styled">
-                            <li><a href="#" class="facebook-bg"><i class="la la-facebook"></i></a></li>
-                            <li><a href="#" class="twitter-bg"><i class="la la-twitter"></i></a></li>
-                            <li><a href="#" class="instagram-bg"><i class="la la-instagram"></i></a></li>
-                        </ul>
-                    </div><!-- end modal-footer -->
-                </div><!-- end modal-content-->
-            </div><!-- end modal-dialog -->
-        </div><!-- end modal -->
+                            <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                                <span aria-hidden="true" class="la la-times"></span>
+                            </button>
+                        </div><!-- end modal-header -->
+                        <div class="modal-body text-center py-5">
+                            <form id="ratingForm">
+                                <div class="leave-rating mt-5">
+                                    <input type="radio" name="rate" id="star5" value="5" />
+                                    <label for="star5" class="fs-45"></label>
+                                    <input type="radio" name="rate" id="star4" value="4" />
+                                    <label for="star4" class="fs-45"></label>
+                                    <input type="radio" name="rate" id="star3" value="3" />
+                                    <label for="star3" class="fs-45"></label>
+                                    <input type="radio" name="rate" id="star2" value="2" />
+                                    <label for="star2" class="fs-45"></label>
+                                    <input type="radio" name="rate" id="star1" value="1" checked />
+                                    <label for="star1" class="fs-45"></label>
+                                    <div class="rating-result-text fs-20 pb-4"></div>
+                                </div><!-- end leave-rating -->
+                                <div class="mt-4">
+                                    <textarea class="form-control" id="comment" rows="4" placeholder="Leave a comment"></textarea>
+                                </div>
+                                <div class="mt-4">
+                                    <button type="submit" class="btn btn-primary">Submit</button>
+                                </div>
+                            </form>
+                        </div><!-- end modal-body -->
+                    </div><!-- end modal-content -->
+                </div><!-- end modal-dialog -->
+            </div><!-- end modal -->
 
-        <!-- Modal -->
-        <div class="modal fade modal-container" id="reportModal" tabindex="-1" role="dialog"
-            aria-labelledby="reportModalTitle" aria-hidden="true">
-            <div class="modal-dialog modal-dialog-centered" role="document">
-                <div class="modal-content">
-                    <div class="modal-header border-bottom-gray">
-                        <div class="pr-2">
-                            <h5 class="modal-title fs-19 font-weight-semi-bold lh-24" id="reportModalTitle">Report Abuse
+            <!-- Modal -->
+            <div class="modal fade modal-container" id="shareModal" tabindex="-1" role="dialog"
+                aria-labelledby="shareModalTitle" aria-hidden="true">
+                <div class="modal-dialog modal-dialog-centered" role="document">
+                    <div class="modal-content">
+                        <div class="modal-header border-bottom-gray">
+                            <h5 class="modal-title fs-19 font-weight-semi-bold" id="shareModalTitle">Share this course
                             </h5>
-                            <p class="pt-1 fs-14 lh-24">Flagged content is reviewed by Safar AI staff to determine whether
-                                it
-                                violates Terms of Service or Community Guidelines. If you have a question or technical
-                                issue, please contact our
-                                <a href="contact.html" class="text-color hover-underline">Support team here</a>.
-                            </p>
-                        </div>
-                        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
-                            <span aria-hidden="true" class="la la-times"></span>
-                        </button>
-                    </div><!-- end modal-header -->
-                    <div class="modal-body">
-                        <form method="post">
-                            <div class="input-box">
-                                <label class="label-text">Select Report Type</label>
-                                <div class="form-group">
-                                    <div class="select-container w-auto">
-                                        <select class="select-container-select">
-                                            <option value>-- Select One --</option>
-                                            <option value="1">Inappropriate Course Content</option>
-                                            <option value="2">Inappropriate Behavior</option>
-                                            <option value="3">Safar AI Policy Violation</option>
-                                            <option value="4">Spammy Content</option>
-                                            <option value="5">Other</option>
-                                        </select>
+                            <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                                <span aria-hidden="true" class="la la-times"></span>
+                            </button>
+                        </div><!-- end modal-header -->
+                        <div class="modal-body">
+                            <div class="copy-to-clipboard">
+                                <span class="success-message">Copied!</span>
+                                <div class="input-group">
+                                    <input type="text" class="form-control form--control copy-input pl-3"
+                                        value="https://www.aduca.com/share/101WxMB0oac1hVQQ==/">
+                                    <div class="input-group-append">
+                                        <button class="btn theme-btn theme-btn-sm copy-btn shadow-none"><i
+                                                class="la la-copy mr-1"></i> Copy</button>
                                     </div>
                                 </div>
+                            </div><!-- end copy-to-clipboard -->
+                        </div><!-- end modal-body -->
+                        <div class="modal-footer justify-content-center border-top-gray">
+                            <ul class="social-icons social-icons-styled">
+                                <li><a href="#" class="facebook-bg"><i class="la la-facebook"></i></a></li>
+                                <li><a href="#" class="twitter-bg"><i class="la la-twitter"></i></a></li>
+                                <li><a href="#" class="instagram-bg"><i class="la la-instagram"></i></a></li>
+                            </ul>
+                        </div><!-- end modal-footer -->
+                    </div><!-- end modal-content-->
+                </div><!-- end modal-dialog -->
+            </div><!-- end modal -->
+
+            <!-- Modal -->
+            <div class="modal fade modal-container" id="reportModal" tabindex="-1" role="dialog"
+                aria-labelledby="reportModalTitle" aria-hidden="true">
+                <div class="modal-dialog modal-dialog-centered" role="document">
+                    <div class="modal-content">
+                        <div class="modal-header border-bottom-gray">
+                            <div class="pr-2">
+                                <h5 class="modal-title fs-19 font-weight-semi-bold lh-24" id="reportModalTitle">Report
+                                    Abuse
+                                </h5>
+                                <p class="pt-1 fs-14 lh-24">Flagged content is reviewed by Safar AI staff to determine
+                                    whether
+                                    it
+                                    violates Terms of Service or Community Guidelines. If you have a question or technical
+                                    issue, please contact our
+                                    <a href="contact.html" class="text-color hover-underline">Support team here</a>.
+                                </p>
                             </div>
-                            <div class="input-box">
-                                <label class="label-text">Write Message</label>
-                                <div class="form-group">
-                                    <textarea class="form-control form--control pl-3" name="message" placeholder="Provide additional details here..."
-                                        rows="5"></textarea>
+                            <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                                <span aria-hidden="true" class="la la-times"></span>
+                            </button>
+                        </div><!-- end modal-header -->
+                        <div class="modal-body">
+                            <form method="post">
+                                <div class="input-box">
+                                    <label class="label-text">Select Report Type</label>
+                                    <div class="form-group">
+                                        <div class="select-container w-auto">
+                                            <select class="select-container-select">
+                                                <option value>-- Select One --</option>
+                                                <option value="1">Inappropriate Course Content</option>
+                                                <option value="2">Inappropriate Behavior</option>
+                                                <option value="3">Safar AI Policy Violation</option>
+                                                <option value="4">Spammy Content</option>
+                                                <option value="5">Other</option>
+                                            </select>
+                                        </div>
+                                    </div>
                                 </div>
+                                <div class="input-box">
+                                    <label class="label-text">Write Message</label>
+                                    <div class="form-group">
+                                        <textarea class="form-control form--control pl-3" name="message" placeholder="Provide additional details here..."
+                                            rows="5"></textarea>
+                                    </div>
+                                </div>
+                                <div class="btn-box text-right pt-2">
+                                    <button type="button" class="btn font-weight-medium mr-3"
+                                        data-dismiss="modal">Cancel</button>
+                                    <button type="submit" class="btn theme-btn theme-btn-sm lh-30">Submit <i
+                                            class="la la-arrow-right icon ml-1"></i></button>
+                                </div>
+                            </form>
+                        </div><!-- end modal-body -->
+                    </div><!-- end modal-content -->
+                </div><!-- end modal-dialog -->
+            </div><!-- end modal -->
+
+            <!-- Modal -->
+            <div class="modal fade modal-container" id="insertLinkModal" tabindex="-1" role="dialog"
+                aria-labelledby="insertLinkModalTitle" aria-hidden="true">
+                <div class="modal-dialog modal-dialog-centered" role="document">
+                    <div class="modal-content">
+                        <div class="modal-header border-bottom-gray">
+                            <div class="pr-2">
+                                <h5 class="modal-title fs-19 font-weight-semi-bold lh-24" id="insertLinkModalTitle">Insert
+                                    Link</h5>
                             </div>
+                            <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                                <span aria-hidden="true" class="la la-times"></span>
+                            </button>
+                        </div><!-- end modal-header -->
+                        <div class="modal-body">
+                            <form action="#">
+                                <div class="input-box">
+                                    <label class="label-text">URL</label>
+                                    <div class="form-group">
+                                        <input class="form-control form--control" type="text" name="text"
+                                            placeholder="Url">
+                                        <i class="la la-link input-icon"></i>
+                                    </div>
+                                </div>
+                                <div class="input-box">
+                                    <label class="label-text">Text</label>
+                                    <div class="form-group">
+                                        <input class="form-control form--control" type="text" name="text"
+                                            placeholder="Text">
+                                        <i class="la la-pencil input-icon"></i>
+                                    </div>
+                                </div>
+                                <div class="btn-box text-right pt-2">
+                                    <button type="button" class="btn font-weight-medium mr-3"
+                                        data-dismiss="modal">Cancel</button>
+                                    <button type="submit" class="btn theme-btn theme-btn-sm lh-30">Insert <i
+                                            class="la la-arrow-right icon ml-1"></i></button>
+                                </div>
+                            </form>
+                        </div><!-- end modal-body -->
+                    </div><!-- end modal-content -->
+                </div><!-- end modal-dialog -->
+            </div><!-- end modal -->
+
+            <!-- Modal -->
+            <div class="modal fade modal-container" id="uploadPhotoModal" tabindex="-1" role="dialog"
+                aria-labelledby="uploadPhotoModalTitle" aria-hidden="true">
+                <div class="modal-dialog modal-dialog-centered" role="document">
+                    <div class="modal-content">
+                        <div class="modal-header border-bottom-gray">
+                            <div class="pr-2">
+                                <h5 class="modal-title fs-19 font-weight-semi-bold lh-24" id="uploadPhotoModalTitle">
+                                    Upload
+                                    an Image</h5>
+                            </div>
+                            <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                                <span aria-hidden="true" class="la la-times"></span>
+                            </button>
+                        </div><!-- end modal-header -->
+                        <div class="modal-body">
+                            <div class="file-upload-wrap">
+                                <input type="file" name="files[]" class="multi file-upload-input" multiple>
+                                <span class="file-upload-text"><i class="la la-upload mr-2"></i>Drop files here or click
+                                    to
+                                    upload</span>
+                            </div><!-- file-upload-wrap -->
                             <div class="btn-box text-right pt-2">
                                 <button type="button" class="btn font-weight-medium mr-3"
                                     data-dismiss="modal">Cancel</button>
                                 <button type="submit" class="btn theme-btn theme-btn-sm lh-30">Submit <i
                                         class="la la-arrow-right icon ml-1"></i></button>
                             </div>
-                        </form>
-                    </div><!-- end modal-body -->
-                </div><!-- end modal-content -->
-            </div><!-- end modal-dialog -->
-        </div><!-- end modal -->
-
-        <!-- Modal -->
-        <div class="modal fade modal-container" id="insertLinkModal" tabindex="-1" role="dialog"
-            aria-labelledby="insertLinkModalTitle" aria-hidden="true">
-            <div class="modal-dialog modal-dialog-centered" role="document">
-                <div class="modal-content">
-                    <div class="modal-header border-bottom-gray">
-                        <div class="pr-2">
-                            <h5 class="modal-title fs-19 font-weight-semi-bold lh-24" id="insertLinkModalTitle">Insert
-                                Link</h5>
-                        </div>
-                        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
-                            <span aria-hidden="true" class="la la-times"></span>
-                        </button>
-                    </div><!-- end modal-header -->
-                    <div class="modal-body">
-                        <form action="#">
-                            <div class="input-box">
-                                <label class="label-text">URL</label>
-                                <div class="form-group">
-                                    <input class="form-control form--control" type="text" name="text"
-                                        placeholder="Url">
-                                    <i class="la la-link input-icon"></i>
-                                </div>
-                            </div>
-                            <div class="input-box">
-                                <label class="label-text">Text</label>
-                                <div class="form-group">
-                                    <input class="form-control form--control" type="text" name="text"
-                                        placeholder="Text">
-                                    <i class="la la-pencil input-icon"></i>
-                                </div>
-                            </div>
-                            <div class="btn-box text-right pt-2">
-                                <button type="button" class="btn font-weight-medium mr-3"
-                                    data-dismiss="modal">Cancel</button>
-                                <button type="submit" class="btn theme-btn theme-btn-sm lh-30">Insert <i
-                                        class="la la-arrow-right icon ml-1"></i></button>
-                            </div>
-                        </form>
-                    </div><!-- end modal-body -->
-                </div><!-- end modal-content -->
-            </div><!-- end modal-dialog -->
-        </div><!-- end modal -->
-
-        <!-- Modal -->
-        <div class="modal fade modal-container" id="uploadPhotoModal" tabindex="-1" role="dialog"
-            aria-labelledby="uploadPhotoModalTitle" aria-hidden="true">
-            <div class="modal-dialog modal-dialog-centered" role="document">
-                <div class="modal-content">
-                    <div class="modal-header border-bottom-gray">
-                        <div class="pr-2">
-                            <h5 class="modal-title fs-19 font-weight-semi-bold lh-24" id="uploadPhotoModalTitle">Upload
-                                an Image</h5>
-                        </div>
-                        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
-                            <span aria-hidden="true" class="la la-times"></span>
-                        </button>
-                    </div><!-- end modal-header -->
-                    <div class="modal-body">
-                        <div class="file-upload-wrap">
-                            <input type="file" name="files[]" class="multi file-upload-input" multiple>
-                            <span class="file-upload-text"><i class="la la-upload mr-2"></i>Drop files here or click to
-                                upload</span>
-                        </div><!-- file-upload-wrap -->
-                        <div class="btn-box text-right pt-2">
-                            <button type="button" class="btn font-weight-medium mr-3"
-                                data-dismiss="modal">Cancel</button>
-                            <button type="submit" class="btn theme-btn theme-btn-sm lh-30">Submit <i
-                                    class="la la-arrow-right icon ml-1"></i></button>
-                        </div>
-                    </div><!-- end modal-body -->
-                </div><!-- end modal-content -->
-            </div><!-- end modal-dialog -->
+                        </div><!-- end modal-body -->
+                    </div><!-- end modal-content -->
+                </div><!-- end modal-dialog -->
+            </div>
         </div>
-    </div>
     </div>
 @endsection
 
@@ -891,6 +1085,10 @@
         }
 
         $(document).ready(function() {
+            $('span.la.la-times').click(function() {
+                $('.modal').modal('hide');
+            });
+
             function toggleWrapper() {
                 if ($(window).width() < 1024) {
                     $(".wrapper").removeClass("toggled");
@@ -933,42 +1131,124 @@
             });
         });
         $(document).ready(function() {
-            $('#certificate-button').click(function(e) {
-                e.preventDefault();
+            @if (Auth::user()->hasRole('Student'))
+                $('#certificate-button').click(function(e) {
+                    e.preventDefault();
+                    $.ajax({
+                        url: '{{ route('certificate.check') }}',
+                        type: 'GET',
+                        data: {
+                            course_id: '{{ $course->id }}',
+                            user_id: '{{ auth()->user()->id }}',
+                        },
+                        success: function(response) {
+                            if (response.allow_Certificate) {
+                                window.location.href =
+                                    '{{ route('certificate.review', $course->id) }}';
+                            } else {
+                                if (response.completed) {
+                                    Swal.fire({
+                                        icon: 'warning',
+                                        title: 'Oops...',
+                                        text: 'You have to complete the course first!',
+                                        confirmButtonText: 'OK',
+                                    });
+                                } else {
+                                    Swal.fire({
+                                        icon: 'warning',
+                                        title: 'Oops...',
+                                        text: 'The course is not yet completed! ,the course still has more lessons will be available soon',
+                                        confirmButtonText: 'OK'
+                                    });
+                                }
+                            }
+                        },
+                        error: function() {
+                            Swal.fire('An error occurred. Please try again.');
+                        }
+                    });
+                });
+            @else
+                $('#certificate-button').click(function(e) {
+                    e.preventDefault();
+                    Swal.fire({
+                        icon: 'warning',
+                        title: 'Oops...',
+                        text: 'You have to be a student to get the certificate!',
+                        confirmButtonText: 'OK',
+                    });
+                });
+            @endif
+        });
+        $(document).ready(function() {
+            $("#ratingForm").submit(function(event) {
+                event.preventDefault();
+                @if (!Auth::user()->hasRole('Student'))
+                    Swal.fire({
+                        icon: 'warning',
+                        title: 'Oops...',
+                        text: 'You have to be a student to rate the course!',
+                        confirmButtonText: 'OK',
+                    });
+                    return;
+                @endif
+                var rating = $("input[name='rate']:checked").val();
+                var comment = $("#comment").val();
+                var course_id = '{{ $course->id }}';
+
                 $.ajax({
-                    url: '{{ route('certificate.check') }}',
-                    type: 'GET',
+                    url: '{{ route('course.rate') }}',
+                    type: 'POST',
                     data: {
-                        course_id: '{{ $course->id }}',
-                        user_id: '{{ auth()->user()->id }}',
+                        rating: rating,
+                        comment: comment,
+                        course_id: course_id,
+                        _token: '{{ csrf_token() }}'
                     },
                     success: function(response) {
-                        if (response.allow_Certificate) {
-                            window.location.href =
-                                '{{ route('certificate.review', $course->id) }}';
-                        } else {
-                            if (response.completed) {
-                                Swal.fire({
-                                    icon: 'warning',
-                                    title: 'Oops...',
-                                    text: 'You have to complete the course first!',
-                                    confirmButtonText: 'OK',
-                                });
-                            } else {
-                                Swal.fire({
-                                    icon: 'warning',
-                                    title: 'Oops...',
-                                    text: 'The course is not yet completed! ,the course still has more lessons will be available soon',
-                                    confirmButtonText: 'OK'
-                                });
-                            }
+                        if (response.success) {
+                            Swal.fire({
+                                icon: 'success',
+                                title: 'Success',
+                                text: 'Rating submitted successfully',
+                                confirmButtonText: 'OK',
+                            });
+                            $('#ratingModal').modal('hide');
                         }
                     },
                     error: function() {
                         Swal.fire('An error occurred. Please try again.');
+
                     }
                 });
             });
         });
+
+        $(document).ready(function() {
+    // Check if the URL contains ?page=
+    if (window.location.search.indexOf('page=') > -1) {
+        // Activate the reviews tab
+        $('#reviews-tab').tab('show');
+    }
+
+    // Handle pagination links click
+    $(document).on('click', '.pagination a', function(e) {
+        e.preventDefault();
+        var url = $(this).attr('href');
+        getReviews(url);
+        window.history.pushState("", "", url);
+    });
+
+    function getReviews(url) {
+        $.ajax({
+            url: url,
+            type: 'GET',
+            dataType: 'html',
+            success: function(data) {
+                $('#reviews').html($(data).find('#reviews').html());
+            }
+        });
+    }
+});
     </script>
 @endsection

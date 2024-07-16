@@ -23,6 +23,12 @@
             height: auto;
             height: 150px;
         }
+
+        .testimonials .testimonial-item .testimonial-img {
+            width: 72px !important;
+            height: 60px !important;
+            border-radius: 50% !important;
+        }
     </style>
     <link rel="stylesheet" href="{{ asset('css/bootstrap.min.css') }}">
     <link rel="stylesheet" href="{{ asset('css/line-awesome.css') }}">
@@ -611,80 +617,35 @@
 
 
             <section class="hero-area">
-                <div class="hero-slider owl-action-styled">
-                    <div class="hero-slider-item hero-bg-1">
-
-                        <div class="container">
-                            <div class="hero-content">
-                                <div class="section-heading">
-                                    <h2 class="section__title text-white fs-65 lh-80 pb-3">We Help You Learn <br> What You
-                                        Love
-                                    </h2>
-                                    <p class="section__desc text-white pb-4">Emply dummy text of the printing and
-                                        typesetting
-                                        industry orem Ipsum has been the
-                                        <br>industry's standard dummy text ever sinceprinting and typesetting industry.
-                                    </p>
-                                </div><!-- end section-heading -->
-                                <div class="hero-btn-box d-flex flex-wrap align-items-center pt-1">
-                                    <a href="admission.html" class="btn theme-btn mr-4 mb-4">Join with Us <i
-                                            class="la la-arrow-right icon ml-1"></i></a>
-                                    <a href="#" class="btn-text video-play-btn mb-4" data-fancybox
-                                        data-src="https://www.youtube.com/watch?v=cRXm1p-CNyk">
-                                        Watch Preview<i class="la la-play icon-btn ml-2"></i>
-                                    </a>
-                                </div><!-- end hero-btn-box -->
-                            </div><!-- end hero-content -->
-                        </div><!-- end container -->
-                    </div><!-- end hero-slider-item -->
-                    <div class="hero-slider-item hero-bg-2">
-                        <div class="container">
-                            <div class="hero-content text-center">
-                                <div class="section-heading">
-                                    <h2 class="section__title text-white fs-65 lh-80 pb-3">Join Aduca & Get <br> Your Free
-                                        Courses!</h2>
-                                    <p class="section__desc text-white pb-4">Emply dummy text of the printing and
-                                        typesetting
-                                        industry orem Ipsum has been the
-                                        <br>industry's standard dummy text ever sinceprinting and typesetting industry.
-                                    </p>
-                                </div><!-- end section-heading -->
-                                <div class="hero-btn-box d-flex flex-wrap align-items-center pt-1 justify-content-center">
-                                    <a href="admission.html" class="btn theme-btn mr-4 mb-4">Get Started <i
-                                            class="la la-arrow-right icon ml-1"></i></a>
-                                    <a href="#" class="btn-text video-play-btn mb-4" data-fancybox
-                                        data-src="https://www.youtube.com/watch?v=cRXm1p-CNyk">
-                                        Watch Preview<i class="la la-play icon-btn ml-2"></i>
-                                    </a>
-                                </div><!-- end hero-btn-box -->
-                            </div><!-- end hero-content -->
-                        </div><!-- container -->
-                    </div><!-- end hero-slider-item -->
-                    <div class="hero-slider-item hero-bg-3">
-                        <div class="container">
-                            <div class="hero-content text-right">
-                                <div class="section-heading">
-                                    <h2 class="section__title text-white fs-65 lh-80 pb-3">Learn Anything, <br> Anytime,
-                                        Anywhere</h2>
-                                    <p class="section__desc text-white pb-4">Emply dummy text of the printing and
-                                        typesetting
-                                        industry orem Ipsum has been the
-                                        <br>industry's standard dummy text ever sinceprinting and typesetting industry.
-                                    </p>
-                                </div>
-                                <div class="hero-btn-box d-flex flex-wrap align-items-center pt-1 justify-content-end">
-                                    <a href="#" class="btn-text video-play-btn mr-4 mb-4" data-fancybox
-                                        data-src="https://www.youtube.com/watch?v=cRXm1p-CNyk">
-                                        <i class="la la-play icon-btn mr-2"></i>Watch Preview
-                                    </a>
-                                    <a href="admission.html" class="btn theme-btn mb-4"><i
-                                            class="la la-arrow-left icon mr-1"></i>Get Enrolled </a>
-                                </div><!-- end hero-btn-box -->
-                            </div><!-- end hero-content -->
-                        </div><!-- container -->
-                    </div><!-- end hero-slider-item -->
-                </div><!-- end hero-slide -->
+                <div class="hero-slider owl-action-styled" data-aos="fade-up">
+                    @foreach ($offers as $index => $offer)
+                        <div class="hero-slider-item"
+                            style="background-image: url('{{ asset('storage/' . $offer->background_image) }}');">
+                            <div class="container">
+                                <div class="hero-content text-{{ $offer->alignment }}">
+                                    <div class="section-heading">
+                                        <h2 class="section__title text-white fs-65 lh-80 pb-3">{{ $offer->title }}</h2>
+                                        <p class="section__desc text-white pb-4">{{ $offer->description }}</p>
+                                    </div><!-- end section-heading -->
+                                    <div
+                                        class="hero-btn-box d-flex flex-wrap align-items-center pt-1 justify-content-{{ $offer->alignment }}">
+                                        @if ($offer->action_type === 'link')
+                                            <a href="{{ $offer->action_value }}" class="btn theme-btn mr-4 mb-4">Join
+                                                with Us <i class="la la-arrow-right icon ml-1"></i></a>
+                                        @elseif($offer->action_type === 'email')
+                                            <a href="mailto:{{ $offer->action_value }}"
+                                                class="btn theme-btn mr-4 mb-4">Contact Us <i
+                                                    class="la la-envelope icon ml-1"></i></a>
+                                        @endif
+                                    </div><!-- end hero-btn-box -->
+                                </div><!-- end hero-content -->
+                            </div><!-- end container -->
+                        </div><!-- end hero-slider-item -->
+                    @endforeach
+                </div><!-- end hero-slider -->
             </section><!-- end hero-area -->
+
+
             <!-- ======= Portfolio Section ======= -->
             <!--     <section id="portfolio" class="portfolio"> -->
 
@@ -842,9 +803,7 @@
 
             <!-- ======= Testimonials Section ======= -->
             <section id="testimonials" class="testimonials">
-
                 <div class="container" data-aos="fade-up">
-
                     <header class="section-header">
                         <h2>Testimonials</h2>
                         <p>What they are saying about us</p>
@@ -852,120 +811,59 @@
 
                     <div class="testimonials-slider swiper" data-aos="fade-up" data-aos-delay="200">
                         <div class="swiper-wrapper">
+                            @foreach ($reviews as $review)
+                                @php
+                                    $created_at = $review->created_at;
+                                    $now = \Carbon\Carbon::now();
 
-                            <div class="swiper-slide">
-                                <div class="testimonial-item">
-                                    <div class="stars">
-                                        <i class="bi bi-star-fill"></i><i class="bi bi-star-fill"></i><i
-                                            class="bi bi-star-fill"></i><i class="bi bi-star-fill"></i><i
-                                            class="bi bi-star-fill"></i>
-                                    </div>
-                                    <p>
-                                        Proin iaculis purus consequat sem cure digni ssim donec porttitora entum suscipit
-                                        rhoncus. Accusantium quam, ultricies eget id, aliquam eget nibh et. Maecen aliquam,
-                                        risus at semper.
-                                    </p>
-                                    <div class="profile mt-auto">
-                                        <img src="assets/img/testimonials/testimonials-1.jpg" class="testimonial-img"
-                                            alt="">
-                                        <h3>Saul Goodman</h3>
-                                        <h4>Ceo &amp; Founder</h4>
-                                    </div>
-                                </div>
-                            </div><!-- End testimonial item -->
+                                    $diffInSeconds = $created_at->diffInSeconds($now);
+                                    $diffInMinutes = $created_at->diffInMinutes($now);
+                                    $diffInHours = $created_at->diffInHours($now);
+                                    $diffInDays = $created_at->diffInDays($now);
+                                    $diffInWeeks = $created_at->diffInWeeks($now);
+                                    $diffInMonths = $created_at->diffInMonths($now);
+                                    $diffInYears = $created_at->diffInYears($now);
 
-                            <div class="swiper-slide">
-                                <div class="testimonial-item">
-                                    <div class="stars">
-                                        <i class="bi bi-star-fill"></i><i class="bi bi-star-fill"></i><i
-                                            class="bi bi-star-fill"></i><i class="bi bi-star-fill"></i><i
-                                            class="bi bi-star-fill"></i>
-                                    </div>
-                                    <p>
-                                        Export tempor illum tamen malis malis eram quae irure esse labore quem cillum quid
-                                        cillum eram malis quorum velit fore eram velit sunt aliqua noster fugiat irure amet
-                                        legam anim culpa.
-                                    </p>
-                                    <div class="profile mt-auto">
-                                        <img src="assets/img/testimonials/testimonials-2.jpg" class="testimonial-img"
-                                            alt="">
-                                        <h3>Sara Wilsson</h3>
-                                        <h4>Designer</h4>
-                                    </div>
-                                </div>
-                            </div><!-- End testimonial item -->
+                                    if ($diffInSeconds < 60) {
+                                        $timeDiff = $diffInSeconds . ' seconds ago';
+                                    } elseif ($diffInMinutes < 60) {
+                                        $timeDiff = $diffInMinutes . ' minutes ago';
+                                    } elseif ($diffInHours < 24) {
+                                        $timeDiff = $diffInHours . ' hours ago';
+                                    } elseif ($diffInDays < 7) {
+                                        $timeDiff = $diffInDays . ' days ago';
+                                    } elseif ($diffInWeeks < 4) {
+                                        $timeDiff = $diffInWeeks . ' weeks ago';
+                                    } elseif ($diffInMonths < 12) {
+                                        $timeDiff = $diffInMonths . ' months ago';
+                                    } else {
+                                        $timeDiff = $diffInYears . ' years ago';
+                                    }
+                                @endphp
 
-                            <div class="swiper-slide">
-                                <div class="testimonial-item">
-                                    <div class="stars">
-                                        <i class="bi bi-star-fill"></i><i class="bi bi-star-fill"></i><i
-                                            class="bi bi-star-fill"></i><i class="bi bi-star-fill"></i><i
-                                            class="bi bi-star-fill"></i>
+                                <div class="swiper-slide">
+                                    <div class="testimonial-item">
+                                        <div class="stars">
+                                            <i class="bi bi-star-fill"></i><i class="bi bi-star-fill"></i><i
+                                                class="bi bi-star-fill"></i><i class="bi bi-star-fill"></i><i
+                                                class="bi bi-star-fill"></i>
+                                        </div>
+                                        <p>{{ $review->comment }}</p>
+                                        <div class="profile mt-auto">
+                                            <img src="{{ asset($review->user->profile_image ? $review->user->profile_image : 'assets/images/avatars/profile-Img.png') }}"
+                                                class="testimonial-img" alt="">
+                                            <h4>{{ $timeDiff }}</h4>
+                                            <h3>{{ $review->user->full_name }}</h3>
+                                        </div>
                                     </div>
-                                    <p>
-                                        Enim nisi quem export duis labore cillum quae magna enim sint quorum nulla quem
-                                        veniam
-                                        duis minim tempor labore quem eram duis noster aute amet eram fore quis sint minim.
-                                    </p>
-                                    <div class="profile mt-auto">
-                                        <img src="assets/img/testimonials/testimonials-3.jpg" class="testimonial-img"
-                                            alt="">
-                                        <h3>Jena Karlis</h3>
-                                        <h4>Store Owner</h4>
-                                    </div>
-                                </div>
-                            </div><!-- End testimonial item -->
-
-                            <div class="swiper-slide">
-                                <div class="testimonial-item">
-                                    <div class="stars">
-                                        <i class="bi bi-star-fill"></i><i class="bi bi-star-fill"></i><i
-                                            class="bi bi-star-fill"></i><i class="bi bi-star-fill"></i><i
-                                            class="bi bi-star-fill"></i>
-                                    </div>
-                                    <p>
-                                        Fugiat enim eram quae cillum dolore dolor amet nulla culpa multos export minim
-                                        fugiat
-                                        minim velit minim dolor enim duis veniam ipsum anim magna sunt elit fore quem dolore
-                                        labore illum veniam.
-                                    </p>
-                                    <div class="profile mt-auto">
-                                        <img src="assets/img/testimonials/testimonials-4.jpg" class="testimonial-img"
-                                            alt="">
-                                        <h3>Matt Brandon</h3>
-                                        <h4>Freelancer</h4>
-                                    </div>
-                                </div>
-                            </div><!-- End testimonial item -->
-
-                            <div class="swiper-slide">
-                                <div class="testimonial-item">
-                                    <div class="stars">
-                                        <i class="bi bi-star-fill"></i><i class="bi bi-star-fill"></i><i
-                                            class="bi bi-star-fill"></i><i class="bi bi-star-fill"></i><i
-                                            class="bi bi-star-fill"></i>
-                                    </div>
-                                    <p>
-                                        Quis quorum aliqua sint quem legam fore sunt eram irure aliqua veniam tempor noster
-                                        veniam enim culpa labore duis sunt culpa nulla illum cillum fugiat legam esse veniam
-                                        culpa fore nisi cillum quid.
-                                    </p>
-                                    <div class="profile mt-auto">
-                                        <img src="assets/img/testimonials/testimonials-5.jpg" class="testimonial-img"
-                                            alt="">
-                                        <h3>John Larson</h3>
-                                        <h4>Entrepreneur</h4>
-                                    </div>
-                                </div>
-                            </div><!-- End testimonial item -->
-
+                                </div><!-- End testimonial item -->
+                            @endforeach
                         </div>
                         <div class="swiper-pagination"></div>
                     </div>
-
                 </div>
-
             </section><!-- End Testimonials Section -->
+
 
             <!-- ======= Team Section ======= -->
             {{-- <section id="team" class="team">
@@ -1334,9 +1232,9 @@
     <script>
         document.addEventListener('DOMContentLoaded', function() {
             AOS.init({
-                offset: window.innerHeight / 2,
+                offset: window.innerHeight / 2.5,
                 delay: 0,
-                duration: 100,
+                duration: 50,
                 easing: 'ease',
                 once: true,
                 mirror: false,

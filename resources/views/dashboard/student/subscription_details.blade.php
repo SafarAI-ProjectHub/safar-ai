@@ -431,9 +431,22 @@
                     preConfirm: () => {
                         const form = document.getElementById('cliqPaymentForm');
                         const formData = new FormData();
-                        var file = pond.getFile();
+                        if (form.userName.value == null || form.userName.value == '') {
+                            Swal.showValidationMessage('Please enter your full name.');
+                            return;
+                        }
                         formData.append('userName', form.userName.value);
-                        formData.append('payment_image', file.file);
+
+                        if (pond.getFiles().length > 0) {
+                            file = pond.getFile();
+
+                            formData.append('payment_image', file.file);
+
+                        } else {
+                            Swal.showValidationMessage('Please upload a proof of payment.');
+                            return;
+                        }
+
 
                         return fetch(`/pay-with-cliq?action=${action}`, {
                                 method: 'POST',

@@ -8,6 +8,7 @@ use App\Models\Unit;
 use App\Models\Quiz;
 use App\Models\Teacher;
 use App\Models\Student;
+use App\Models\Rate;
 use App\Models\CourseStudent;
 use App\Models\StudentUnit;
 use Illuminate\Support\Facades\DB;
@@ -52,8 +53,13 @@ class CourseController extends Controller
             $completedUnitIds = [];
             $completedUnitCount = 0;
         }
+        $reviewsCount = Rate::where('course_id', $courseId)->count();
+        $reviews = Rate::where('course_id', $courseId)
+            ->orderBy('created_at', 'desc')
+            ->paginate(5);
+        $reviewsRate = Rate::where('course_id', $courseId)->avg('rate');
 
-        return view('dashboard.admin.show_course', compact('course', 'unitnumber', 'numberstd', 'completedUnitIds', 'completedUnitCount'));
+        return view('dashboard.admin.show_course', compact('course', 'unitnumber', 'numberstd', 'completedUnitIds', 'completedUnitCount', 'reviews', 'reviewsCount', 'reviewsRate'));
     }
 
     public function updateUnitCompletion(Request $request)
@@ -70,6 +76,22 @@ class CourseController extends Controller
                 'updated_at' => Carbon::now(), // Set the current timestamp for updated_at
                 'created_at' => DB::raw('IFNULL(created_at, "' . Carbon::now() . '")') // Only set created_at if it's a new record
             ]
+        );
+
+        return response()->json(['success' => true]);
+    }
+
+    public function rateCourse(Request $request)
+    {
+
+        $courseId = $request->input('course_id');
+        $rating = $request->input('rating');
+        $comment = $request->input('comment');
+        $userId = Auth::user()->id;
+
+        Rate::updateOrInsert(
+            ['user_id' => $userId, 'course_id' => $courseId],
+            ['rate' => $rating, 'comment' => $comment, 'updated_at' => Carbon::now(), 'created_at' => DB::raw('IFNULL(created_at, "' . Carbon::now() . '")')]
         );
 
         return response()->json(['success' => true]);

@@ -31,7 +31,6 @@ class OfferController extends Controller
             'description' => 'required',
             'action_type' => 'required|in:link,email',
             'action_value' => 'required|string|max:255',
-            'is_active' => 'required|boolean',
             'start_date' => 'nullable|date',
             'end_date' => 'nullable|date|after_or_equal:start_date',
             'background_image' => 'required|image|max:2048',
@@ -58,13 +57,13 @@ class OfferController extends Controller
 
     public function update(Request $request, $id)
     {
+
         $validatedData = $request->validate([
             'name' => 'required|string|max:255',
             'title' => 'required|string|max:255',
             'description' => 'required',
             'action_type' => 'required|in:link,email',
             'action_value' => 'required|string|max:255',
-            'is_active' => 'required|boolean',
             'start_date' => 'nullable|date',
             'end_date' => 'nullable|date|after_or_equal:start_date',
             'background_image' => 'nullable|image|max:2048',

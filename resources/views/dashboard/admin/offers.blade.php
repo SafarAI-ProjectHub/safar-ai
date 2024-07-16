@@ -22,14 +22,14 @@
                 <table id="offers-table" class="table table-striped table-bordered">
                     <thead>
                         <tr>
-                            <th>Name</th>
-                            <th>Title</th>
-                            <th>Description</th>
-                            <th>Action Type</th>
-                            <th>Action Value</th>
-                            <th>Is Active</th>
-                            <th>Start Date</th>
-                            <th>End Date</th>
+                            <th>Offer Name</th>
+                            <th>Offer Title</th>
+                            <th>Offer Description</th>
+                            <th>Call to Action Type</th>
+                            <th>Call to Action Value</th>
+                            <th>Active Status</th>
+                            <th>Offer Start Date</th>
+                            <th>Offer End Date</th>
                             <th>Actions</th>
                         </tr>
                     </thead>
@@ -50,42 +50,42 @@
                     </div>
                     <div class="modal-body">
                         <div class="mb-3">
-                            <label for="name" class="form-label">Name</label>
+                            <label for="name" class="form-label">Offer Name</label>
                             <input type="text" class="form-control" id="name" name="name" required>
                         </div>
                         <div class="mb-3">
-                            <label for="title" class="form-label">Title</label>
+                            <label for="title" class="form-label">Offer Title</label>
                             <input type="text" class="form-control" id="title" name="title" required>
                         </div>
                         <div class="mb-3">
-                            <label for="description" class="form-label">Description</label>
+                            <label for="description" class="form-label">Offer Description</label>
                             <textarea class="form-control" id="description" name="description" required></textarea>
                         </div>
                         <div class="mb-3">
-                            <label for="action_type" class="form-label">Action Type</label>
+                            <label for="action_type" class="form-label">Call to Action Type</label>
                             <select class="form-select" id="action_type" name="action_type" required>
                                 <option value="" disabled selected>Select Action Type</option>
-                                <option value="link">Link</option>
-                                <option value="email">Email</option>
+                                <option value="link">Navigate to URL</option>
+                                <option value="email">Send Email</option>
                             </select>
                         </div>
                         <div class="mb-3">
-                            <label for="action_value" class="form-label">Action Value</label>
+                            <label for="action_value" class="form-label">Call to Action Value</label>
                             <input type="text" class="form-control" id="action_value" name="action_value" required>
                         </div>
                         <div class="mb-3">
-                            <label for="is_active" class="form-label">Is Active</label>
+                            <label for="is_active" class="form-label">Active Status</label>
                             <div class="form-check form-switch">
                                 <input class="form-check-input" type="checkbox" id="is_active" name="is_active"
                                     value="1" checked>
                             </div>
                         </div>
                         <div class="mb-3">
-                            <label for="start_date" class="form-label">Start Date</label>
+                            <label for="start_date" class="form-label">Offer Start Date</label>
                             <input type="date" class="form-control" id="start_date" name="start_date">
                         </div>
                         <div class="mb-3">
-                            <label for="end_date" class="form-label">End Date</label>
+                            <label for="end_date" class="form-label">Offer End Date</label>
                             <input type="date" class="form-control" id="end_date" name="end_date">
                         </div>
                         <div class="mb-3">
@@ -123,43 +123,43 @@
                     <div class="modal-body">
                         <input type="hidden" id="edit_offer_id" name="offer_id">
                         <div class="mb-3">
-                            <label for="edit_name" class="form-label">Name</label>
+                            <label for="edit_name" class="form-label">Offer Name</label>
                             <input type="text" class="form-control" id="edit_name" name="name" required>
                         </div>
                         <div class="mb-3">
-                            <label for="edit_title" class="form-label">Title</label>
+                            <label for="edit_title" class="form-label">Offer Title</label>
                             <input type="text" class="form-control" id="edit_title" name="title" required>
                         </div>
                         <div class="mb-3">
-                            <label for="edit_description" class="form-label">Description</label>
+                            <label for="edit_description" class="form-label">Offer Description</label>
                             <textarea class="form-control" id="edit_description" name="description" required></textarea>
                         </div>
                         <div class="mb-3">
-                            <label for="edit_action_type" class="form-label">Action Type</label>
+                            <label for="edit_action_type" class="form-label">Call to Action Type</label>
                             <select class="form-select" id="edit_action_type" name="action_type" required>
                                 <option value="" disabled selected>Select Action Type</option>
-                                <option value="link">Link</option>
-                                <option value="email">Email</option>
+                                <option value="link">Navigate to URL</option>
+                                <option value="email">Send Email</option>
                             </select>
                         </div>
                         <div class="mb-3">
-                            <label for="edit_action_value" class="form-label">Action Value</label>
+                            <label for="edit_action_value" class="form-label">Call to Action Value</label>
                             <input type="text" class="form-control" id="edit_action_value" name="action_value"
                                 required>
                         </div>
                         <div class="mb-3">
-                            <label for="edit_is_active" class="form-label">Is Active</label>
+                            <label for="edit_is_active" class="form-label">Active Status</label>
                             <div class="form-check form-switch">
                                 <input class="form-check-input" type="checkbox" id="edit_is_active" name="is_active"
                                     value="1">
                             </div>
                         </div>
                         <div class="mb-3">
-                            <label for="edit_start_date" class="form-label">Start Date</label>
+                            <label for="edit_start_date" class="form-label">Offer Start Date</label>
                             <input type="date" class="form-control" id="edit_start_date" name="start_date">
                         </div>
                         <div class="mb-3">
-                            <label for="edit_end_date" class="form-label">End Date</label>
+                            <label for="edit_end_date" class="form-label">Offer End Date</label>
                             <input type="date" class="form-control" id="edit_end_date" name="end_date">
                         </div>
                         <div class="mb-3">
@@ -233,6 +233,9 @@
                         data: 'start_date',
                         name: 'start_date',
                         render: function(data, type, row) {
+                            if (data === null) {
+                                return 'No start date';
+                            }
                             return moment(data).format('YYYY-MM-DD');
                         }
                     },
@@ -240,6 +243,9 @@
                         data: 'end_date',
                         name: 'end_date',
                         render: function(data, type, row) {
+                            if (data === null) {
+                                return 'No end date';
+                            }
                             return moment(data).format('YYYY-MM-DD');
                         }
                     },
@@ -256,21 +262,56 @@
             $('[data-toggle="tooltip"]').tooltip();
 
             // Initialize FilePond
-            FilePond.registerPlugin(FilePondPluginFileValidateSize,
-                FilePondPluginFileValidateType);
+            FilePond.registerPlugin(FilePondPluginFileValidateSize, FilePondPluginFileValidateType);
 
-            createpond = FilePond.create(document.querySelector('input#background_image'), {
+            var createpond = FilePond.create(document.querySelector('input#background_image'), {
                 allowFileTypeValidation: true,
                 acceptedFileTypes: ['image/*'],
                 fileValidateTypeLabelExpectedTypes: 'Expected file type: Image'
             });
 
-            editpond = FilePond.create(document.querySelector('input#edit_background_image'), {
+            var editpond = FilePond.create(document.querySelector('input#edit_background_image'), {
                 allowFileTypeValidation: true,
                 acceptedFileTypes: ['image/*'],
                 fileValidateTypeLabelExpectedTypes: 'Expected file type: Image'
             });
 
+
+            // Validate dates
+            function validateDates(startDateInput, endDateInput) {
+                var startDate = moment(startDateInput.val());
+                var endDate = moment(endDateInput.val());
+                var today = moment().startOf('day');
+
+                if (startDate.isBefore(today)) {
+                    alert('Start date must be at least today.');
+                    startDateInput.val('');
+                    return false;
+                }
+
+                if (endDate.isValid() && endDate.isSameOrBefore(startDate)) {
+                    alert('End date must be at least one day after the start date.');
+                    endDateInput.val(startDate.add(1, 'days').format('YYYY-MM-DD'));
+                    return false;
+                }
+
+                return true;
+            }
+
+            // Attach date validation
+            $('#start_date, #edit_start_date').on('change', function() {
+                var startDateInput = $(this);
+                var endDateInput = startDateInput.attr('id') === 'start_date' ? $('#end_date') : $(
+                    '#edit_end_date');
+                validateDates(startDateInput, endDateInput);
+            });
+
+            $('#end_date, #edit_end_date').on('change', function() {
+                var endDateInput = $(this);
+                var startDateInput = endDateInput.attr('id') === 'end_date' ? $('#start_date') : $(
+                    '#edit_start_date');
+                validateDates(startDateInput, endDateInput);
+            });
             // Handle add offer form submission
             $('#addOfferForm').on('submit', function(e) {
                 e.preventDefault();
@@ -284,6 +325,9 @@
                 if (createpond.getFiles().length > 0) {
                     var file = createpond.getFile().file;
                     newform.append('background_image', file);
+                } else {
+                    alert('Please select a background image');
+                    return;
                 }
 
                 $.ajax({
@@ -298,7 +342,8 @@
                         showAlertS('success', 'Offer added successfully!', 'bxs-check-circle');
                     },
                     error: function(response) {
-                        showAlertS('danger', 'Error adding offer', 'bxs-message-square-x');
+                        showAlertS('danger', 'Error : '.response.message,
+                            'bxs-message-square-x');
                     }
                 });
             });
@@ -317,8 +362,9 @@
                         $('#edit_action_type').val(response.action_type);
                         $('#edit_action_value').val(response.action_value);
                         $('#edit_is_active').prop('checked', response.is_active);
-                        $('#edit_start_date').val(response.start_date);
-                        $('#edit_end_date').val(response.end_date);
+                        $('#edit_start_date').val(moment(response.start_date).format(
+                            'YYYY-MM-DD'));
+                        $('#edit_end_date').val(moment(response.end_date).format('YYYY-MM-DD'));
                         $('#edit_alignment').val(response.alignment);
                         $('#editOfferModal').modal('show');
                     }
@@ -330,15 +376,29 @@
                 e.preventDefault();
                 var id = $('#edit_offer_id').val();
                 var formData = new FormData(this);
+                var newform = new FormData();
+
+                formData.forEach((value, key) => {
+                    if (key !== 'background_image') {
+                        newform.append(key, value);
+                    }
+                });
                 if (editpond.getFiles().length > 0) {
                     var file = editpond.getFile().file;
-                    formData.append('background_image', file);
+                    newform.append('background_image', file);
                 }
 
+                newform.append('_token', $('meta[name="csrf-token"]').attr('content'));
+
                 $.ajax({
-                    url: '/admin/offers/' + id,
+                    url: '/admin/offers/' + id + '/update',
                     method: 'POST',
-                    data: formData,
+                    data: newform,
+                    ajaxSetup: {
+                        headers: {
+                            'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
+                        }
+                    },
                     processData: false,
                     contentType: false,
                     success: function(response) {
@@ -348,7 +408,8 @@
                             'bxs-check-circle');
                     },
                     error: function(response) {
-                        showAlertS('danger', 'Error updating offer', 'bxs-message-square-x');
+                        showAlertS('danger', 'Error :'.response.message,
+                            'bxs-message-square-x');
                     }
                 });
             });
@@ -398,6 +459,21 @@
                             'bxs-message-square-x');
                     }
                 });
+            });
+
+            // Change placeholder based on action type
+            $('#action_type, #edit_action_type').change(function() {
+                var selectedType = $(this).val();
+                var actionValueField = $(this).attr('id') === 'action_type' ? '#action_value' :
+                    '#edit_action_value';
+
+                if (selectedType === 'email') {
+                    $(actionValueField).attr('placeholder', 'Enter email address');
+                } else if (selectedType === 'link') {
+                    $(actionValueField).attr('placeholder', 'Enter URL (e.g., https://example.com)');
+                } else {
+                    $(actionValueField).attr('placeholder', '');
+                }
             });
 
             function showAlertS(type, message, icon) {

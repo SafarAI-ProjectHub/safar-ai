@@ -44,4 +44,9 @@ class Course extends Model
     {
         return $this->hasMany(ZoomMeeting::class);
     }
+
+    public function rates()
+    {
+        return $this->hasMany(Rate::class);
+    }
 }

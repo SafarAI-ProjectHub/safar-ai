@@ -25,6 +25,9 @@ use App\Http\Controllers\SubscriptionController;
 use App\Http\Controllers\PayPalWebhookController;
 use App\Http\Controllers\ContactController;
 use App\Models\Teacher;
+use App\Models\Offer;
+use App\Models\Rate;
+use Carbon\Carbon;
 
 Broadcast::routes(['middleware' => ['auth']]);
 
@@ -39,10 +42,28 @@ Broadcast::routes(['middleware' => ['auth']]);
 |
 */
 
+
+
 Route::get('/', function () {
     $teachers = Teacher::with('user')->where('approval_status', 'approved')->get();
-    // dd($teachers->toArray());
-    return view('welcome', compact('teachers'));
+    $currentDateTime = Carbon::now();
+
+    // Fetch active offers that are within the start and end dates
+    $offers = Offer::where('is_active', 1)
+        ->where(function ($query) use ($currentDateTime) {
+            $query->whereNull('start_date')
+                ->orWhere('start_date', '<=', $currentDateTime);
+        })
+        ->where(function ($query) use ($currentDateTime) {
+            $query->whereNull('end_date')
+                ->orWhere('end_date', '>=', $currentDateTime);
+        })
+        ->get();
+    $reviews = Rate::where('rate', '>=', 4)->latest()->limit(5)->get();
+
+
+
+    return view('welcome', compact('teachers', 'offers', 'reviews'));
 });
 
 // PayPal webhook
@@ -141,7 +162,6 @@ Route::middleware(['auth', 'role:Admin|Super Admin'])->prefix('admin')->group(fu
     Route::get('payments', [AdminBillingController::class, 'payments'])->name('admin.payments');
     Route::prefix('subscriptions')->group(function () {
         Route::get('/', [AdminSubscriptionController::class, 'index'])->name('admin.subscriptions.index');
-        Route::get('/create', [AdminSubscriptionController::class, 'create'])->name('admin.subscriptions.create');
         Route::post('/', [AdminSubscriptionController::class, 'store'])->name('admin.subscriptions.store');
         Route::post('/toggle-active/{id}', [AdminSubscriptionController::class, 'toggleActive'])->name('admin.subscriptions.toggleActive');
     });
@@ -173,7 +193,7 @@ Route::middleware(['auth', 'role:Admin|Super Admin'])->prefix('admin')->group(fu
     Route::get('offers', [OfferController::class, 'index'])->name('offers.index');
     Route::post('offers', [OfferController::class, 'store'])->name('offers.store');
     Route::get('offers/{offer}', [OfferController::class, 'show'])->name('offers.show');
-    Route::put('offers/{offer}', [OfferController::class, 'update'])->name('offers.update');
+    Route::post('offers/{offer}/update', [OfferController::class, 'update'])->name('offers.update');
     Route::delete('offers/{offer}', [OfferController::class, 'destroy'])->name('offers.destroy');
     Route::post('offers/{offer}/toggle', [OfferController::class, 'toggle'])->name('offers.toggle');
 
@@ -250,7 +270,7 @@ Route::middleware(['auth', 'role:Student'])->prefix('student')->group(function (
     Route::get('/meetings/{id}', [StudentController::class, 'showMeeting'])->name('student.meetings.show');
 
     // subscriptions
-    Route::post('/subscriptions/create', [SubscriptionController::class, 'create'])->name('subscriptions.create');
+    // Route::post('/subscriptions/create', [SubscriptionController::class, 'create'])->name('subscriptions.create');
     Route::get('subscription/details', [SubscriptionController::class, 'showSubscriptionDetails'])->name('subscription.details');
 
     // unit progress
@@ -292,6 +312,9 @@ Route::middleware(['auth', 'role:Student'])->group(function () {
     Route::get('/student/quizzes/{id}', [StudentQuizController::class, 'showQuiz'])->name('student.quiz.show');
     Route::post('/student/quizzes/{id}/submit', [StudentQuizController::class, 'submitQuiz'])->name('student.quiz.submit');
     Route::get('/quiz/{id}/result', [StudentQuizController::class, 'showQuizResult'])->name('student.quiz.result');
+
+    Route::post('/rate-course', [CourseController::class, 'rateCourse'])->name('course.rate');
+    //Rate Course
 });
 
 

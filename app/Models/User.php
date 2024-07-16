@@ -178,6 +178,10 @@ class User extends Authenticatable
             ->withTimestamps();
     }
 
+    public function rates()
+    {
+        return $this->hasMany(Rate::class);
+    }
     public function zoomMeetings()
     {
         return $this->hasMany(ZoomMeeting::class);
