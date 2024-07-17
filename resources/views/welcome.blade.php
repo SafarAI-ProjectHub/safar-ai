@@ -248,7 +248,7 @@
                             <div class="count-box">
                                 <i class="bi bi-emoji-smile"></i>
                                 <div>
-                                    <span data-purecounter-start="0" data-purecounter-end="232"
+                                    <span data-purecounter-start="0" data-purecounter-end="{{ $totalStudents }}"
                                         data-purecounter-duration="1" class="purecounter"></span>
                                     <p>Satisfied Students</p>
                                 </div>
@@ -259,7 +259,7 @@
                             <div class="count-box">
                                 <i class="bi bi-journal-richtext" style="color: #ee6c20;"></i>
                                 <div>
-                                    <span data-purecounter-start="0" data-purecounter-end="521"
+                                    <span data-purecounter-start="0" data-purecounter-end="{{ $totalCourses }}"
                                         data-purecounter-duration="1" class="purecounter"></span>
                                     <p>Courses Offered</p>
                                 </div>
@@ -270,7 +270,7 @@
                             <div class="count-box">
                                 <i class="bi bi-headset" style="color: #15be56;"></i>
                                 <div>
-                                    <span data-purecounter-start="0" data-purecounter-end="1463"
+                                    <span data-purecounter-start="0" data-purecounter-end="{{ $learningHours }}"
                                         data-purecounter-duration="1" class="purecounter"></span>
                                     <p>Learning Hours</p>
                                 </div>
@@ -281,7 +281,7 @@
                             <div class="count-box">
                                 <i class="bi bi-people" style="color: #bb0852;"></i>
                                 <div>
-                                    <span data-purecounter-start="0" data-purecounter-end="15"
+                                    <span data-purecounter-start="0" data-purecounter-end="{{ $totalTeachers }}"
                                         data-purecounter-duration="1" class="purecounter"></span>
                                     <p>Dedicated Instructors</p>
                                 </div>
@@ -844,16 +844,27 @@
                                 <div class="swiper-slide">
                                     <div class="testimonial-item">
                                         <div class="stars">
-                                            <i class="bi bi-star-fill"></i><i class="bi bi-star-fill"></i><i
-                                                class="bi bi-star-fill"></i><i class="bi bi-star-fill"></i><i
-                                                class="bi bi-star-fill"></i>
+                                            @php
+                                                $rating = $review->rate;
+                                            @endphp
+                                            @for ($i = 1; $i <= 5; $i++)
+                                                @if ($i <= $rating)
+                                                    <i class="bi bi-star-fill"></i>
+                                                @else
+                                                    <i class="bi bi-star"></i>
+                                                @endif
+                                            @endfor
                                         </div>
-                                        <p>{{ $review->comment }}</p>
+
+                                        <p>"{{ $review->comment }}"</p>
+
+                                        <h4>Course:'{{ $review->course->title }}'</h4>
                                         <div class="profile mt-auto">
                                             <img src="{{ asset($review->user->profile_image ? $review->user->profile_image : 'assets/images/avatars/profile-Img.png') }}"
                                                 class="testimonial-img" alt="">
                                             <h4>{{ $timeDiff }}</h4>
                                             <h3>{{ $review->user->full_name }}</h3>
+
                                         </div>
                                     </div>
                                 </div><!-- End testimonial item -->

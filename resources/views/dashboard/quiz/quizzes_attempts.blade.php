@@ -90,7 +90,27 @@
                         orderable: false,
                         searchable: false
                     },
-                ]
+                ],
+                dom: 'Bfrtip',
+                buttons: [{
+                        extend: 'copy',
+                        className: 'btn btn-outline-secondary'
+                    },
+                    {
+                        extend: 'excel',
+                        className: 'btn btn-outline-secondary'
+                    },
+                    {
+                        extend: 'pdf',
+                        className: 'btn btn-outline-secondary'
+                    },
+                    {
+                        extend: 'print',
+                        className: 'btn btn-outline-secondary'
+                    }
+                ],
+
+                lengthChange: false
             });
 
             // Handle course filter change

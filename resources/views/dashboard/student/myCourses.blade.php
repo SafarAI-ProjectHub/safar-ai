@@ -67,11 +67,12 @@
                                                 <circle class="st0" cx="-261.5" cy="384.7" r="45.9"></circle>
                                                 <path class="st1"
                                                     d="M-272.9,363.2l35.8,20.7c0.7,0.4,0.7,1.3,0,1.7l-35.8,20.7c-0.7,0.4-1.5-0.1-1.5-0.9V364
-                                                                                                                                            C-274.4,363.3-273.5,362.8-272.9,363.2z">
+                                                                                                                                                            C-274.4,363.3-273.5,362.8-272.9,363.2z">
                                                 </path>
                                             </g>
                                         </svg>
                                     </div>
+
                                 </a>
                             </div>
                             <!-- end card-image -->
@@ -100,7 +101,32 @@
                                         <!-- End Skill Bar -->
                                     </div>
                                     <div class="skill-bar-percent text-nowrap">{{ $course->progress }}%</div>
+
+
                                 </div>
+                                <dev class="rating-wrap d-flex align-items-center justify-content-between pt-3">
+                                    <div class="review-stars">
+                                        @php
+                                            $rating = $course->RateAvg();
+                                            $fullStars = floor($rating);
+                                            $halfStar = $rating - $fullStars >= 0.5 ? true : false;
+                                            $emptyStars = 5 - $fullStars - ($halfStar ? 1 : 0);
+                                        @endphp
+
+                                        @for ($i = 0; $i < $fullStars; $i++)
+                                            <span class="la la-star"></span>
+                                        @endfor
+
+                                        @if ($halfStar)
+                                            <span class="la la-star-half-o"></span>
+                                        @endif
+
+                                        @for ($i = 0; $i < $emptyStars; $i++)
+                                            <span class="la la-star-o"></span>
+                                        @endfor
+                                    </div>
+                                </dev>
+
                                 <a href="{{ route('admin.showcourse', $course->id) }}"
                                     class="btn btn-primary mt-3 d-block">View Course</a>
                             </div>

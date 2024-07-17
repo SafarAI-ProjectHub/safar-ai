@@ -470,8 +470,28 @@
 
                                     <div class="tab-pane fade" id="reviews" role="tabpanel"
                                         aria-labelledby="reviews-tab">
-                                        <div class="new-question-body pt-40px">
+                                        <div class="new-question-body pt-40px d-flex justify-content-between">
                                             <h3 class="fs-20 font-weight-semi-bold">Reviews ({{ $reviewsCount }})</h3>
+                                            <h4>
+                                                Average Rating:
+                                                @if ($reviewsRate > 0)
+                                                    @for ($i = 1; $i <= 5; $i++)
+                                                        @if ($i <= floor($reviewsRate))
+                                                            <i class='bx bxs-star' style='color:#ffcc00'></i>
+                                                        @elseif ($i == ceil($reviewsRate) && $reviewsRate > floor($reviewsRate))
+                                                            <i class='bx bxs-star-half' style='color:#ffcc00'></i>
+                                                        @else
+                                                            <i class='bx bx-star' style='color:#ffcc00'></i>
+                                                        @endif
+                                                    @endfor
+                                                @else
+                                                    @for ($i = 1; $i <= 5; $i++)
+                                                        <i class='bx bx-star' style='color:#ffcc00'></i>
+                                                    @endfor
+                                                @endif
+
+                                            </h4>
+
                                         </div>
 
                                         @if ($reviews->isEmpty())
@@ -590,8 +610,11 @@
                                         @endif
                                     </div>
 
-                                </div><!-- end lecture-video-detail -->
-                                <div class="cta-area py-4 bg-gray">
+                                </div>
+                                <div class="section-block"></div>
+                                <div class="section-block"></div>
+                                <div class="section-block"></div><!-- end lecture-video-detail -->
+                                {{-- <div class="cta-area py-4 bg-gray">
                                     <div class="container-fluid">
                                         <div class="row align-items-center">
                                             <div class="col-lg-6">
@@ -618,7 +641,7 @@
                                             </div><!-- end col-lg-6 -->
                                         </div><!-- end row -->
                                     </div><!-- end container-fluid -->
-                                </div><!-- end cta-area -->
+                                </div><!-- end cta-area --> --}}
                                 <div class="footer-area pt-50px">
                                     <div class="container-fluid">
                                         <div class="row">
@@ -1225,30 +1248,30 @@
         });
 
         $(document).ready(function() {
-    // Check if the URL contains ?page=
-    if (window.location.search.indexOf('page=') > -1) {
-        // Activate the reviews tab
-        $('#reviews-tab').tab('show');
-    }
+            // Check if the URL contains ?page=
+            if (window.location.search.indexOf('page=') > -1) {
+                // Activate the reviews tab
+                $('#reviews-tab').tab('show');
+            }
 
-    // Handle pagination links click
-    $(document).on('click', '.pagination a', function(e) {
-        e.preventDefault();
-        var url = $(this).attr('href');
-        getReviews(url);
-        window.history.pushState("", "", url);
-    });
+            // Handle pagination links click
+            $(document).on('click', '.pagination a', function(e) {
+                e.preventDefault();
+                var url = $(this).attr('href');
+                getReviews(url);
+                window.history.pushState("", "", url);
+            });
 
-    function getReviews(url) {
-        $.ajax({
-            url: url,
-            type: 'GET',
-            dataType: 'html',
-            success: function(data) {
-                $('#reviews').html($(data).find('#reviews').html());
+            function getReviews(url) {
+                $.ajax({
+                    url: url,
+                    type: 'GET',
+                    dataType: 'html',
+                    success: function(data) {
+                        $('#reviews').html($(data).find('#reviews').html());
+                    }
+                });
             }
         });
-    }
-});
     </script>
 @endsection

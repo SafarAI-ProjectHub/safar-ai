@@ -58,6 +58,10 @@ class CourseController extends Controller
             ->orderBy('created_at', 'desc')
             ->paginate(5);
         $reviewsRate = Rate::where('course_id', $courseId)->avg('rate');
+        if ($reviewsRate == null) {
+            $reviewsRate = 0;
+        }
+
 
         return view('dashboard.admin.show_course', compact('course', 'unitnumber', 'numberstd', 'completedUnitIds', 'completedUnitCount', 'reviews', 'reviewsCount', 'reviewsRate'));
     }

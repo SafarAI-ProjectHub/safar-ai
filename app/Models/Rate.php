@@ -9,7 +9,12 @@ class Rate extends Model
 {
     use HasFactory;
 
-    protected $fillable = ['user_id', 'course_id', 'rate', 'comment'];
+    protected $fillable = [
+        'user_id',
+        'course_id',
+        'rate',
+        'comment'
+    ];
 
     public function user()
     {

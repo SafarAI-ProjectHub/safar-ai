@@ -70,10 +70,13 @@ class StudentController extends Controller
             $courses = Course::where('level', $user->student->english_proficiency_level)
                 ->where('category_id', $category->id)
                 ->get();
+            foreach ($courses as $course) {
+                $course->number_of_students = CourseStudent::where('course_id', $course->id)->count();
+            }
         } else {
             $courses = collect();
         }
-        // $courses = Course::all();
+
         $subscription = UserSubscription::where('user_id', Auth::id())->first();
         $enrolledCourseIds = Auth::user()->courses ? Auth::user()->courses->pluck('id')->toArray() : [];
         $planDetails = \App\Models\Subscription::where('is_active', 1)->first();

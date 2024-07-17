@@ -12,6 +12,7 @@ use App\Http\Controllers\CertificateController;
 use App\Http\Controllers\TeacherController;
 use App\Http\Controllers\AdminBillingController;
 use App\Http\Controllers\StudentController;
+use App\Http\Controllers\RateController;
 use App\Http\Controllers\ZoomMeetingController;
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\CourseController;
@@ -24,10 +25,8 @@ use Illuminate\Support\Facades\Broadcast;
 use App\Http\Controllers\SubscriptionController;
 use App\Http\Controllers\PayPalWebhookController;
 use App\Http\Controllers\ContactController;
-use App\Models\Teacher;
-use App\Models\Offer;
-use App\Models\Rate;
-use Carbon\Carbon;
+use App\Http\Controllers\HomeController;
+
 
 Broadcast::routes(['middleware' => ['auth']]);
 
@@ -44,27 +43,8 @@ Broadcast::routes(['middleware' => ['auth']]);
 
 
 
-Route::get('/', function () {
-    $teachers = Teacher::with('user')->where('approval_status', 'approved')->get();
-    $currentDateTime = Carbon::now();
 
-    // Fetch active offers that are within the start and end dates
-    $offers = Offer::where('is_active', 1)
-        ->where(function ($query) use ($currentDateTime) {
-            $query->whereNull('start_date')
-                ->orWhere('start_date', '<=', $currentDateTime);
-        })
-        ->where(function ($query) use ($currentDateTime) {
-            $query->whereNull('end_date')
-                ->orWhere('end_date', '>=', $currentDateTime);
-        })
-        ->get();
-    $reviews = Rate::where('rate', '>=', 4)->latest()->limit(5)->get();
-
-
-
-    return view('welcome', compact('teachers', 'offers', 'reviews'));
-});
+Route::get('/', [HomeController::class, 'index']);
 
 // PayPal webhook
 Route::post('/paypal/webhook', [PayPalWebhookController::class, 'handleWebhook'])->name('paypal.webhook');
@@ -196,6 +176,11 @@ Route::middleware(['auth', 'role:Admin|Super Admin'])->prefix('admin')->group(fu
     Route::post('offers/{offer}/update', [OfferController::class, 'update'])->name('offers.update');
     Route::delete('offers/{offer}', [OfferController::class, 'destroy'])->name('offers.destroy');
     Route::post('offers/{offer}/toggle', [OfferController::class, 'toggle'])->name('offers.toggle');
+
+    // Rates/Reviews
+    Route::get('/reviews', [RateController::class, 'index'])->name('admin.reviews.index');
+    Route::delete('reviews/{rate}', [RateController::class, 'destroy'])->name('rates.destroy');
+
 
 });
 
