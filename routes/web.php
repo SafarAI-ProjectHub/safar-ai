@@ -8,6 +8,7 @@ use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\AdminController;
 use App\Http\Controllers\CliqController;
 use App\Http\Controllers\QuizController;
+use App\Http\Controllers\ContractController;
 use App\Http\Controllers\CertificateController;
 use App\Http\Controllers\TeacherController;
 use App\Http\Controllers\AdminBillingController;
@@ -26,6 +27,7 @@ use App\Http\Controllers\SubscriptionController;
 use App\Http\Controllers\PayPalWebhookController;
 use App\Http\Controllers\ContactController;
 use App\Http\Controllers\HomeController;
+use App\Http\Controllers\PermissionController;
 
 
 Broadcast::routes(['middleware' => ['auth']]);
@@ -97,7 +99,6 @@ Route::middleware(['auth', 'role:Admin|Super Admin'])->prefix('admin')->group(fu
     Route::delete('student/{id}/delete', [AdminController::class, 'deleteStudent'])->name('admin.student.delete');
 
     // Courses
-    Route::post('courses/store', [AdminController::class, 'storeCourse'])->name('admin.storeCourse');
     Route::get('/teachers/for-assignment', [AdminController::class, 'getTeachersForAssignment'])->name('admin.getTeachersForAssignment');
     Route::post('/courses/assign-teacher', [AdminController::class, 'assignTeacherToCourse'])->name('admin.assignTeacherToCourse');
 
@@ -180,8 +181,6 @@ Route::middleware(['auth', 'role:Admin|Super Admin'])->prefix('admin')->group(fu
     // Rates/Reviews
     Route::get('/reviews', [RateController::class, 'index'])->name('admin.reviews.index');
     Route::delete('reviews/{rate}', [RateController::class, 'destroy'])->name('rates.destroy');
-
-
 });
 
 // Routes for Super Admin, Admin, and Teacher
@@ -190,6 +189,7 @@ Route::middleware(['auth', 'role:Super Admin|Admin|Teacher'])->group(function ()
     Route::get('courses', [AdminController::class, 'courses'])->name('admin.courses');
     Route::get('courses/data', [AdminController::class, 'getCourses'])->name('admin.getCourses');
     Route::post('/courses/{course}/toggle-complete', [AdminController::class, 'toggleComplete'])->name('courses.toggleComplete');
+    Route::post('courses/store', [AdminController::class, 'storeCourse'])->name('admin.storeCourse');
 
     // Units
     Route::get('courses/{courseId}/units', [AdminController::class, 'showUnits'])->name('admin.showUnits');
@@ -232,9 +232,6 @@ Route::middleware(['auth', 'role:Super Admin|Admin|Teacher'])->group(function ()
     Route::get('zoom-meetings/{zoomMeeting}/edit', [ZoomMeetingController::class, 'edit'])->name('zoom-meetings.edit');
     Route::put('zoom-meetings/{zoomMeeting}', [ZoomMeetingController::class, 'update'])->name('zoom-meetings.update');
     Route::delete('zoom-meetings/{zoomMeeting}', [ZoomMeetingController::class, 'destroy'])->name('zoom-meetings.destroy');
-
-
-
 });
 
 // Routes for Teacher and Super Admin
@@ -316,6 +313,11 @@ Route::middleware(['auth'])->group(function () {
 });
 
 
+Route::middleware(['auth', 'role:Admin|Super Admin'])->group(function () {
+    // Permissions
+    Route::get('/manage-permissions', [PermissionController::class, 'index'])->name('manage.permissions');
+    Route::post('/manage-permissions', [PermissionController::class, 'update'])->name('manage.permissions.update');
+});
 
 // routes/web.php
 
@@ -327,3 +329,14 @@ Route::get('/Home', [StudentController::class, 'index'])->name('student.level_te
 // webhooks
 Route::get('/paypal/return', [SubscriptionController::class, 'handleReturn'])->name('paypal.return');
 Route::get('/paypal/cancel', [SubscriptionController::class, 'handleCancel'])->name('paypal.cancel');
+
+
+Route::middleware(['auth', 'role:Admin|Super Admin'])->group(function () {
+    Route::get('/contracts', [ContractController::class, 'index'])->name('contracts.index');
+    Route::get('/contracts/create', [ContractController::class, 'create'])->name('contracts.create');
+    Route::post('/contracts', [ContractController::class, 'store'])->name('contracts.store');
+    Route::get('/contracts/{contract}', [ContractController::class, 'show'])->name('contracts.show');
+    Route::get('/contracts/{contract}/edit', [ContractController::class, 'edit'])->name('contracts.edit');
+    Route::put('/contracts/{contract}', [ContractController::class, 'update'])->name('contracts.update');
+    Route::delete('/contracts/{contract}', [ContractController::class, 'destroy'])->name('contracts.destroy');
+});

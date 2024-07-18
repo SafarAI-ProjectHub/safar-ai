@@ -399,6 +399,9 @@ class AdminController extends Controller
         $course->level = $request->level;
         $course->type = $request->type;
         $course->image = $imagePath;
+        if (Auth::user()->hasRole('Teacher')) {
+            $course->teacher_id = Auth::user()->teacher->id;
+        }
         $course->save();
 
         return response()->json(['success' => 'Course added successfully']);

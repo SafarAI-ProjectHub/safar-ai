@@ -14,6 +14,7 @@ use App\Models\LevelTest;
 use App\Models\Teacher;
 use Spatie\Permission\Models\Role;
 use Illuminate\Support\Facades\Auth;
+use App\Models\CourseCategory;
 use Yajra\DataTables\DataTables;
 use App\Models\User;
 use App\Services\ZoomService;
@@ -43,7 +44,7 @@ class TeacherController extends Controller
                 return view('dashboard.teacher.pending_approval');
 
             }
-            
+
             return redirect()->route('teacher.courses');
         } else {
             abourt(403, 'Unauthorized action.');
@@ -59,9 +60,15 @@ class TeacherController extends Controller
 
     public function getCourses()
     {
-        $teacherId = Teacher::where('teacher_id', Auth::id())->first()->id;
-        $courses = Course::where('teacher_id', $teacherId)->get();
-        return view('dashboard.admin.courses', compact('courses'));
+        if (auth()->user()->hasRole('Teacher')) {
+            $teacherId = Teacher::where('teacher_id', auth()->id())->first()->id;
+            $courses = Course::where('teacher_id', $teacherId)->get();
+            $categories = CourseCategory::all();
+            return view('dashboard.admin.courses', compact('courses', 'categories'));
+        } else {
+            abort(403, 'Unauthorized action.');
+        }
+
     }
 
     public function getStudentProfiles(Request $request)

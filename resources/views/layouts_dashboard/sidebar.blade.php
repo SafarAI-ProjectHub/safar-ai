@@ -160,6 +160,15 @@
                                 </div>
                             </a>
                         </li>
+                        @hasanyrole('Super Admin|Admin')
+                            <li>
+                                <a href="{{ route('manage.permissions') }}">
+                                    <div class="parent-icon"><i class="bx bx-lock"></i></div>
+                                    <div class="menu-title">Create Course Permissions</div>
+                                </a>
+                            </li>
+                        @endhasanyrole
+
                         <li>
                             <a href="{{ route('quizzes.index') }}">
                                 <div class="parent-icon"><i class="bx bx-brain"></i></div>
@@ -178,6 +187,14 @@
                                 <div class="menu-title">Quiz Results</div>
                             </a>
                         </li>
+                        @hasanyrole('Super Admin|Admin')
+                            <li>
+                                <a href="{{ route('admin.reviews.index') }}">
+                                    <div class="parent-icon"><i class="bx bx-star"></i></div>
+                                    <div class="menu-title">Reviews</div>
+                                </a>
+                            </li>
+                        @endhasanyrole
                     </ul>
                 </li>
             @endif

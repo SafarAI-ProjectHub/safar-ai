@@ -1,5 +1,9 @@
 @extends('layouts_dashboard.main')
 
+@section('styles')
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css">
+@endsection
+
 @section('content')
     <div class="card">
         <div class="card-body">
@@ -32,6 +36,7 @@
 @endsection
 
 @section('scripts')
+    <script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
     <script>
         $(document).ready(function() {
             var table = $('#students-table').DataTable({
@@ -90,7 +95,10 @@
                 }],
                 lengthChange: false
             });
-
+            $('#course-filter').select2({
+                placeholder: 'Select Course',
+                allowClear: true
+            });
             $('#course-filter').change(function() {
                 table.draw();
             });

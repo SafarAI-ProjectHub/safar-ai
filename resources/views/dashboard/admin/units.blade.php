@@ -14,6 +14,11 @@
 
             overflow-y: auto;
         }
+
+        .alert-info,
+        .alert-success {
+            z-index: 0 !important;
+        }
     </style>
 @endsection
 
@@ -21,6 +26,11 @@
     <div class="card">
         <div class="card-body">
             <h5>Units for Course: <a href="{{ route('admin.courses') }}">{{ $course->title }}</a></h5>
+            <div class="alert alert-info" role="alert">
+                {{-- note to check the script to make sure that the ai wote corect script about the video or the text becuze the corectines of the ai when checking the student answers on thr quizes will be based on the script corectness --}}
+                <strong>Note:</strong> The script is used by the AI to check the correctness of student answers in quizzes.
+                please make sure the script is accurate.
+            </div>
             @if ($course->completed)
                 <div class="alert alert-success" role="alert">
                     This course is marked as completed. You can no longer add units to it.
@@ -35,6 +45,7 @@
                 <table id="units-table" class="table table-striped table-bordered">
                     <thead>
                         <tr>
+                            <th>#</th>
                             <th>Title</th>
                             <th>Subtitle</th>
                             <th>Content Type</th>
@@ -190,6 +201,10 @@
                 serverSide: true,
                 ajax: '{{ route('admin.getUnits', $course->id) }}',
                 columns: [{
+                        data: 'id',
+                        name: 'id'
+                    },
+                    {
                         data: 'title',
                         name: 'title'
                     },
@@ -218,6 +233,10 @@
                         }
                     }
                 ],
+                columnDefs: [{
+                    visible: false,
+                    targets: 0
+                }],
                 dom: 'Bfrtip',
                 buttons: [{
                         extend: 'copy',

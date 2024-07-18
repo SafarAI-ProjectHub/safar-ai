@@ -12,7 +12,7 @@
     <link rel="stylesheet" href="{{ asset('css/style.css') }}">
     <style>
         .card.card-item {
-            height: 500px;
+            height: 515px;
         }
 
         .card-text.description {
@@ -67,7 +67,7 @@
                                                 <circle class="st0" cx="-261.5" cy="384.7" r="45.9"></circle>
                                                 <path class="st1"
                                                     d="M-272.9,363.2l35.8,20.7c0.7,0.4,0.7,1.3,0,1.7l-35.8,20.7c-0.7,0.4-1.5-0.1-1.5-0.9V364
-                                                                                                                                                            C-274.4,363.3-273.5,362.8-272.9,363.2z">
+                                                                                                                                                                C-274.4,363.3-273.5,362.8-272.9,363.2z">
                                                 </path>
                                             </g>
                                         </svg>

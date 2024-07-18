@@ -17,16 +17,17 @@
     <div class="card">
         <div class="card-body">
             <h5>Courses List</h5>
-            @hasanyrole('Super Admin|Admin')
+            @can('create courses')
                 <div class="d-flex justify-content-end mb-3">
                     <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#addCourseModal">Add New
                         Course</button>
                 </div>
-            @endhasanyrole
+            @endcan
             <div class="table-responsive">
                 <table id="courses-table" class="table table-striped table-bordered">
                     <thead>
                         <tr>
+                            <th>#</th>
                             <th>Title</th>
                             <th>Description</th>
                             <th>Category</th>
@@ -42,7 +43,7 @@
         </div>
     </div>
 
-    @hasanyrole('Super Admin|Admin')
+    @can('create courses')
         <!-- Add Course Modal -->
         <div class="modal fade" id="addCourseModal" tabindex="-1" aria-hidden="true">
             <div class="modal-dialog modal-dialog-scrollable">
@@ -102,7 +103,7 @@
                 </div>
             </div>
         </div>
-    @endhasanyrole
+    @endcan
 
     @hasanyrole('Super Admin|Admin')
         <!-- Assign Teacher Modal -->
@@ -149,6 +150,10 @@
                 serverSide: true,
                 ajax: '{{ route('admin.getCourses') }}',
                 columns: [{
+                        data: 'id',
+                        name: 'id',
+
+                    }, {
                         data: 'title',
                         name: 'title'
                     },
@@ -195,6 +200,10 @@
                         searchable: false
                     }
                 ],
+                columnDefs: [{
+                    visible: false,
+                    targets: 0
+                }],
                 dom: 'Bfrtip',
                 buttons: [{
                         extend: 'copy',
