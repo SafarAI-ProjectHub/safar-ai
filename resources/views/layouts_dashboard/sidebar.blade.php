@@ -115,7 +115,12 @@
                             <div class="menu-title">Approved Teachers</div>
                         </a>
                     </li>
-
+                    <li>
+                        <a href="{{ route('contracts.index') }}">
+                            <div class="parent-icon"><i class="bx bx-file-find"></i></div>
+                            <div class="menu-title">Contracts</div>
+                        </a>
+                    </li>
                     <li>
                         <a href="{{ route('admin.getTeachersAssessments') }}">
                             <div class="parent-icon"><i class="bx bxs-graduation"></i></div>

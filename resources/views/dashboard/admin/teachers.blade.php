@@ -7,12 +7,12 @@
                 <table id="teachers-table" class="table table-striped table-bordered">
                     <thead>
                         <tr>
+                            <th>#</th>
                             <th>Full Name</th>
                             <th>Email</th>
                             <th>Phone Number</th>
                             <th>CV Link</th>
                             <th>Years of Experience</th>
-                            <th>Exam Score</th>
                             <th>Country Location</th>
                             <th>Approval Status</th>
                             <th>Actions</th>
@@ -124,6 +124,10 @@
                 serverSide: true,
                 ajax: '{{ route('admin.getteachers') }}',
                 columns: [{
+                        data: 'id',
+                        name: 'id'
+                    },
+                    {
                         data: 'full_name',
                         name: 'full_name'
                     },
@@ -144,10 +148,6 @@
                         name: 'years_of_experience'
                     },
                     {
-                        data: 'exam_score',
-                        name: 'exam_score'
-                    },
-                    {
                         data: 'country_location',
                         name: 'country_location'
                     },
@@ -163,7 +163,7 @@
                     }
                 ],
                 columnDefs: [{
-                    targets: 8,
+                    targets: 7,
                     width: '25%'
                 }],
                 dom: 'Bfrtip',
@@ -250,18 +250,11 @@
                             },
                             success: function(response) {
                                 table.ajax.reload();
-                                Swal.fire(
-                                    'Deleted!',
-                                    'Teacher has been deleted.',
-                                    'success'
-                                )
+                                Swal.fire('Deleted!', 'Teacher has been deleted.',
+                                    'success');
                             },
                             error: function(response) {
-                                Swal.fire(
-                                    'Error!',
-                                    'Error deleting teacher',
-                                    'error'
-                                )
+                                Swal.fire('Error!', 'Error deleting teacher', 'error');
                             }
                         });
                     }
@@ -297,12 +290,22 @@
                         $('#statusModal').modal('hide');
                         table.ajax.reload();
                         showAlert('success', 'Status updated successfully!',
-                        'bxs-check-circle');
+                            'bxs-check-circle');
                     },
                     error: function(response) {
                         showAlert('danger', 'Error updating status', 'bxs-message-square-x');
                     }
                 });
+            });
+
+            $('#teachers-table').on('click', '.create-contract', function() {
+                var teacherId = $(this).data('id');
+                window.location.href = '/admin/contracts/create/' + teacherId;
+            });
+
+            $('#teachers-table').on('click', '.edit-contract', function() {
+                var contractId = $(this).data('id');
+                window.location.href = '/admin/contracts/' + contractId + '/edit';
             });
 
             function showAlert(type, message, icon) {
@@ -318,8 +321,7 @@
                         </div>
                     </div>
                     <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
-                </div>
-            `;
+                </div>`;
                 $('body').append(alertHtml);
                 setTimeout(function() {
                     $('.alert').alert('close');

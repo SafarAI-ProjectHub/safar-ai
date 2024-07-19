@@ -11,13 +11,18 @@ class CreateContractsTable extends Migration
         Schema::create('contracts', function (Blueprint $table) {
             $table->id();
             $table->unsignedBigInteger('teacher_id');
-            $table->string('company_name')->default('Safar AI');
             $table->string('other_party_name');
-            $table->date('contract_date');
-            $table->string('company_logo')->default('assets/img/logo2.png');
+            $table->date('contract_date')->nullable();
             $table->decimal('salary', 10, 2);
+            $table->enum('salary_period', ['hour', 'week', 'month']);
+            $table->longText('contract_agreement');
+            $table->longText('employee_duties');
+            $table->longText('responsibilities');
+            $table->longText('employment_period');
+            $table->longText('compensation');
+            $table->longText('legal_terms');
             $table->text('signature')->nullable();
-            $table->enum('status', ['Pending', 'Approved', 'Completed'])->default('Pending');
+            $table->enum('status', ['Pending', 'Approved'])->default('Pending');
             $table->timestamps();
 
             $table->foreign('teacher_id')->references('id')->on('users')->onDelete('cascade');

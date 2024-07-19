@@ -181,6 +181,15 @@ Route::middleware(['auth', 'role:Admin|Super Admin'])->prefix('admin')->group(fu
     // Rates/Reviews
     Route::get('/reviews', [RateController::class, 'index'])->name('admin.reviews.index');
     Route::delete('reviews/{rate}', [RateController::class, 'destroy'])->name('rates.destroy');
+
+    // contract
+
+    Route::get('contracts', [ContractController::class, 'index'])->name('contracts.index');
+    Route::get('contracts/{id}', [ContractController::class, 'show']);
+    Route::get('contracts/create/{teacherId}', [ContractController::class, 'create'])->name('contracts.create');
+    Route::post('contracts', [ContractController::class, 'store'])->name('contracts.store');
+    Route::get('contracts/{contractId}/edit', [ContractController::class, 'edit'])->name('contracts.edit');
+    Route::put('contracts/{contractId}', [ContractController::class, 'update'])->name('contracts.update');
 });
 
 // Routes for Super Admin, Admin, and Teacher
@@ -242,6 +251,12 @@ Route::middleware(['auth', 'role:Teacher|Super Admin'])->prefix('teacher')->grou
     Route::get('quiz-results/{courseId}', [TeacherController::class, 'getStudentQuizResults'])->name('teacher.quizResults');
     Route::get('student-profiles', [TeacherController::class, 'getStudentProfiles'])->name('teacher.getStudentProfiles');
     Route::get('student-profiles/{id}', [TeacherController::class, 'showStudentProfile'])->name('teacher.showStudentProfile');
+
+    // My contract 
+
+    Route::get('my-contract', [ContractController::class, 'myContract'])->name('contracts.myContract');
+    Route::post('my-contract/sign', [ContractController::class, 'signContract'])->name('contracts.signContract');
+
 });
 
 // Routes for Students and Super Admin
@@ -329,14 +344,3 @@ Route::get('/Home', [StudentController::class, 'index'])->name('student.level_te
 // webhooks
 Route::get('/paypal/return', [SubscriptionController::class, 'handleReturn'])->name('paypal.return');
 Route::get('/paypal/cancel', [SubscriptionController::class, 'handleCancel'])->name('paypal.cancel');
-
-
-Route::middleware(['auth', 'role:Admin|Super Admin'])->group(function () {
-    Route::get('/contracts', [ContractController::class, 'index'])->name('contracts.index');
-    Route::get('/contracts/create', [ContractController::class, 'create'])->name('contracts.create');
-    Route::post('/contracts', [ContractController::class, 'store'])->name('contracts.store');
-    Route::get('/contracts/{contract}', [ContractController::class, 'show'])->name('contracts.show');
-    Route::get('/contracts/{contract}/edit', [ContractController::class, 'edit'])->name('contracts.edit');
-    Route::put('/contracts/{contract}', [ContractController::class, 'update'])->name('contracts.update');
-    Route::delete('/contracts/{contract}', [ContractController::class, 'destroy'])->name('contracts.destroy');
-});

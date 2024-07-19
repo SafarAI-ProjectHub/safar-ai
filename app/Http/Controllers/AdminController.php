@@ -212,9 +212,12 @@ class AdminController extends Controller
     public function getTeachers(Request $request)
     {
         if ($request->ajax()) {
-            $data = Teacher::with('user')->where('approval_status', 'approved')->get();
+            $data = Teacher::with('user', 'user.contract')->where('approval_status', 'approved')->get();
 
             return DataTables::of($data)
+                ->addColumn('id', function ($row) {
+                    return $row->id;
+                })
                 ->addColumn('full_name', function ($row) {
                     return $row->user->first_name . ' ' . $row->user->last_name;
                 })
@@ -230,9 +233,29 @@ class AdminController extends Controller
                 ->addColumn('cv_link', function ($row) {
                     return $row->cv_link ? '<a href="' . asset($row->cv_link) . '" class="view-cv" target="_blank">View CV</a>' : 'No CV';
                 })
+                ->addColumn('exam_result', function ($teacher) {
+                    if ($teacher->user->levelTestAssessments()->exists()) {
+                        return '<button class="btn btn-primary btn-sm view-assessment" data-id="' . $teacher->user->id . '">View Result</button>';
+                    } else {
+                        return 'No attempt yet';
+                    }
+                })
                 ->addColumn('actions', function ($row) {
-                    return '<div class="d-flex justify-content-around gap-2" ><button class="btn btn-warning btn-sm edit-teacher" data-id="' . $row->id . '">Edit</button>' .
-                        '<button class="btn btn-danger btn-sm delete-teacher" data-id="' . $row->id . '">Delete</button> </div>';
+                    // dd($row->user . " " . $row->id);
+                    if ($row->user->contract) {
+
+                        return '<div class="d-flex justify-content-around gap-2">
+                                    <a href="#" class="btn btn-info edit-contract text-white" data-id="' . $row->user->contract->id . '">Edit Contract</a>
+                                    <button class="btn btn-warning btn-sm edit-teacher" data-id="' . $row->id . '">Edit</button>' .
+                            '<button class="btn btn-danger btn-sm delete-teacher" data-id="' . $row->id . '">Delete</button> </div>
+                                </div>';
+                    } else {
+                        return '<div class="d-flex justify-content-around gap-2">
+                                    <a href="#" class="btn btn-primary create-contract" data-id="' . $row->user->id . '">Create Contract</a>
+                                    <button class="btn btn-warning btn-sm edit-teacher" data-id="' . $row->id . '">Edit</button>' .
+                            '<button class="btn btn-danger btn-sm delete-teacher" data-id="' . $row->id . '">Delete</button> </div>
+                                </div>';
+                    }
                 })
                 ->rawColumns(['cv_link', 'actions'])
                 ->make(true);
@@ -253,9 +276,8 @@ class AdminController extends Controller
             'first_name' => 'required|string|max:255',
             'last_name' => 'required|string|max:255',
             'email' => 'required|string|email|max:255',
-            'phone_number' => 'required|string|max:15',
+            'phone_number' => 'required|string|max:20',
             'country_location' => 'required|string|max:255',
-            // 'cv_link' => 'nullable|string|max:255',
         ]);
 
         if ($validator->fails()) {
@@ -273,9 +295,7 @@ class AdminController extends Controller
             'country_location' => $request->country_location,
         ]);
 
-        // $teacher->update([
-        //     'cv_link' => $request->cv_link,
-        // ]);
+
 
         return response()->json(['message' => 'Teacher updated successfully']);
     }
@@ -284,8 +304,8 @@ class AdminController extends Controller
     {
         try {
             $teacher = Teacher::findOrFail($id);
-            $teacher->user()->delete(); // Assuming the user relationship is defined in the Teacher model
-            $teacher->delete(); // Deletes the teacher
+            $teacher->user()->delete();
+            $teacher->delete();
 
             return response()->json(['message' => 'Teacher deleted successfully']);
         } catch (\Exception $e) {

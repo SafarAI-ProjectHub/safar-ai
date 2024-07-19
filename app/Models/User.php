@@ -206,4 +206,10 @@ class User extends Authenticatable
             return '18+';
         }
     }
+
+    public function contract()
+    {
+        return $this->hasOne(Contract::class, 'teacher_id');
+    }
+
 }

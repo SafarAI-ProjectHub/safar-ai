@@ -14,15 +14,17 @@ class Contract extends Model
         'company_name',
         'other_party_name',
         'contract_date',
-        'company_logo',
         'salary',
-        'signature'
+        'salary_period',
+        'contract_agreement',
+        'employee_duties',
+        'responsibilities',
+        'employment_period',
+        'compensation',
+        'legal_terms',
+        'signature',
+        'status'
     ];
-
-    public function rules()
-    {
-        return $this->hasMany(ContractRule::class);
-    }
 
     public function teacher()
     {
