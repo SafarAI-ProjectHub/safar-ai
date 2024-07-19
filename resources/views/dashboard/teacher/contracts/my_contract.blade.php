@@ -203,11 +203,13 @@
 @endsection
 
 @section('content')
-    <div class="card">
-        <h3>Notes</h3>
-        <p>1. Please read the contract carefully before signing.</p>
-        <p>2. If you have any questions, please contact us at chat below.</p>
-    </div>
+    @if (!$contract->signature)
+        <div class="card">
+            <h3>Notes</h3>
+            <p>1. Please read the contract carefully before signing.</p>
+            <p>2. If you have any questions, please contact us at chat below.</p>
+        </div>
+    @endif
     <div class="contract-container">
         <div class="contract-header">
             <img src="{{ asset('assets/img/logo2.png') }}" id="company-logo" alt="Company Logo" class="contract-logo">
