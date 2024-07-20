@@ -343,6 +343,12 @@
         @endhasanyrole
         @hasanyrole('Super Admin|Admin')
             <li>
+                <a href="{{ route('offers.index') }}">
+                    <div class="parent-icon"><i class='bx bx-gift'></i></div>
+                    <div class="menu-title">Offers</div>
+                </a>
+            </li>
+            <li>
                 <a href="{{ route('admin.contact_forms.index') }}">
                     <div class="parent-icon"><i class='bx bx-envelope'></i></div>
                     <div class="menu-title">Contact Form</div>

@@ -6,6 +6,9 @@ use Illuminate\Http\Request;
 use App\Models\Contract;
 use App\Models\User;
 use Yajra\DataTables\Facades\DataTables;
+use Chatify\Facades\ChatifyMessenger as Chatify;
+use App\Models\ChMessage as Message;
+
 
 use Illuminate\Support\Facades\Auth;
 
@@ -67,7 +70,24 @@ class ContractController extends Controller
     public function edit($contractId)
     {
         $contract = Contract::findOrFail($contractId);
-        return view('dashboard.admin.contracts.edit', compact('contract'));
+        $teacher_id = $contract->teacher_id;
+        $query = Message::where('contract_id', $contractId)->where('from_id', $teacher_id)->exists() ? Message::where('contract_id', $contractId)->where('from_id', $teacher_id)->first() : null;
+        if ($query) {
+            $admin = User::find($query->to_id);
+        } else {
+            $admin = User::whereHas('roles', function ($q) {
+                $q->where('name', 'Admin');
+            })->first();
+        }
+        $messenger_color = Auth::user()->messenger_color;
+
+        return view('dashboard.admin.contracts.edit', [
+            'id' => $admin->id,
+            'messengerColor' => $messenger_color ? $messenger_color : Chatify::getFallbackColor(),
+            'dark_mode' => Auth::user()->dark_mode < 1 ? 'light' : 'dark',
+            'contract' => $contract,
+            'teacher_id' => $teacher_id
+        ]);
     }
 
     public function update(Request $request, $contractId)
@@ -99,8 +119,24 @@ class ContractController extends Controller
             if (!$contract) {
                 $contract = new Contract();
             }
+            // return this with teh blade : 'id' => $id ?? 0,
+            // 'messengerColor' => $messenger_color ? $messenger_color : Chatify::getFallbackColor(),
+            // 'dark_mode' => Auth::user()->dark_mode < 1 ? 'light' : 'dark',
+            // $contract 
+            $id = Auth::id();
+            $admin = User::whereHas('roles', function ($q) {
+                $q->where('name', 'Admin');
+            })->first();
+            $messenger_color = Auth::user()->messenger_color;
 
-            return view('dashboard.teacher.contracts.my_contract', compact('contract'));
+            return view('dashboard.teacher.contracts.my_contract', [
+                'id' => $id,
+                'messengerColor' => $messenger_color ? $messenger_color : Chatify::getFallbackColor(),
+                'dark_mode' => Auth::user()->dark_mode < 1 ? 'light' : 'dark',
+                'contract' => $contract,
+                'admin' => $admin
+            ]);
+
         } else {
             abort(403, 'Unauthorized action.');
         }

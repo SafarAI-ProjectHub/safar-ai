@@ -199,6 +199,39 @@
         p.date-p {
             text-align: left;
         }
+
+        .chat-container {
+            margin-top: 20px;
+            border: 1px solid #ddd;
+            padding: 20px;
+            background-color: #fff;
+            height: 500px;
+            /* Adjust height as needed */
+        }
+
+        .chat-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 10px;
+            border-bottom: 1px solid #ddd;
+        }
+
+        .chat-body {
+            height: calc(100% - 60px);
+            /* Adjust according to header/footer height */
+            overflow-y: auto;
+        }
+
+        .chat-footer {
+            padding: 10px;
+            border-top: 1px solid #ddd;
+        }
+
+        .wrapper {
+
+            z-index: 15;
+        }
     </style>
 @endsection
 
@@ -210,6 +243,8 @@
             <p>2. If you have any questions, please contact us at chat below.</p>
         </div>
     @endif
+    <input type="hidden" id="contract_id" value="{{ $contract->id }}">
+
     <div class="contract-container">
         <div class="contract-header">
             <img src="{{ asset('assets/img/logo2.png') }}" id="company-logo" alt="Company Logo" class="contract-logo">
@@ -221,7 +256,8 @@
         <section class="contract-section">
             <h2>Contract Agreement</h2>
             <p>This Contract is made and entered into on <span
-                    id="contract-date-span">{{ $contract->contract_date }}</span>, by and between {{ env('Company_Name') }}
+                    id="contract-date-span">{{ $contract->contract_date }}</span>, by and between
+                {{ env('Company_Name') }}
                 ("Company") and <span id="teacher-name">{{ $contract->teacher->full_name }}</span> ("Teacher").</p>
         </section>
         <section class="contract-section">
@@ -269,13 +305,28 @@
             <button id="sign-contract-button" class="btn btn-primary">Sign Contract</button>
         @endif
     </div>
+
+
+    <div class="chat-container">
+
+        @include('Chatify::pages.app')
+
+
+    </div>
 @endsection
 
 @section('scripts')
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/sweetalert2@10/dist/sweetalert2.min.css">
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@10"></script>
+    {{-- <script src="{{ asset('js/chatify/code.js') }}" defer></script> --}}
     <script>
         $(document).ready(function() {
+            setMessengerId({{ $admin->id }});
+            console.log('Admin ID: ' + getMessengerId());
+
+            // Fetch messages on page load
+            fetchMessages(getMessengerId(), true);
+
             $('#sign-contract-button').on('click', function() {
                 var signature = $('#signature').val();
                 if (!signature) {
@@ -300,6 +351,14 @@
                     }
                 });
             });
+
+            // Send message form submission
+            $("#message-form").on("submit", (e) => {
+                e.preventDefault();
+                sendMessage();
+            });
+
+
         });
     </script>
 @endsection

@@ -72,7 +72,7 @@ class HomeController extends Controller
         });
 
         $totalTeachers = Cache::remember('Home_totalTeachers', 60, function () {
-            return Teacher::count();
+            return Teacher::where('approval_status', 'approved')->count();
         });
 
         return view('welcome', compact('teachers', 'offers', 'reviews', 'learningHours', 'totalStudents', 'totalCourses', 'totalTeachers'));

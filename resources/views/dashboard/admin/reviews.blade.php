@@ -115,6 +115,9 @@
                         data: 'comment',
                         name: 'comment',
                         render: function(data, type, row) {
+                            if (!data) {
+                                return 'Empty comment';
+                            }
                             if (data.length > 50) {
                                 return '<span class="comment-clickable" data-comment="' + data +
                                     '">' + data.substr(0, 50) + '...</span>';

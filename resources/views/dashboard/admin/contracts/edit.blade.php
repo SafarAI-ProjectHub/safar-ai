@@ -1,7 +1,44 @@
 @extends('layouts_dashboard.main')
 
+@section('styles')
+    <style>
+        .chat-container {
+            margin-top: 20px;
+            border: 1px solid #ddd;
+            padding: 20px;
+            background-color: #fff;
+            height: 500px;
+            /* Adjust height as needed */
+        }
+
+        .chat-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 10px;
+            border-bottom: 1px solid #ddd;
+        }
+
+        .chat-body {
+            height: calc(100% - 60px);
+            /* Adjust according to header/footer height */
+            overflow-y: auto;
+        }
+
+        .chat-footer {
+            padding: 10px;
+            border-top: 1px solid #ddd;
+        }
+
+        .wrapper {
+
+            z-index: 15;
+        }
+    </style>
+@endsection
+
 @section('content')
-    <dev class="card p-3">
+    <div class="card p-3">
         <div class="container">
             <h1>Edit Contract</h1>
             <form id="edit-contract-form">
@@ -58,11 +95,17 @@
                 <button type="submit" class="btn btn-primary mb-3">Update Contract</button>
             </form>
         </div>
-    </dev>
+    </div>
+    <input type="hidden" id="contract_id" value="{{ $contract->id }}">
 
+    <div class="chat-container">
+        @include('Chatify::pages.app')
+    </div>
+@endsection
+
+@section('scripts')
     <link href="https://cdn.quilljs.com/1.3.6/quill.snow.css" rel="stylesheet">
     <script src="https://cdn.quilljs.com/1.3.6/quill.js"></script>
-
     <script>
         $(document).ready(function() {
             var editors = {};
@@ -106,7 +149,6 @@
                     }
                 });
             });
-
             $('#edit-contract-form').on('submit', function(e) {
                 e.preventDefault();
                 $('.editor').each(function() {
@@ -129,6 +171,22 @@
                     }
                 });
             });
+
+            setMessengerId({{ $contract->teacher->id }});
+            console.log('Teacher ID: ' + getMessengerId());
+
+            // Fetch messages on page load
+            fetchMessages(getMessengerId(), true);
+
+            // Send message form submission
+            $("#message-form").on("submit", (e) => {
+                e.preventDefault();
+                sendMessage();
+            });
         });
+        // set interval and fetch messages
+        setInterval(() => {
+            fetchMessages();
+        }, 5000);
     </script>
 @endsection

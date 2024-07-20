@@ -28,6 +28,7 @@ use App\Http\Controllers\PayPalWebhookController;
 use App\Http\Controllers\ContactController;
 use App\Http\Controllers\HomeController;
 use App\Http\Controllers\PermissionController;
+use Chatify\Http\Controllers\MessagesController;
 
 
 Broadcast::routes(['middleware' => ['auth']]);
@@ -344,3 +345,11 @@ Route::get('/Home', [StudentController::class, 'index'])->name('student.level_te
 // webhooks
 Route::get('/paypal/return', [SubscriptionController::class, 'handleReturn'])->name('paypal.return');
 Route::get('/paypal/cancel', [SubscriptionController::class, 'handleCancel'])->name('paypal.cancel');
+
+
+
+
+Route::get('/messages', [MessagesController::class, 'index'])->name('user.messages');
+Route::get('/message/{id}', [MessagesController::class, 'getMessage'])->name('user.message');
+Route::get('contract/{contractId}/messages', [MessagesController::class, 'fetchContractMessages']);
+Route::post('contract/messages', [MessagesController::class, 'sendContractMessage']);
