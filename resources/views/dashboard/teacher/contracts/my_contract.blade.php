@@ -236,12 +236,26 @@
 @endsection
 
 @section('content')
-    @if (!$contract->signature)
-        <div class="card">
+    <div class="card">
+        <div class="card-header">
             <h3>Notes</h3>
-            <p>1. Please read the contract carefully before signing.</p>
-            <p>2. If you have any questions, please contact us at chat below.</p>
+            <p>1. If you have any questions or need any changes, please contact the admin using <a href="#chat">the
+                    chat</a> below.</p>
+            @if (!$contract->signature)
+                <p>2. Please read the contract carefully before signing.</p>
+            @endif
         </div>
+    </div>
+    @if ($contract->signature)
+        <dev class="card">
+            <dev class="card-header">
+                <h3>Download Contract</h3>
+            </dev>
+
+            <a href="{{ route('contracts.downloadPDF', $contract->id) }}" class="btn btn-success">Download Contract as
+                PDF</a>
+
+        </dev>
     @endif
     <input type="hidden" id="contract_id" value="{{ $contract->id }}">
 
@@ -307,7 +321,9 @@
     </div>
 
 
-    <div class="chat-container">
+
+
+    <div class="chat-container" id="chat">
 
         @include('Chatify::pages.app')
 

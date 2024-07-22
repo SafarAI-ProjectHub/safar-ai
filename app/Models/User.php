@@ -212,4 +212,9 @@ class User extends Authenticatable
         return $this->hasOne(Contract::class, 'teacher_id');
     }
 
+    public function timeLogs()
+    {
+        return $this->hasMany(UserActivityLog::class);
+    }
+
 }

@@ -30,7 +30,7 @@ const setMessengerId = (id) => $("meta[name=id]").attr("content", id);
  * Pusher initialization
  *-------------------------------------------------------------
  */
-Pusher.logToConsole = chatify.pusher.debug;
+Pusher.logToConsole = false;
 const pusher = new Pusher(chatify.pusher.key, {
   encrypted: chatify.pusher.options.encrypted,
   cluster: chatify.pusher.options.cluster,
@@ -644,23 +644,24 @@ channel.bind("messaging", function (data) {
 
   // Get the contract ID from the hidden input field
   const currentContractId = $('#contract_id').val();
+  console.log('Data received:', data);
+  console.log('Current contract ID from hidden field:', currentContractId);
+  console.log('Check conditions:', data.contract_id == currentContractId, data.from_id == getMessengerId(), data.to_id == auth_id);
 
   // Check if the contract ID from the event matches the current contract ID
   if (data.contract_id == currentContractId) {
     console.log('we are in the same contract');
-    if (data.from_id == getMessengerId() && data.to_id == auth_id) {
-      $(".messages").find(".message-hint").remove();
-      messagesContainer.find(".messages").append(data.message);
-      scrollToBottom(messagesContainer);
-      makeSeen(true);
-      // remove unseen counter for the user from the contacts list
-      $(".messenger-list-item[data-contact=" + getMessengerId() + "]")
-        .find("tr>td>b")
-        .remove();
-    }
+    // (".messages").find(".message-hint").remove();
+    messagesContainer.find(".messages").append(data.message);
+    scrollToBottom(messagesContainer);
+    makeSeen(true);
+    // remove unseen counter for the user from the contacts list
+    $(".messenger-list-item[data-contact=" + getMessengerId() + "]")
+      .find("tr>td>b")
+      .remove();
   } else if (data.from_id == getMessengerId()) {
     console.log('we reciving a message from the same user');
-    $(".messages").find(".message-hint").remove();
+    // $(".messages").find(".message-hint").remove();
     messagesContainer.find(".messages").append(data.message);
     scrollToBottom(messagesContainer);
     makeSeen(true);
@@ -671,7 +672,7 @@ channel.bind("messaging", function (data) {
   } else if (data.to_id == auth_id) {
     console.log('event for the auth == to_id ');
 
-    $(".messages").find(".message-hint").remove();
+    // $(".messages").find(".message-hint").remove();
     messagesContainer.find(".messages").append(data.message);
     scrollToBottom(messagesContainer);
     makeSeen(true);
@@ -1729,6 +1730,8 @@ function playNotificationSound(soundName, condition = false) {
     sound.play();
   }
 }
+
+
 /**
  *-------------------------------------------------------------
  * Update and format dates to time ago.

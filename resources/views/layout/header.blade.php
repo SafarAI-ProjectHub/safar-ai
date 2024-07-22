@@ -98,3 +98,104 @@
 
      </div>
  </header><!-- End Header -->
+
+ <script>
+     let currentActivityStart = new Date();
+
+     function encryptData(data) {
+         return btoa(JSON.stringify(data)); // Base64 encode for simplicity
+     }
+
+     function decryptData(data) {
+         return JSON.parse(atob(data)); // Base64 decode for simplicity
+     }
+
+     function logActivity(status, additionalData = {}) {
+         console.log(`Activity: ${status}, Data: `, additionalData);
+     }
+
+     function sendActivityStatus(status, additionalData = {}) {
+         const data = encryptData({
+             status: status,
+             additionalData: additionalData
+         });
+         $.ajax({
+             type: 'POST',
+             url: '/update-activity-status',
+             data: JSON.stringify({
+                 data: data
+             }),
+             contentType: 'application/json',
+             headers: {
+                 'X-CSRF-TOKEN': '{{ csrf_token() }}'
+             },
+             success: function(response) {
+                 console.log('Activity status updated successfully.');
+             },
+             error: function(error) {
+                 console.error('Error updating activity status:', error);
+             }
+         });
+     }
+
+     function handleActivityStatusChange(status) {
+         const now = new Date();
+         const activeTime = Math.floor((now - currentActivityStart) / 1000); // Convert to seconds
+         sendActivityStatus(status, {
+             activeTime: activeTime
+         });
+         logActivity(status, {
+             activeTime: activeTime
+         });
+         sessionStorage.setItem('activityData', encryptData({
+             currentActivityStart: now
+         }));
+         currentActivityStart = now; // Reset activity start time
+     }
+
+     // Handle focus event
+     $(window).on('focus', function() {
+         currentActivityStart = new Date();
+         sendActivityStatus('active');
+         logActivity('active');
+     });
+
+     // Handle blur event
+     $(window).on('blur', function() {
+         handleActivityStatusChange('inactive');
+     });
+
+     // Handle beforeunload event
+     $(window).on('beforeunload', function() {
+         handleActivityStatusChange('inactive');
+     });
+
+     // Handle visibilitychange event
+     $(document).on('visibilitychange', function() {
+         if (document.visibilityState === 'visible') {
+             currentActivityStart = new Date();
+             sendActivityStatus('active');
+             logActivity('active');
+         } else {
+             handleActivityStatusChange('inactive');
+         }
+     });
+
+     // Handle page reload
+     $(document).ready(function() {
+         const activityData = sessionStorage.getItem('activityData');
+         if (activityData) {
+             const decryptedData = decryptData(activityData);
+             currentActivityStart = new Date(decryptedData.currentActivityStart);
+         } else {
+             currentActivityStart = new Date();
+         }
+         sendActivityStatus('active');
+         logActivity('active');
+     });
+
+     // Handle page unload
+     $(window).on('unload', function() {
+         handleActivityStatusChange('inactive');
+     });
+ </script>

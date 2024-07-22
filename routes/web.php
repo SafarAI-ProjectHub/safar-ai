@@ -28,7 +28,10 @@ use App\Http\Controllers\PayPalWebhookController;
 use App\Http\Controllers\ContactController;
 use App\Http\Controllers\HomeController;
 use App\Http\Controllers\PermissionController;
-use Chatify\Http\Controllers\MessagesController;
+use App\Http\Controllers\Vendor\Chatify\MessagesController;
+use App\Http\Controllers\UserActivityController;
+
+
 
 
 Broadcast::routes(['middleware' => ['auth']]);
@@ -257,6 +260,7 @@ Route::middleware(['auth', 'role:Teacher|Super Admin'])->prefix('teacher')->grou
 
     Route::get('my-contract', [ContractController::class, 'myContract'])->name('contracts.myContract');
     Route::post('my-contract/sign', [ContractController::class, 'signContract'])->name('contracts.signContract');
+    Route::get('/contracts/{contractId}/download-pdf', [ContractController::class, 'downloadContractPDF'])->name('contracts.downloadPDF');
 
 });
 
@@ -347,9 +351,6 @@ Route::get('/paypal/return', [SubscriptionController::class, 'handleReturn'])->n
 Route::get('/paypal/cancel', [SubscriptionController::class, 'handleCancel'])->name('paypal.cancel');
 
 
-
-
-Route::get('/messages', [MessagesController::class, 'index'])->name('user.messages');
-Route::get('/message/{id}', [MessagesController::class, 'getMessage'])->name('user.message');
-Route::get('contract/{contractId}/messages', [MessagesController::class, 'fetchContractMessages']);
-Route::post('contract/messages', [MessagesController::class, 'sendContractMessage']);
+Route::middleware(['auth'])->group(function () {
+    Route::post('/update-activity-status', [UserActivityController::class, 'updateStatus']);
+});

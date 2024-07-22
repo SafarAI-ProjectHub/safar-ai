@@ -106,15 +106,25 @@
                                     <a href="{{ route('subscription.details') }}">See Details</a>
                                 @elseif ($notification->type == 'admin-subscription')
                                     <a href="{{ route('showPendingPayments') }}">See Details</a>
+                                @elseif ($notification->type == 'teacher-message')
+                                    <a href="{{ route('contracts.myContract') }}#chat">See Details</a>
+                                @elseif ($notification->type == 'admin-message')
+                                    <a href="{{ route('contracts.edit', $notification->model_id) }}#chat">See Details</a>
                                 @endif
                             </div>
                         </div>
                     </div>
+
                 @empty
                     <div class="text-center">
                         <p>No notifications to display.</p>
                     </div>
                 @endforelse
+                @if ($notifications->isNotEmpty())
+                    <dev class="mt-3 pagination">
+                        {{ $notifications->links() }}
+                    </dev>
+                @endif
             </div>
 
             @if ($notifications->isNotEmpty())
@@ -129,7 +139,61 @@
 @section('scripts')
     <script>
         $(document).ready(function() {
+            function fetchNotifications() {
+                $.ajax({
+                    url: "https://safar-ai.dev2.prodevr.com/notifications/get",
+                    method: "GET",
+                    success: function(response) {
+                        console.log('Notifications:', response);
+                        $('.alert-count').text(response.unread_count);
+                        $('.msg-header-badge').text(response.unread_count + ' New');
+                        $('#notification-list').empty();
+                        response.notifications.forEach(function(notification) {
+                            let truncatedMessage = truncateMessage(notification.message, 30);
+                            let notificationUrl;
 
+                            if (notification.type === 'meeting') {
+                                notificationUrl = `/student/meetings/${notification.model_id}`;
+                            } else if (notification.type === 'subscription') {
+                                notificationUrl =
+                                    `https://safar-ai.dev2.prodevr.com/student/subscription/details`;
+                            } else if (notification.type === 'admin-subscription') {
+                                notificationUrl =
+                                    `https://safar-ai.dev2.prodevr.com/admin/pending-payments`;
+                            } else if (notification.type === 'teacher-message') {
+                                notificationUrl =
+                                    `https://safar-ai.dev2.prodevr.com/teacher/my-contract`;
+                            } else if (notification.type === 'admin-message') {
+                                // Route::get('contracts/{contractId}/edit', [ContractController::class, 'edit'])->name('contracts.edit');
+                                notificationUrl =
+                                    `https://safar-ai.dev2.prodevr.com/admin/contracts/:contractId/edit`
+                                    .replace(
+                                        ':contractId', notification.model_id);
+                            } else {
+                                notificationUrl = '#';
+                            }
+
+                            let notificationItem = `
+                            <a class="dropdown-item" href="${notificationUrl}">
+                                <div class="d-flex align-items-center">
+                                    <div class="notify bg-light-primary p-2 fs-4">
+                                        <i class='bx ${notification.icon}'></i>
+                                    </div>
+                                    <div class="flex-grow-1">
+                                        <h6 class="msg-name">${notification.title}<span class="msg-time float-end">${timeAgo(notification.created_at)}</span></h6>
+                                        <p class="msg-info">${truncatedMessage}</p>
+                                    </div>
+                                </div>
+                            </a>
+                        `;
+                            $('#notification-list').append(notificationItem);
+                        });
+                    },
+                    error: function(xhr, status, error) {
+                        console.error('Error fetching notifications:', error);
+                    }
+                });
+            }
 
             $('#mark-as-seen').click(function(e) {
                 e.preventDefault();
@@ -141,6 +205,7 @@
                             $('.notification-list--unread').removeClass(
                                 'notification-list--unread');
                         }
+                        fetchNotifications()
                     },
                     error: function(xhr, status, error) {
                         console.error('Error marking notifications as seen:', error);

@@ -17,6 +17,7 @@ class Kernel extends ConsoleKernel
     {
         // $schedule->command('inspire')->hourly();
         $schedule->command('app:cliq-cron-command')->hourly();
+        $schedule->command('session:timeout')->everyFiveMinutes();
     }
 
     /**

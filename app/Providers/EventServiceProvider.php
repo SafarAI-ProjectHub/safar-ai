@@ -26,6 +26,12 @@ class EventServiceProvider extends ServiceProvider
         'App\Events\NotificationEvent' => [
             'App\Listeners\NotificationListener',
         ],
+        'Illuminate\Auth\Events\Login' => [
+            'App\Listeners\LogLogin',
+        ],
+        'Illuminate\Auth\Events\Logout' => [
+            'App\Listeners\LogLogout',
+        ],
     ];
 
     /**

@@ -5,6 +5,204 @@
     <meta charset="UTF-8">
     <title>Certificate</title>
     <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+            background-color: #f4f4f4;
+            color: #333;
+        }
+
+        .contract-container {
+            width: 80%;
+            margin: 20px auto;
+            background: white;
+            padding: 30px;
+            border-radius: 10px;
+            box-shadow: 0 0 15px rgba(0, 0, 0, 0.1);
+        }
+
+        header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-bottom: 2px solid #333;
+            padding-bottom: 20px;
+            margin-bottom: 20px;
+        }
+
+        .company-logo {
+            width: 100px;
+            height: auto;
+        }
+
+        .company-info h1 {
+            margin: 0;
+            font-size: 28px;
+        }
+
+        .company-info p {
+            margin: 5px 0 0 0;
+            font-size: 16px;
+        }
+
+        .contract-section {
+            margin-bottom: 20px;
+        }
+
+        .contract-section h2 {
+            font-size: 24px;
+            margin-bottom: 10px;
+            color: #444;
+            border-bottom: 1px solid #333;
+            padding-bottom: 5px;
+        }
+
+        .contract-section p {
+            margin: 10px 0;
+            line-height: 1.6;
+        }
+
+        .inline-logo {
+            width: 30px;
+            height: auto;
+            vertical-align: middle;
+        }
+
+        footer {
+            text-align: center;
+            border-top: 2px solid #333;
+            padding-top: 10px;
+            margin-top: 20px;
+        }
+
+        footer p {
+            margin: 0;
+            font-size: 14px;
+            color: #777;
+        }
+
+        .signature-section {
+            margin-top: 40px;
+            display: flex;
+            justify-content: flex-end;
+        }
+
+        .signature-line {
+            display: block;
+            border-top: 1px solid #333;
+            margin-top: 50px;
+            text-align: center;
+            font-size: 16px;
+            color: #444;
+        }
+
+        .contract-template {
+            font-family: Arial, sans-serif;
+            margin: 20px;
+            padding: 20px;
+            border: 1px solid #ddd;
+            background-color: #fff;
+        }
+
+        .contract-header {
+            text-align: center;
+            margin-bottom: 20px;
+        }
+
+        .contract-logo {
+            max-width: 150px;
+            margin-bottom: 10px;
+        }
+
+        .contract-company-name {
+            font-size: 24px;
+            font-weight: bold;
+        }
+
+        .contract-title {
+            text-align: center;
+            font-size: 20px;
+            margin-bottom: 20px;
+        }
+
+        .contract-template p {
+            font-size: 16px;
+            margin: 10px 0;
+        }
+
+        .contract-template p strong {
+            font-weight: bold;
+        }
+
+        .contract-section {
+            margin-bottom: 20px;
+        }
+
+        .contract-section h2 {
+            font-size: 24px;
+            margin-bottom: 10px;
+            color: #444;
+            border-bottom: 1px solid #333;
+            padding-bottom: 5px;
+        }
+
+        .contract-section p {
+            margin: 10px 0;
+            line-height: 1.6;
+        }
+
+        .signature-section {
+            margin-top: 40px;
+            display: flex;
+            justify-content: space-between;
+            /* margin: 0 40px; */
+        }
+
+        .date-div {
+            margin: 0;
+            padding: 0 20px;
+        }
+
+        .signature-line {
+            display: block;
+            border-bottom: 1px solid #333;
+            margin-bottom: 50px;
+            text-align: center;
+            font-size: 16px;
+            color: #444;
+        }
+
+        .signature {
+            margin-top: 20px;
+            text-align: center;
+            font-size: 16px;
+            color: #444;
+        }
+
+        footer {
+            text-align: center;
+            border-top: 2px solid #333;
+            padding-top: 10px;
+            margin-top: 20px;
+        }
+
+        p#contract-date {
+            border-bottom: 1px solid black;
+            width: fit-content;
+            text-align: left;
+        }
+
+        footer p {
+            margin: 0;
+            font-size: 14px;
+            color: #777;
+        }
+
+        p.date-p {
+            text-align: left;
+        }
+
         html,
         body,
         .content {

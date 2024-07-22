@@ -14,6 +14,9 @@ use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Request as FacadesRequest;
 use Illuminate\Support\Str;
+use App\Models\Notification;
+use App\Models\Contract;
+use App\Events\NotificationEvent;
 
 class MessagesController extends Controller
 {
@@ -151,9 +154,51 @@ class MessagesController extends Controller
                 Chatify::push("private-chatify." . $request['id'], 'messaging', [
                     'from_id' => Auth::user()->id,
                     'to_id' => $request['id'],
-                    'message' => Chatify::messageCard($messageData, true)
-
+                    'message' => Chatify::messageCard($messageData, true),
+                    'contract_id' => $request->contract_id ?? null,
                 ]);
+            }
+
+            if (Auth::user()->hasRole('Teacher')) {
+                $admins = User::whereHas('roles', function ($q) {
+                    $q->where('name', 'Admin')
+                        ->orWhere('name', 'Super Admin');
+                })->get();
+                $contract = Contract::find($request->contract_id);
+
+                foreach ($admins as $admin) {
+
+                    $notification = Notification::create([
+                        'user_id' => $admin->id,
+                        'title' => 'new message recived',
+                        'message' => "You have a new message from " . $contract->teacher->full_name,
+                        'icon' => 'bx bx-message-rounded',
+                        'type' => 'admin-message',
+                        'is_seen' => false,
+                        'model_id' => $contract->id,
+                        'reminder' => false,
+                        'reminder_time' => null,
+                    ]);
+
+                    event(new NotificationEvent($notification));
+
+                }
+
+            } elseif (Auth::user()->hasRole('Admin|Super Admin')) {
+                $contract = Contract::find($request->contract_id);
+                $notification = Notification::create([
+                    'user_id' => $contract->teacher->id,
+                    'title' => 'new message recived',
+                    'message' => "You have a new message for your Contract ",
+                    'icon' => 'bx bx-message-rounded',
+                    'type' => 'teacher-message',
+                    'is_seen' => false,
+                    'model_id' => $contract->id,
+                    'reminder' => false,
+                    'reminder_time' => null,
+                ]);
+
+                event(new NotificationEvent($notification));
             }
         }
 
@@ -205,10 +250,10 @@ class MessagesController extends Controller
         }
         $allMessages = null;
         foreach ($messages->reverse() as $message) {
-            if ($message->from_id == Auth::user()->id) {
-                $message->seen = 1;
-                $message->save();
-            }
+            // if ($message->from_id == Auth::user()->id) {
+            //     $message->seen = 1;
+            //     $message->save();
+            // }
 
             if (Auth::user()->hasRole('Admin|Super Admin')) {
                 $user_id = $message->from_id;

@@ -38,9 +38,29 @@
 @endsection
 
 @section('content')
+    <div class="card">
+        <div class="card-header">
+            <h3><strong>Status of the Contract: </strong>
+                @if ($contract->signature)
+                    <span class="badge bg-success">Signed</span>
+                @else
+                    <span class="badge bg-warning">Not Signed</span>
+                @endif
+            </h3>
+            <hr class="border border-primary border-3 opacity-75">
+
+            <h3>Notes</h3> <!-- Notes for the admins -->
+            <p>1. You have <a href="#chat">a chat</a> option below to discuss the contract with the teacher. You can edit
+                the contract
+                based on these discussions.</p>
+            <p>2. The teacher will be able to download the contract after signing it. Please ensure not to edit the
+                contract unless you have discussed the changes with the teacher to avoid any confusion.</p>
+        </div>
+    </div>
     <div class="card p-3">
         <div class="container">
             <h1>Edit Contract</h1>
+
             <form id="edit-contract-form">
                 @csrf
                 @method('PUT')
@@ -98,7 +118,7 @@
     </div>
     <input type="hidden" id="contract_id" value="{{ $contract->id }}">
 
-    <div class="chat-container">
+    <div class="chat-container" id="chat">
         @include('Chatify::pages.app')
     </div>
 @endsection
@@ -108,6 +128,14 @@
     <script src="https://cdn.quilljs.com/1.3.6/quill.js"></script>
     <script>
         $(document).ready(function() {
+            username = getMessengerId();
+            @php
+                $username = $contract->teacher->full_name;
+                $userImage = asset($contract->teacher->profile_image ? $contract->teacher->profile_image : asset('assets/images/avatars/profile-Img.png'));
+
+            @endphp
+            $('.user-name').text('{{ $username }}');
+            // class="avatar av-s header-avatar"
             var editors = {};
             $('.editor').each(function() {
                 var editorId = $(this).attr('id');

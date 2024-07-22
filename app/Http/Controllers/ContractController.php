@@ -8,9 +8,10 @@ use App\Models\User;
 use Yajra\DataTables\Facades\DataTables;
 use Chatify\Facades\ChatifyMessenger as Chatify;
 use App\Models\ChMessage as Message;
-
-
 use Illuminate\Support\Facades\Auth;
+use PDF;
+use App\Models\Notification;
+use App\Events\NotificationEvent;
 
 class ContractController extends Controller
 {
@@ -153,8 +154,45 @@ class ContractController extends Controller
         $contract = Contract::findOrFail($request->contract_id);
         $contract->signature = $request->signature;
         $contract->status = 'Approved';
+        $contract->contract_date = now();
         $contract->save();
+        $admins = User::whereHas('roles', function ($q) {
+            $q->where('name', 'Admin')
+                ->orWhere('name', 'Super Admin');
+        })->get();
 
+        foreach ($admins as $admin) {
+
+            $notification = Notification::create([
+                'user_id' => $admin->id,
+                'title' => 'Teacher Contract',
+                'message' => "The teacher {$contract->teacher->full_name} has signed the contract.",
+                'icon' => 'bx bx-bell',
+                'type' => 'contract-signed',
+                'is_seen' => false,
+                'model_id' => $contract->id,
+                'reminder' => false,
+                'reminder_time' => null,
+            ]);
+
+            event(new NotificationEvent($notification));
+
+        }
         return response()->json(['message' => 'Contract signed successfully.']);
     }
+
+    public function downloadContractPDF($contractId)
+    {
+        $contract = Contract::with('teacher')->findOrFail($contractId);
+
+        $data = [
+            'contract' => $contract
+        ];
+
+        $pdf = PDF::loadView('pdf.contract', $data);
+        $pdf->setPaper('A4');
+
+        return $pdf->download('contract_' . $contract->id . '.pdf');
+    }
+
 }
