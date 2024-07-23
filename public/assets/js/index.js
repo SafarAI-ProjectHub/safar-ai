@@ -1,7 +1,5 @@
 $(function () {
   "use strict";
-  console.log('Yearly Payments Cliq:', yearlyPaymentsCliq);
-  console.log('Yearly Payments PayPal:', yearlyPaymentsPaypal);
 
 
   // chart 1
@@ -628,66 +626,57 @@ $(function () {
     }
   });
 
-
-
-
-
-
-
   // chart 5
 
-  var ctx = document.getElementById("chart5").getContext('2d');
+  // var ctx = document.getElementById("chart5").getContext('2d');
 
-  var gradientStroke1 = ctx.createLinearGradient(0, 0, 0, 300);
-  gradientStroke1.addColorStop(0, '#f54ea2');
-  gradientStroke1.addColorStop(1, '#ff7676');
+  // var gradientStroke1 = ctx.createLinearGradient(0, 0, 0, 300);
+  // gradientStroke1.addColorStop(0, '#f54ea2');
+  // gradientStroke1.addColorStop(1, '#ff7676');
 
-  var gradientStroke2 = ctx.createLinearGradient(0, 0, 0, 300);
-  gradientStroke2.addColorStop(0, '#42e695');
-  gradientStroke2.addColorStop(1, '#3bb2b8');
+  // var gradientStroke2 = ctx.createLinearGradient(0, 0, 0, 300);
+  // gradientStroke2.addColorStop(0, '#42e695');
+  // gradientStroke2.addColorStop(1, '#3bb2b8');
 
-  var myChart = new Chart(ctx, {
-    type: 'bar',
-    data: {
-      labels: [1, 2, 3, 4, 5],
-      datasets: [{
-        label: 'Clothing',
-        data: [40, 30, 60, 35, 60],
-        borderColor: gradientStroke1,
-        backgroundColor: gradientStroke1,
-        hoverBackgroundColor: gradientStroke1,
-        pointRadius: 0,
-        fill: false,
-        borderWidth: 1
-      }, {
-        label: 'Electronic',
-        data: [50, 60, 40, 70, 35],
-        borderColor: gradientStroke2,
-        backgroundColor: gradientStroke2,
-        hoverBackgroundColor: gradientStroke2,
-        pointRadius: 0,
-        fill: false,
-        borderWidth: 1
-      }]
-    },
-    options: {
-      maintainAspectRatio: false,
-      barPercentage: 0.5,
-      categoryPercentage: 0.8,
-      plugins: {
-        legend: {
-          display: false,
-        }
-      },
-      scales: {
-        y: {
-          beginAtZero: true
-        }
-      }
-    }
-  });
-
-
-
+  // var myChart = new Chart(ctx, {
+  //   type: 'bar',
+  //   data: {
+  //     labels: [1, 2, 3, 4, 5],
+  //     datasets: [{
+  //       label: 'Clothing',
+  //       data: [40, 30, 60, 35, 60],
+  //       borderColor: gradientStroke1,
+  //       backgroundColor: gradientStroke1,
+  //       hoverBackgroundColor: gradientStroke1,
+  //       pointRadius: 0,
+  //       fill: false,
+  //       borderWidth: 1
+  //     }, {
+  //       label: 'Electronic',
+  //       data: [50, 60, 40, 70, 35],
+  //       borderColor: gradientStroke2,
+  //       backgroundColor: gradientStroke2,
+  //       hoverBackgroundColor: gradientStroke2,
+  //       pointRadius: 0,
+  //       fill: false,
+  //       borderWidth: 1
+  //     }]
+  //   },
+  //   options: {
+  //     maintainAspectRatio: false,
+  //     barPercentage: 0.5,
+  //     categoryPercentage: 0.8,
+  //     plugins: {
+  //       legend: {
+  //         display: false,
+  //       }
+  //     },
+  //     scales: {
+  //       y: {
+  //         beginAtZero: true
+  //       }
+  //     }
+  //   }
+  // });
 
 });

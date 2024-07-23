@@ -59,11 +59,11 @@ class CliqCronCommand extends Command
 
     public function cliqsubscriptions()
     {
-        $userSubscriptions = UserSubscription::whereHas('payment', function ($query) {
+        $userSubscriptions = UserSubscription::whereHas('payments', function ($query) {
             $query->where('payment_type', 'cliq')
                 ->whereRaw('created_at = (select max(created_at) from payments where user_subscription_id = user_subscriptions.id)');
         })->with([
-                    'payment' => function ($query) {
+                    'payments' => function ($query) {
                         $query->orderBy('created_at', 'desc');
                     }
                 ])->get();
@@ -82,10 +82,9 @@ class CliqCronCommand extends Command
         }
 
         foreach ($userSubscriptions as $subscription) {
-            // check if subscription is expired but pay attion to the hours
+
 
             if ($subscription->next_billing_time < now()) {
-                // handel end of one time payment subscription 
                 $subscription->update([
                     'status' => 'expired',
                 ]);

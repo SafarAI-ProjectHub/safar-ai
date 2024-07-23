@@ -11,6 +11,7 @@
                             <th>Full Name</th>
                             <th>Email</th>
                             <th>Phone Number</th>
+                            <th>Salary</th>
                             <th>CV Link</th>
                             <th>Years of Experience</th>
                             <th>Country Location</th>
@@ -140,6 +141,10 @@
                         name: 'phone_number'
                     },
                     {
+                        data: 'salary',
+                        name: 'salary'
+                    },
+                    {
                         data: 'cv_link',
                         name: 'cv_link'
                     },
@@ -163,7 +168,7 @@
                     }
                 ],
                 columnDefs: [{
-                    targets: 7,
+                    targets: 8,
                     width: '25%'
                 }],
                 dom: 'Bfrtip',

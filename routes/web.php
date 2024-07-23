@@ -187,13 +187,17 @@ Route::middleware(['auth', 'role:Admin|Super Admin'])->prefix('admin')->group(fu
     Route::delete('reviews/{rate}', [RateController::class, 'destroy'])->name('rates.destroy');
 
     // contract
-
     Route::get('contracts', [ContractController::class, 'index'])->name('contracts.index');
     Route::get('contracts/{id}', [ContractController::class, 'show']);
     Route::get('contracts/create/{teacherId}', [ContractController::class, 'create'])->name('contracts.create');
     Route::post('contracts', [ContractController::class, 'store'])->name('contracts.store');
     Route::get('contracts/{contractId}/edit', [ContractController::class, 'edit'])->name('contracts.edit');
     Route::put('contracts/{contractId}', [ContractController::class, 'update'])->name('contracts.update');
+
+    //Tracing time 
+    Route::get('/teachers/logs', [UserActivityController::class, 'getDailyActivity'])->name('teachers.logs.index');
+    Route::get('/teacher/logs/{id}', [UserActivityController::class, 'showLogs'])->name('teacher.logs.show');
+    Route::get('/teacher/{id}/monthly-activity', [UserActivityController::class, 'getMonthlyActivity'])->name('teacher.monthly.activity');
 });
 
 // Routes for Super Admin, Admin, and Teacher

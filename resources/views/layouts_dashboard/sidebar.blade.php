@@ -355,6 +355,15 @@
                 </a>
             </li>
         @endhasanyrole
+        @hasanyrole('Teacher')
+            <li>
+                <a href="{{ route('contracts.myContract') }}">
+                    <div class="parent-icon"><i class='bx bx-file'></i></div>
+                    <div class="menu-title">My Contract</div>
+                </a>
+            </li>
+        @endhasanyrole
+
     </ul>
     <!--end navigation-->
 </div>

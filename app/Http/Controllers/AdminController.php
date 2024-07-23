@@ -230,6 +230,13 @@ class AdminController extends Controller
                 ->addColumn('phone_number', function ($row) {
                     return $row->user->phone_number;
                 })
+                ->addColumn('salary', function ($row) {
+                    if ($row->user->contract) {
+                        return $row->user->contract->salary . ' per ' . $row->user->contract->salary_period;
+                    } else {
+                        return 'No Contract Yet';
+                    }
+                })
                 ->addColumn('cv_link', function ($row) {
                     return $row->cv_link ? '<a href="' . asset($row->cv_link) . '" class="view-cv" target="_blank">View CV</a>' : 'No CV';
                 })
