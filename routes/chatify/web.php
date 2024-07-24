@@ -11,8 +11,8 @@
 use Illuminate\Support\Facades\Route;
 
 /*
-* This is the main app route [Chatify Messenger]
-*/
+ * This is the main app route [Chatify Messenger]
+ */
 Route::get('/', 'MessagesController@index')->name(config('chatify.routes.prefix'));
 
 /**
@@ -102,17 +102,17 @@ Route::post('/setActiveStatus', 'MessagesController@setActiveStatus')->name('act
 
 
 /*
-* [Group] view by id
-*/
+ * [Group] view by id
+ */
 Route::get('/group/{id}', 'MessagesController@index')->name('group');
 
 /*
-* user view by id.
-* Note : If you added routes after the [User] which is the below one,
-* it will considered as user id.
-*
-* e.g. - The commented routes below :
-*/
+ * user view by id.
+ * Note : If you added routes after the [User] which is the below one,
+ * it will considered as user id.
+ *
+ * e.g. - The commented routes below :
+ */
 // Route::get('/route', function(){ return 'Munaf'; }); // works as a route
 Route::get('/{id}', 'MessagesController@index')->name('user');
 // Route::get('/route', function(){ return 'Munaf'; }); // works as a user id

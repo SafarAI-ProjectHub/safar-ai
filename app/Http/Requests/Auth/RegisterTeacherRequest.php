@@ -19,7 +19,7 @@ class RegisterTeacherRequest extends FormRequest
             'email' => ['required', 'string', 'email', 'max:255', 'unique:users'],
             'phone_number' => ['required', 'string', 'max:25'],
             'country_code' => ['required', 'string', 'max:5'], // Added validation for country code
-            'date_of_birth' => ['required', 'date'],
+            'date_of_birth' => ['required', 'date', 'before:' . now()->subYears(20)->toDateString(), 'after:' . now()->subYears(100)->toDateString()],
             'password' => [
                 'required',
                 'string',
@@ -45,6 +45,8 @@ class RegisterTeacherRequest extends FormRequest
             'phone_number.required' => 'The phone number field is required.',
             'country_code.required' => 'The country code field is required.', // Added validation message for country code
             'date_of_birth.required' => 'The date of birth field is required.',
+            'date_of_birth.before' => 'You must be at least 20 years old.',
+            'date_of_birth.after' => 'You must be less than 100 years old.',
             'password.required' => 'The password field is required.',
             'password.confirmed' => 'The password confirmation does not match.',
             'password.regex' => 'The password must be at least 8 characters long and contain at least one letter and one number.',

@@ -8,6 +8,7 @@ use Carbon\Carbon;
 use App\Models\Teacher;
 use App\Models\User;
 use App\Models\UserActivityLog;
+use Illuminate\Support\Facades\Log;
 use Yajra\DataTables\DataTables;
 
 class UserActivityController extends Controller
@@ -75,7 +76,9 @@ class UserActivityController extends Controller
                 $totalActiveTime = $logs->sum('total_active_time');
 
                 return [
+                    'teacher_id' => $teacher->teacher->id,
                     'teacher' => $teacher->full_name,
+                    'email' => $teacher->email,
                     'active_time' => $this->formatActiveTime($totalActiveTime),
                     'id' => $teacher->id,
                 ];
@@ -89,8 +92,8 @@ class UserActivityController extends Controller
 
     public function showLogs($id, Request $request)
     {
+        $user = User::findOrFail($id);
         if ($request->ajax()) {
-            $user = User::findOrFail($id);
             $logs = $user->timeLogs()->orderBy('login_time', 'desc')->get();
 
             return DataTables::of($logs)
@@ -107,18 +110,19 @@ class UserActivityController extends Controller
                 ->make(true);
         }
 
-        return view('dashboard.admin.teacher.logs', compact('id'));
+        return view('dashboard.admin.teacher.logs', compact('id', 'user'));
     }
 
     public function getMonthlyActivity(Request $request, $id)
     {
         if ($request->ajax()) {
             // Fetch the teacher by ID
-            $teacher = Teacher::find($id);
+            $teacher = User::find($id);
             if (!$teacher) {
+                Log::error('Teacher not found', ['user_id' => $id]);
                 return response()->json(['error' => 'Teacher not found'], 404);
             }
-            $user = $teacher->user;
+
 
             $currentMonth = Carbon::now()->month;
             $currentYear = Carbon::now()->year;
@@ -133,14 +137,16 @@ class UserActivityController extends Controller
 
             for ($day = 1; $day <= $daysInCurrentMonth; $day++) {
                 $date = Carbon::create($currentYear, $currentMonth, $day);
-                $dailyTotal = $user->timeLogs()->whereDate('created_at', $date)->sum('total_active_time');
+                $dailyTotal = $teacher->timeLogs()->whereDate('created_at', $date)->sum('total_active_time');
                 $currentMonthData[] = $dailyTotal;
+
             }
 
             for ($day = 1; $day <= $daysInPreviousMonth; $day++) {
                 $date = Carbon::create($previousYear, $previousMonth, $day);
-                $dailyTotal = $user->timeLogs()->whereDate('created_at', $date)->sum('total_active_time');
+                $dailyTotal = $teacher->timeLogs()->whereDate('created_at', $date)->sum('total_active_time');
                 $previousMonthData[] = $dailyTotal;
+
             }
 
             $currentMonthTotal = array_sum($currentMonthData);

@@ -18,7 +18,7 @@ class RegisterStudentRequest extends FormRequest
             'email' => ['required', 'string', 'email', 'max:255', 'unique:users'],
             'phone_number' => ['required', 'string', 'max:15'],
             'country_code' => ['required', 'string', 'max:5'],
-            'date_of_birth' => ['required', 'date'],
+            'date_of_birth' => ['required', 'date', 'before:today'],
             'password' => [
                 'required',
                 'string',
@@ -39,8 +39,9 @@ class RegisterStudentRequest extends FormRequest
             'email.email' => 'The email must be a valid email address.',
             'email.unique' => 'The email has already been taken.',
             'phone_number.required' => 'The phone number field is required.',
-            'country_code.required' => 'The country code field is required.', // Added validation message for country code
+            'country_code.required' => 'The country code field is required.',
             'date_of_birth.required' => 'The date of birth field is required.',
+            'date_of_birth.before' => 'The date of birth must be a date before today.',
             'password.required' => 'The password field is required.',
             'password.confirmed' => 'The password confirmation does not match.',
             'password.regex' => 'The password must be at least 8 characters long and contain at least one letter and one number.',

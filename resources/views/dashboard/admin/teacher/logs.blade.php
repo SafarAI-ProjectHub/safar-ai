@@ -39,9 +39,14 @@
 @endsection
 
 @section('content')
+    {{-- back button to route (teachers.logs.index) with boxicone icone  --}}
+
+    <a href="{{ route('teachers.logs.index') }}" class="btn btn-primary mb-3">
+        <i class='bx bx-arrow-back'></i> Back
+    </a>
     <div class="card">
         <div class="card-body">
-            <h5>Activity Logs</h5>
+            <h5>Activity Logs for :{{ $user->full_name }}</h5>
             <div class="table-responsive">
                 <table id="logs-table" class="table table-striped table-bordered">
                     <thead>
@@ -124,16 +129,11 @@
                 }
 
                 var dailyActivity = data.currentMonthData.map(seconds => (seconds / 3600).toFixed(2));
-                console.log("🚀 ~ createChart ~ dailyActivity:", dailyActivity)
                 var previousMonthTotal = data.previousMonthTotal / 3600;
-                console.log("🚀 ~ createChart ~ previousMonthTotal:", previousMonthTotal)
                 var currentMonthTotal = data.currentMonthTotal / 3600;
-                console.log("🚀 ~ createChart ~ currentMonthTotal:", currentMonthTotal)
 
                 if (isNaN(currentMonthTotal)) currentMonthTotal = 0;
-                console.log("🚀 ~ createChart ~ currentMonthTotal:", currentMonthTotal)
                 if (isNaN(previousMonthTotal)) previousMonthTotal = 0;
-                console.log("🚀 ~ createChart ~ previousMonthTotal:", previousMonthTotal)
                 if (currentMonthTotal === 0 && previousMonthTotal === 0) {
                     $('#currentMonthTotal').text('0 hours');
                     $('#previousMonthTotal').text('0 hours');
@@ -246,6 +246,29 @@
                         name: 'session_status'
                     },
                 ],
+                columnDefs: [{
+                    targets: 3,
+                    width: '10%'
+                }],
+                dom: 'Bfrtip',
+                buttons: [{
+                        extend: 'copy',
+                        className: 'btn btn-outline-secondary buttons-copy buttons-html5'
+                    },
+                    {
+                        extend: 'excel',
+                        className: 'btn btn-outline-secondary buttons-excel buttons-html5'
+                    },
+                    {
+                        extend: 'pdf',
+                        className: 'btn btn-outline-secondary buttons-pdf buttons-html5'
+                    },
+                    {
+                        extend: 'print',
+                        className: 'btn btn-outline-secondary buttons-print'
+                    }
+                ],
+                lengthChange: false,
                 order: [
                     [0, 'desc']
                 ]

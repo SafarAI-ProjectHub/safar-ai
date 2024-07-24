@@ -195,8 +195,9 @@ class User extends Authenticatable
     public function getAgeGroup()
     {
         $age = \Carbon\Carbon::parse($this->date_of_birth)->age;
-
-        if ($age >= 6 && $age <= 10) {
+        if ($age <= 5) {
+            return '1-5';
+        } else if ($age >= 6 && $age <= 10) {
             return '6-10';
         } elseif ($age > 10 && $age <= 14) {
             return '10-14';

@@ -33,46 +33,49 @@
         @endhasanyrole
 
         @hasanyrole('Student')
+
             <li>
                 <a href="{{ route('student.dashboard') }}">
                     <div class="parent-icon"><i class='bx bx-home'></i></div>
                     <div class="menu-title">Home</div>
                 </a>
             </li>
-            <li>
-                <a href="javascript:;" class="has-arrow">
-                    <div class="parent-icon"><i class='bx bx-book-open'></i></div>
-                    <div class="menu-title">Courses</div>
-                </a>
-                <ul>
-                    <li>
-                        <a href="{{ route('student.myCourses') }}">
-                            <div class="parent-icon"><i class='bx bx-book'></i></div>
-                            <div class="menu-title">My Courses</div>
-                        </a>
-                    </li>
-                    <li>
-                        <a href="{{ route('student.myCertificates') }}">
-                            <div class="parent-icon"><i class='bx bx-award'></i></div>
-                            <div class="menu-title">My Certificates</div>
-                        </a>
-                    </li>
-                </ul>
-            </li>
-            <li>
-                <a href="javascript:;" class="has-arrow">
-                    <div class="parent-icon"><i class='bx bx-task'></i></div>
-                    <div class="menu-title">Quizzes</div>
-                </a>
-                <ul>
-                    <li>
-                        <a href="{{ route('student.quizzes.list') }}">
-                            <div class="parent-icon"><i class="bx bx-list-ul"></i></div>
-                            <div class="menu-title">Available Quizzes</div>
-                        </a>
-                    </li>
-                </ul>
-            </li>
+            @if (auth()->user()->student->subscription_status === 'subscribed')
+                <li>
+                    <a href="javascript:;" class="has-arrow">
+                        <div class="parent-icon"><i class='bx bx-book-open'></i></div>
+                        <div class="menu-title">Courses</div>
+                    </a>
+                    <ul>
+                        <li>
+                            <a href="{{ route('student.myCourses') }}">
+                                <div class="parent-icon"><i class='bx bx-book'></i></div>
+                                <div class="menu-title">My Courses</div>
+                            </a>
+                        </li>
+                        <li>
+                            <a href="{{ route('student.myCertificates') }}">
+                                <div class="parent-icon"><i class='bx bx-award'></i></div>
+                                <div class="menu-title">My Certificates</div>
+                            </a>
+                        </li>
+                    </ul>
+                </li>
+                <li>
+                    <a href="javascript:;" class="has-arrow">
+                        <div class="parent-icon"><i class='bx bx-task'></i></div>
+                        <div class="menu-title">Quizzes</div>
+                    </a>
+                    <ul>
+                        <li>
+                            <a href="{{ route('student.quizzes.list') }}">
+                                <div class="parent-icon"><i class="bx bx-list-ul"></i></div>
+                                <div class="menu-title">Available Quizzes</div>
+                            </a>
+                        </li>
+                    </ul>
+                </li>
+            @endif
         @endhasanyrole
         @hasanyrole('Super Admin')
             <li>
@@ -138,6 +141,12 @@
                         <a href="{{ route('teacherTest.addPage') }}">
                             <div class="parent-icon"><i class="bx bx-plus-circle"></i></div>
                             <div class="menu-title">Add Level Test</div>
+                        </a>
+                    </li>
+                    <li>
+                        <a href="{{ route('teachers.logs.index') }}">
+                            <div class="parent-icon"><i class="bx bx-time"></i></div>
+                            <div class="menu-title">Active Time</div>
                         </a>
                     </li>
                 </ul>
@@ -258,6 +267,7 @@
 
         @hasanyrole('Super Admin|Admin|Teacher|Student')
             @if (auth()->user()->hasRole('Teacher') && auth()->user()->teacher->approval_status == 'pending')
+            @elseif (auth()->user()->getAgeGroup() == '1-5' && auth()->user()->hasRole('Student'))
             @else
                 <li>
                     <a href="javascript:;" class="has-arrow">
@@ -292,12 +302,15 @@
             @endif
         @endhasanyrole
         @hasanyrole('Student')
-            <li>
-                <a href="{{ route('subscription.details') }}">
-                    <div class="parent-icon"><i class='bx bx-credit-card'></i></div>
-                    <div class="menu-title">My Subscription</div>
-                </a>
-            </li>
+
+            @if (auth()->user()->getAgeGroup() !== '1-5')
+                <li>
+                    <a href="{{ route('subscription.details') }}">
+                        <div class="parent-icon"><i class='bx bx-credit-card'></i></div>
+                        <div class="menu-title">My Subscription</div>
+                    </a>
+                </li>
+            @endif
         @endhasanyrole
 
         @hasanyrole('Super Admin|Admin')

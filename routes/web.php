@@ -30,7 +30,7 @@ use App\Http\Controllers\HomeController;
 use App\Http\Controllers\PermissionController;
 use App\Http\Controllers\Vendor\Chatify\MessagesController;
 use App\Http\Controllers\UserActivityController;
-
+use App\Http\Controllers\YoutubeVideoController;
 
 
 
@@ -198,6 +198,14 @@ Route::middleware(['auth', 'role:Admin|Super Admin'])->prefix('admin')->group(fu
     Route::get('/teachers/logs', [UserActivityController::class, 'getDailyActivity'])->name('teachers.logs.index');
     Route::get('/teacher/logs/{id}', [UserActivityController::class, 'showLogs'])->name('teacher.logs.show');
     Route::get('/teacher/{id}/monthly-activity', [UserActivityController::class, 'getMonthlyActivity'])->name('teacher.monthly.activity');
+
+    // youtube videos 
+    Route::get('youtube_videos', [YoutubeVideoController::class, 'index'])->name('youtube_videos.index');
+    Route::post('youtube_videos', [YoutubeVideoController::class, 'store'])->name('youtube_videos.store');
+    Route::get('youtube_videos/{id}', [YoutubeVideoController::class, 'show'])->name('youtube_videos.show');
+    Route::put('youtube_videos/{id}', [YoutubeVideoController::class, 'update'])->name('youtube_videos.update');
+    Route::delete('youtube_videos/{id}', [YoutubeVideoController::class, 'destroy'])->name('youtube_videos.destroy');
+
 });
 
 // Routes for Super Admin, Admin, and Teacher

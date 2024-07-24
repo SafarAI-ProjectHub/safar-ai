@@ -137,6 +137,7 @@
 @endsection
 
 @section('scripts')
+    <script src="https://unpkg.com/sweetalert/dist/sweetalert.min.js"></script>
     <script>
         $(document).ready(function() {
             function fetchNotifications() {
@@ -206,6 +207,11 @@
                                 'notification-list--unread');
                         }
                         fetchNotifications()
+                        swal({
+                            title: "Success",
+                            text: 'All notifications marked as seen.',
+                            icon: "success",
+                        });
                     },
                     error: function(xhr, status, error) {
                         console.error('Error marking notifications as seen:', error);

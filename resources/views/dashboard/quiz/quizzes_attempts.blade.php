@@ -8,7 +8,7 @@
 @section('content')
     <div class="container mt-5">
         <div class="card">
-            <div class="card-header bg-primary text-white">
+            <div class="card-header  text-white">
                 <h2>Quiz Results</h2>
             </div>
             <div class="card-body">

@@ -804,19 +804,14 @@
     let currentActivityStart = new Date();
 
     function encryptData(data) {
-        return btoa(JSON.stringify(data)); // Base64 encode for simplicity
+        return btoa(JSON.stringify(data));
     }
 
     function decryptData(data) {
-        return JSON.parse(atob(data)); // Base64 decode for simplicity
-    }
-
-    function logActivity(status, additionalData = {}) {
-        console.log(`Activity: ${status}, Data: `, additionalData);
+        return JSON.parse(atob(data));
     }
 
     function sendActivityStatus(status, additionalData = {}) {
-        console.log(`Sending request: ${status}`, additionalData); // Log the request for debugging
         const data = encryptData({
             status: status,
             additionalData: additionalData
@@ -832,7 +827,7 @@
                 'X-CSRF-TOKEN': '{{ csrf_token() }}'
             },
             success: function(response) {
-                console.log('Activity status updated successfully.');
+                return;
             },
             error: function(error) {
                 console.error('Error updating activity status:', error);
@@ -842,69 +837,52 @@
 
     function handleActivityStatusChange(status) {
         const now = new Date();
-        const activeTime = Math.floor((now - currentActivityStart) / 1000); // Convert to seconds
+        const activeTime = Math.floor((now - currentActivityStart) / 1000);
         sendActivityStatus(status, {
             activeTime: activeTime
         });
-        logActivity(status, {
-            activeTime: activeTime
-        });
+
         sessionStorage.setItem('activityData', encryptData({
             currentActivityStart: now
         }));
-        currentActivityStart = now; // Reset activity start time
-    }
-
-    // Log every event with its name and additional details
-    function logEvent(eventName, details) {
-        console.log(`Event: ${eventName}`, details);
+        currentActivityStart = now;
     }
 
     // Handle focus event
     $(window).on('focus', function() {
-        logEvent('focus', {
-            hidden: document.hidden
-        });
+
         currentActivityStart = new Date();
         sendActivityStatus('active');
-        logActivity('active');
+
     });
 
     // Handle blur event
     $(window).on('blur', function() {
-        logEvent('blur', {
-            hidden: document.hidden
-        });
+
         handleActivityStatusChange('inactive');
     });
 
     // Handle beforeunload event
     $(window).on('beforeunload', function() {
-        logEvent('beforeunload', {
-            hidden: document.hidden
-        });
+
         handleActivityStatusChange('inactive');
     });
 
     // Handle visibilitychange event
     $(document).on('visibilitychange', function() {
-        logEvent('visibilitychange', {
-            hidden: document.hidden
-        });
+
         if (document.hidden) {
             handleActivityStatusChange('inactive');
         } else {
             currentActivityStart = new Date();
             sendActivityStatus('active');
-            logActivity('active');
+
         }
     });
 
     // Handle page reload
     $(document).ready(function() {
-        logEvent('DOMContentLoaded', {
-            hidden: document.hidden
-        });
+
         const activityData = sessionStorage.getItem('activityData');
         if (activityData) {
             const decryptedData = decryptData(activityData);
@@ -913,14 +891,12 @@
             currentActivityStart = new Date();
         }
         sendActivityStatus(document.hidden ? 'inactive' : 'active');
-        logActivity(document.hidden ? 'inactive' : 'active');
+
     });
 
     // Handle page unload
     $(window).on('unload', function() {
-        logEvent('unload', {
-            hidden: document.hidden
-        });
+
         handleActivityStatusChange('inactive');
     });
 </script>

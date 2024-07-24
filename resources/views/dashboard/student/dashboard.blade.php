@@ -140,7 +140,7 @@
                                                     <circle class="st0" cx="-261.5" cy="384.7" r="45.9"></circle>
                                                     <path class="st1"
                                                         d="M-272.9,363.2l35.8,20.7c0.7,0.4,0.7,1.3,0,1.7l-35.8,20.7c-0.7,0.4-1.5-0.1-1.5-0.9V364
-                                                                                                                                                                                C-274.4,363.3-273.5,362.8-272.9,363.2z">
+                                                                                                                                                                                                    C-274.4,363.3-273.5,362.8-272.9,363.2z">
                                                     </path>
                                                 </g>
                                             </svg>
@@ -203,45 +203,34 @@
             </div>
         </div>
     @else
-        <div class="row">
-            <div class="col-md-12">
-                <h1>Watch Our YouTube Playlist</h1>
-            </div>
-            <div class="col-md-12">
-                <div class="card" style="width: 100%;">
-                    <div class="text-center">
-                        <iframe width="100%" height="315"
-                            src="https://www.youtube.com/embed/videoseries?list=PLWz5rJ2EKKc8j2fah8n19gP9IpRhol_Ip"
-                            frameborder="0" allowfullscreen></iframe>
+        @if (auth()->user()->getAgeGroup() !== '0-5')
+            <!-- New Modal for suggesting subscription -->
+            <div class="modal fade" id="subscriptionModal" tabindex="-1" aria-labelledby="subscriptionModalLabel"
+                aria-hidden="true">
+                <div class="modal-dialog">
+                    <div class="modal-content">
+                        <div class="modal-header">
+                            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                        </div>
+                        <div class="modal-body">
+                            <h5 class="modal-title">Unlock Premium Features</h5>
+                            <p>Get exclusive access to advanced courses and resources. Enhance your learning with our
+                                Premium
+                                Plan!</p>
+                            <button class="btn btn-detail btn-primary"
+                                onclick="location.href='{{ route('subscription.details') }}'">See Details</button>
+                            <p class="mt-4"><strong>Note:</strong> if you have subscribed and still see this message,
+                                please
+                                wait for up to one
+                                minute. The page
+                                will reload, and you will gain access to the courses. The delay is due to payment processing
+                                by
+                                PayPal. Thank you for your patience!</p>
+                        </div>
                     </div>
                 </div>
             </div>
-        </div>
-
-
-        <!-- New Modal for suggesting subscription -->
-        <div class="modal fade" id="subscriptionModal" tabindex="-1" aria-labelledby="subscriptionModalLabel"
-            aria-hidden="true">
-            <div class="modal-dialog">
-                <div class="modal-content">
-                    <div class="modal-header">
-                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-                    </div>
-                    <div class="modal-body">
-                        <h5 class="modal-title">Unlock Premium Features</h5>
-                        <p>Get exclusive access to advanced courses and resources. Enhance your learning with our Premium
-                            Plan!</p>
-                        <button class="btn btn-detail btn-primary"
-                            onclick="location.href='{{ route('subscription.details') }}'">See Details</button>
-                        <p class="mt-4"><strong>Note:</strong> if you have subscribed and still see this message, please
-                            wait for up to one
-                            minute. The page
-                            will reload, and you will gain access to the courses. The delay is due to payment processing by
-                            PayPal. Thank you for your patience!</p>
-                    </div>
-                </div>
-            </div>
-        </div>
+        @endif
     @endif
 
     <!-- Modal for Course Details -->
@@ -272,7 +261,9 @@
         $(document).ready(function() {
             // Trigger the modal for users without a subscription
             @if (Auth::user()->student->subscription_status !== 'subscribed' || $subscription->status !== 'active')
-                $('#subscriptionModal').modal('show');
+                @if (auth()->user()->getAgeGroup() !== '0-5')
+                    $('#subscriptionModal').modal('show');
+                @endif
             @endif
 
             // Course link click event
@@ -348,7 +339,7 @@
                             confirmButtonText: 'OK'
                         }).then(() => {
                             location
-                                .reload(); // Refresh the page to update the enrolled courses
+                                .reload();
                         });
                     },
                     error: function(xhr) {
