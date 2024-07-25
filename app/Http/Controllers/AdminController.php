@@ -638,7 +638,7 @@ class AdminController extends Controller
                     return $row->user->status;
                 })
                 ->addColumn('actions', function ($row) {
-                    return '<div class="d-flex justify-content-between">
+                    return '<div class="d-flex justify-content-between gap-2">
                                 <button class="btn btn-warning btn-sm edit-student" data-id="' . $row->id . '">Edit</button>
                                 <button class="btn btn-danger btn-sm delete-student" data-id="' . $row->id . '">Delete</button>
                             </div>';

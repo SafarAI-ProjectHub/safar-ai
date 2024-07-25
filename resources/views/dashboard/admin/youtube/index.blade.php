@@ -2,6 +2,7 @@
 
 @section('styles')
     <link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
 @endsection
 
 @section('content')
@@ -10,10 +11,11 @@
             <div class="card-header text-white">
                 <div class="d-flex justify-content-between mb-3">
                     <h2>YouTube Videos List</h2>
-                    <button class="btn btn-primary btn-sm" data-toggle="modal" data-target="#addModal">Add Video</button>
+                    <button class="btn btn-primary btn-sm" data-bs-toggle="modal" data-bs-target="#addModal">Add
+                        Video</button>
                 </div>
             </div>
-            <div class="card-body">
+            <div class="card-body table-responsive">
                 <div class="row mb-3">
                     <div class="col-md-4">
                         <select id="age-group-filter" class="form-control">
@@ -27,6 +29,7 @@
                 <table id="youtube-videos-table" class="table table-striped table-bordered">
                     <thead>
                         <tr>
+                            <th>#</th>
                             <th>Title</th>
                             <th>URL</th>
                             <th>Age Group</th>
@@ -42,14 +45,12 @@
     </div>
 
     <!-- Add Modal -->
-    <div class="modal fade" id="addModal" tabindex="-1" aria-labelledby="addModalLabel" aria-hidden="true">
+    <div class="modal fade" id="addModal" tabindex="-1" aria-labelledby="addModalLabel" aria-hidden="false">
         <div class="modal-dialog">
             <div class="modal-content">
-                <div class="modal-header">
+                <div class="modal-header  text-white">
                     <h5 class="modal-title" id="addModalLabel">Add YouTube Video</h5>
-                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
-                        <span aria-hidden="true">&times;</span>
-                    </button>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                 </div>
                 <form id="addVideoForm">
                     <div class="modal-body">
@@ -72,7 +73,7 @@
                         </div>
                     </div>
                     <div class="modal-footer">
-                        <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
                         <button type="submit" class="btn btn-primary">Add Video</button>
                     </div>
                 </form>
@@ -84,11 +85,9 @@
     <div class="modal fade" id="editModal" tabindex="-1" aria-labelledby="editModalLabel" aria-hidden="true">
         <div class="modal-dialog">
             <div class="modal-content">
-                <div class="modal-header">
+                <div class="modal-header  text-white">
                     <h5 class="modal-title" id="editModalLabel">Edit YouTube Video</h5>
-                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
-                        <span aria-hidden="true">&times;</span>
-                    </button>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                 </div>
                 <form id="editVideoForm">
                     <div class="modal-body">
@@ -112,7 +111,7 @@
                         </div>
                     </div>
                     <div class="modal-footer">
-                        <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
                         <button type="submit" class="btn btn-primary">Save changes</button>
                     </div>
                 </form>
@@ -122,7 +121,8 @@
 @endsection
 
 @section('scripts')
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@4.5.2/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.11.5/dist/umd/popper.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.2.0/dist/js/bootstrap.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
     <script>
@@ -144,6 +144,11 @@
                     }
                 },
                 columns: [{
+                        data: 'id',
+                        name: 'id'
+
+                    },
+                    {
                         data: 'title',
                         name: 'title'
                     },
@@ -179,6 +184,9 @@
                             `;
                         }
                     }
+                ],
+                order: [
+                    [0, 'desc']
                 ],
                 columnDefs: [{
                     targets: 6,
@@ -219,6 +227,7 @@
                     data: $(this).serialize(),
                     success: function(response) {
                         $('#addModal').modal('hide');
+                        $('#addModal').find('input').val('');
                         $('#youtube-videos-table').DataTable().ajax.reload();
                         Swal.fire('Success', response.success, 'success');
                     },
@@ -274,7 +283,7 @@
                 }).then((result) => {
                     if (result.isConfirmed) {
                         $.ajax({
-                            url: '{{ url('youtube_videos') }}/' + id,
+                            url: '/admin/youtube_videos/' + id,
                             type: 'DELETE',
                             data: {
                                 _token: '{{ csrf_token() }}'
@@ -284,7 +293,7 @@
                                 Swal.fire('Deleted!', response.success, 'success');
                             },
                             error: function(xhr) {
-                                Swal.fire('Error', xhr.responseText, 'error');
+                                Swal.fire('Error', xhr.responseText.error, 'error');
                             }
                         });
                     }

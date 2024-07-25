@@ -2,7 +2,7 @@
 
 @section('content')
     <div class="card">
-        <div class="card-body">
+        <div class="card-body ">
             <h5>Manage Students</h5>
             <div class="table-responsive">
                 <table id="students-table" class="table table-striped table-bordered">

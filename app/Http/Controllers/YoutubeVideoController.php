@@ -116,14 +116,15 @@ class YoutubeVideoController extends Controller
     private function fetchVideoDetails($videoId)
     {
         $apiKey = env('YOUTUBE_API_KEY');
-        dd(env('YOUTUBE_API_KEY'));
+        // dd(env('YOUTUBE_API_KEY'));
         $apiUrl = "https://www.googleapis.com/youtube/v3/videos?id={$videoId}&key={$apiKey}&part=snippet,statistics";
-        dd($apiUrl);
+
         $response = Http::get($apiUrl);
-        dd($response->json());
+        // dd($response->json());
         if ($response->successful() && !empty($response->json()['items'])) {
             $item = $response->json()['items'][0];
             return [
+                'status' => 'success',
                 'description' => $item['snippet']['description'] ?? null,
                 'thumbnail_url' => $item['snippet']['thumbnails']['high']['url'] ?? null,
                 'view_count' => $item['statistics']['viewCount'] ?? 0,
@@ -132,6 +133,9 @@ class YoutubeVideoController extends Controller
             ];
         }
 
-        return [];
+        return [
+            'status' => 'error',
+            'error' => 'Invalid YouTube Video URL'
+        ];
     }
 }

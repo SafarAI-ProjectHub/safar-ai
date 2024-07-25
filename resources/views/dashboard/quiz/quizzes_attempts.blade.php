@@ -11,7 +11,7 @@
             <div class="card-header  text-white">
                 <h2>Quiz Results</h2>
             </div>
-            <div class="card-body">
+            <div class="card-body table-responsive">
                 <div class="row mb-3">
                     <div class="col-md-4">
                         <select id="course-filter" class="form-control">

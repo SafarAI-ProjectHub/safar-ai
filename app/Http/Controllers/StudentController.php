@@ -22,11 +22,12 @@ use App\Models\User;
 use App\Models\Teacher;
 use Spatie\Permission\Models\Role;
 use App\Models\LevelTestChoice;
+use App\Models\YoutubeVideo;
 
 
 class StudentController extends Controller
 {
-    public function index()
+    public function index(Request $request)
     {
         if (Auth::user()->hasRole('Student') && Auth::user()->status === 'pending') {
             $completedLevelTest = LevelTestAssessment::where('user_id', Auth::id())->exists();
@@ -38,12 +39,6 @@ class StudentController extends Controller
                 return view('dashboard.student.level_test', compact('levelTestQuestions'));
             }
         }
-
-        // if (Auth::user()->status == 'pending') {
-        //     Auth::user()->status = 'active';
-        //     Auth::user()->save();
-        // }
-
 
         $user = Auth::user();
 
@@ -76,11 +71,23 @@ class StudentController extends Controller
         } else {
             $courses = collect();
         }
+        $videoAgeGroup = $user->getAgeGroup();
+        $videos = YoutubeVideo::where('age_group', $videoAgeGroup)->paginate(12);
+
+        if ($request->ajax()) {
+            if ($request->has('video_id')) {
+                $video = YoutubeVideo::findOrFail($request->video_id);
+                return response()->json($video);
+            }
+
+            $videos = YoutubeVideo::where('age_group', $videoAgeGroup)->paginate(12);
+            return response()->json($videos);
+        }
 
         $subscription = UserSubscription::where('user_id', Auth::id())->first();
         $enrolledCourseIds = Auth::user()->courses ? Auth::user()->courses->pluck('id')->toArray() : [];
         $planDetails = \App\Models\Subscription::where('is_active', 1)->first();
-        return view('dashboard.student.dashboard', compact('courses', 'planDetails', 'subscription', 'enrolledCourseIds'));
+        return view('dashboard.student.dashboard', compact('courses', 'planDetails', 'subscription', 'enrolledCourseIds', 'videos'));
     }
 
     public function levelTest()

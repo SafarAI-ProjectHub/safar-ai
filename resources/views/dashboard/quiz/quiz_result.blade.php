@@ -146,7 +146,7 @@
                 <i class='bx bx-arrow-back'></i> Back
             </a>
         </div>
-        <div class="card mb-4">
+        <div class="card mb-4 table-responsive">
             <div class="card-header bg-primary text-white">
                 <h2>Quiz Result: {{ $assessment->quiz->title }}</h2>
                 <p>{{ $assessment->quiz->unit->title }} - {{ $assessment->quiz->unit->course->title }}</p>

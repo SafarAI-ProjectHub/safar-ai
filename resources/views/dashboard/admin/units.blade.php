@@ -224,7 +224,7 @@
                         width: '25%',
                         render: function(data, type, row) {
                             return `
-                        <div class="d-flex justify-content-around">
+                        <div class="d-flex justify-content-around gap-2">
                             <button class="btn btn-primary btn-sm edit-unit" data-id="${row.id}">Edit</button>
                             <button class="btn btn-info btn-sm show-script" data-id="${row.id}">Show Script</button>
                             <button class="btn btn-danger btn-sm delete-unit" data-id="${row.id}">Delete</button>

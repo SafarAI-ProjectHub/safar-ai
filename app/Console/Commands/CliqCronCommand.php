@@ -113,9 +113,6 @@ class CliqCronCommand extends Command
                     'user->id' => $subscription->user_id,
                 ]);
             }
-
         }
-
-
     }
 }

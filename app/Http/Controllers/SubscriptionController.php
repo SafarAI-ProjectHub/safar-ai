@@ -21,6 +21,10 @@ class SubscriptionController extends Controller
     public function showSubscriptionDetails()
     {
         $user = Auth::user();
+
+        if ($user->getAgeGroup() == '1-5') {
+            return redirect()->route('student.dashboard')->with('error', 'You are not eligible to subscribe to any plan.');
+        }
         $subscription = UserSubscription::where('user_id', $user->id)->first();
 
         if ($subscription) {

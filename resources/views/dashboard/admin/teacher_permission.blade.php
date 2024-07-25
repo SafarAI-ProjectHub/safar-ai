@@ -7,7 +7,7 @@
 
 @section('content')
     <div class="card">
-        <div class="card-body">
+        <div class="card-body table-responsive">
             <h5>Manage Create Course Permissions</h5>
             <div id="status-message" class="alert d-none"></div>
             <div class="col-md-4 mb-3">

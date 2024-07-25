@@ -12,7 +12,7 @@ class AdminBillingController extends Controller
     public function subscriptions(Request $request)
     {
         if ($request->ajax()) {
-            $query = UserSubscription::with(['user', 'payment'])->where('status', 'active');
+            $query = UserSubscription::with(['user', 'payments'])->where('status', 'active');
 
             if ($request->has('daterange') && $request->daterange != '') {
                 $dates = explode(' - ', $request->daterange);
@@ -26,7 +26,7 @@ class AdminBillingController extends Controller
                     return $row->user->full_name;
                 })
                 ->addColumn('payment_status', function ($row) {
-                    return $row->payment->isEmpty() ? 'N/A' : $row->payment()->latest()->first()->payment_status;
+                    return $row->payments->isEmpty() ? 'N/A' : $row->payments()->latest()->first()->payment_status;
                 })
                 ->make(true);
         }
@@ -62,7 +62,7 @@ class AdminBillingController extends Controller
     public function InactiveSubscriptions(Request $request)
     {
         if ($request->ajax()) {
-            $query = UserSubscription::with(['user', 'payment'])->where('status', '!=', 'active');
+            $query = UserSubscription::with(['user', 'payments'])->where('status', '!=', 'active');
 
             if ($request->has('daterange') && $request->daterange != '') {
                 $dates = explode(' - ', $request->daterange);
@@ -76,7 +76,7 @@ class AdminBillingController extends Controller
                     return $row->user->full_name;
                 })
                 ->addColumn('payment_status', function ($row) {
-                    return $row->payment->isEmpty() ? 'N/A' : $row->payment()->latest()->first()->payment_status;
+                    return $row->payments->isEmpty() ? 'N/A' : $row->payments()->latest()->first()->payment_status;
                 })
                 ->make(true);
         }

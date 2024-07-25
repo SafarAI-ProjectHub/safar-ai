@@ -5,7 +5,7 @@
 @endsection
 @section('content')
     <div class="card">
-        <div class="card-body">
+        <div class="card-body table-responsive">
             <h5>Admin List</h5>
             <div class="d-flex justify-content-end mb-3">
                 <a href="{{ route('admin.create') }}" class="btn btn-primary">Create Admin</a>
