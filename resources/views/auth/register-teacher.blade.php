@@ -4,7 +4,8 @@
             width="650" alt="" />
     </x-slot>
 
-    <form method="POST" action="{{ route('register-teacher') }}" class="row g-3" enctype="multipart/form-data">
+    <form id="registerForm" method="POST" action="{{ route('register-teacher') }}" class="row g-3"
+        enctype="multipart/form-data">
         @csrf
 
         <!-- First Name -->
@@ -12,9 +13,7 @@
             <label for="first_name" class="form-label">First Name</label>
             <input type="text" class="form-control" id="first_name" name="first_name" value="{{ old('first_name') }}"
                 required placeholder="John">
-            @error('first_name')
-                <span class="text-danger">{{ $message }}</span>
-            @enderror
+            <div class="text-danger" id="error_first_name"></div>
         </div>
 
         <!-- Last Name -->
@@ -22,9 +21,7 @@
             <label for="last_name" class="form-label">Last Name</label>
             <input type="text" class="form-control" id="last_name" name="last_name" value="{{ old('last_name') }}"
                 required placeholder="Doe">
-            @error('last_name')
-                <span class="text-danger">{{ $message }}</span>
-            @enderror
+            <div class="text-danger" id="error_last_name"></div>
         </div>
 
         <!-- Email Address -->
@@ -32,21 +29,12 @@
             <label for="email" class="form-label">Email Address</label>
             <input type="email" class="form-control" id="email" name="email" value="{{ old('email') }}"
                 required placeholder="example@user.com">
-            @error('email')
-                <span class="text-danger">{{ $message }}</span>
-            @enderror
+            <div class="text-danger" id="error_email"></div>
         </div>
 
-        <!-- Country -->
+        <!-- Country Location (Hidden) -->
         <div class="col-12">
-            {{-- <label for="country_location" class="form-label">Country</label> --}}
             <input type="hidden" name="country_location" id="country_location-input" value="">
-            {{-- <select class="form-control" id="country_location" name="country_location" required disabled>
-                <!-- Options will be populated by JavaScript -->
-            </select> --}}
-            @error('country_location')
-                <span class="text-danger">{{ $message }}</span>
-            @enderror
         </div>
 
         <!-- Phone Number -->
@@ -57,10 +45,7 @@
                 <input type="tel" class="form-control" id="phone_number" name="phone_number"
                     value="{{ old('phone_number') }}" required placeholder="1234567890">
             </div>
-            <div id="phone_error" class="text-danger"></div>
-            @error('phone_number')
-                <span class="text-danger">{{ $message }}</span>
-            @enderror
+            <div class="text-danger" id="error_phone_number"></div>
         </div>
 
         <!-- Date of Birth -->
@@ -68,56 +53,38 @@
             <label for="date_of_birth" class="form-label">Date of Birth</label>
             <input type="date" class="form-control" id="date_of_birth" name="date_of_birth"
                 value="{{ old('date_of_birth') }}" required>
-            @error('date_of_birth')
-                <span class="text-danger">{{ $message }}</span>
-            @enderror
+            <div class="text-danger" id="error_date_of_birth"></div>
         </div>
 
         <!-- Password -->
         <div class="col-12">
             <label for="password" class="form-label">Password</label>
-            <div class="input-group" id="show_hide_password">
-                <input type="password" class="form-control border-end-0" id="password" name="password" required
-                    placeholder="Enter Password">
-                <a href="javascript:;" class="input-group-text bg-transparent"><i class="bx bx-hide"></i></a>
-            </div>
-            @error('password')
-                <span class="text-danger">{{ $message }}</span>
-            @enderror
+            <input type="password" class="form-control" id="password" name="password" required
+                placeholder="Enter Password">
+            <div class="text-danger" id="error_password"></div>
         </div>
 
         <!-- Confirm Password -->
         <div class="col-12">
             <label for="password_confirmation" class="form-label">Confirm Password</label>
-            <div class="input-group" id="show_hide_password_confirmation">
-                <input type="password" class="form-control border-end-0" id="password_confirmation"
-                    name="password_confirmation" required placeholder="Confirm Password">
-                <a href="javascript:;" class="input-group-text bg-transparent"><i class="bx bx-hide"></i></a>
-            </div>
-            @error('password_confirmation')
-                <span class="text-danger">{{ $message }}</span>
-            @enderror
+            <input type="password" class="form-control" id="password_confirmation" name="password_confirmation" required
+                placeholder="Confirm Password">
+            <div class="text-danger" id="error_password_confirmation"></div>
         </div>
-
-
-
 
         <!-- CV Upload -->
         <div class="col-12">
             <label for="cv" class="form-label">Upload CV</label>
             <input type="file" class="form-control" id="cv" name="cv" required>
-            @error('cv')
-                <span class="text-danger">{{ $message }}</span>
-            @enderror
+            <div class="text-danger" id="error_cv"></div>
         </div>
+
         <!-- Years of Experience -->
         <div class="col-12">
             <label for="years_of_experience" class="form-label">Years of Experience</label>
             <input type="number" class="form-control" id="years_of_experience" name="years_of_experience"
                 value="{{ old('years_of_experience') }}" required placeholder="Number of years">
-            @error('years_of_experience')
-                <span class="text-danger">{{ $message }}</span>
-            @enderror
+            <div class="text-danger" id="error_years_of_experience"></div>
         </div>
 
         <!-- Terms and Conditions -->
@@ -142,120 +109,86 @@
         </div>
     </form>
 
-
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/intl-tel-input/17.0.13/js/intlTelInput.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/intl-tel-input/17.0.13/js/utils.js"></script>
     <script>
         document.addEventListener("DOMContentLoaded", function() {
-            const phoneInput = document.querySelector("#phone_number");
-            const countryCodeInput = document.querySelector("#country_code");
-            // const countrySelect = document.querySelector("#country_location");
-            const countryinput = document.querySelector("#country_location-input");
-            const phoneError = document.querySelector("#phone_error");
+            const phoneInputField = document.querySelector("#phone_number");
+            const phoneErrorField = document.querySelector("#error_phone_number");
+            const form = document.querySelector("#registerForm");
 
-            const iti = window.intlTelInput(phoneInput, {
+            const iti = window.intlTelInput(phoneInputField, {
                 initialCountry: "auto",
-
-                geoIpLookup: function(callback) {
-                    fetch('https://ipinfo.io?token=f77be74db12b48')
-                        .then(response => response.json())
-                        .then(data => {
-                            const countryCode = (data && data.country) ? data.country : "us";
-                            callback(countryCode);
-                        });
-                },
-                excludeCountries: ["is", "Israel"],
                 utilsScript: "https://cdnjs.cloudflare.com/ajax/libs/intl-tel-input/17.0.13/js/utils.js"
             });
 
-            function validatePhoneNumber() {
-                const isValid = iti.isValidNumber();
+            form.addEventListener('submit', function(event) {
+                event.preventDefault();
+
+                let isFormValid = validateForm();
+                if (!isFormValid) {
+                    alert('Please correct the errors before submitting the form.');
+                    return;
+                }
+
+                let formData = new FormData(form);
+                formData.append('country_code', iti.getSelectedCountryData().dialCode);
+
+                fetch(form.getAttribute('action'), {
+                        method: 'POST',
+                        body: formData,
+                        headers: {
+                            'X-CSRF-TOKEN': document.querySelector('input[name="_token"]').value,
+                            'Accept': 'application/json',
+                        },
+                    })
+                    .then(response => response.json())
+                    .then(data => {
+                        if (data.success) {
+                            window.location.href = data.redirect;
+                        } else {
+                            // Handle form errors
+                            Object.keys(data.errors).forEach(function(key) {
+                                const errorDiv = document.querySelector('#error_' + key);
+                                if (errorDiv) {
+                                    errorDiv.textContent = data.errors[key][0];
+                                }
+                            });
+                            alert('Please correct the errors and try again.');
+                        }
+                    })
+                    .catch(error => {
+                        console.error('Error:', error);
+                        alert('An error occurred, please try again.');
+                    });
+            });
+
+            function validateForm() {
+                let isValid = iti.isValidNumber();
                 if (!isValid) {
                     const errorCode = iti.getValidationError();
-                    let errorMessage = "Invalid phone number.";
-                    switch (errorCode) {
-                        case intlTelInputUtils.validationError.INVALID_NUMBER:
-                            errorMessage = "The number entered is not valid.";
-                            break;
-                        case intlTelInputUtils.validationError.TOO_SHORT:
-                            errorMessage = "The number entered is too short.";
-                            break;
-                        case intlTelInputUtils.validationError.TOO_LONG:
-                            errorMessage = "The number entered is too long.";
-                            break;
-                        case intlTelInputUtils.validationError.INVALID_COUNTRY_CODE:
-                            errorMessage = "The country code entered is invalid.";
-                            break;
-                    }
-                    phoneError.textContent = errorMessage;
+                    let errorMessage = getPhoneError(errorCode);
+                    phoneErrorField.textContent = errorMessage;
                 } else {
-                    phoneError.textContent = "";
+                    phoneErrorField.textContent = '';
                 }
                 return isValid;
             }
 
-
-            phoneInput.addEventListener("keyup", validatePhoneNumber);
-
-            phoneInput.addEventListener("countrychange", function() {
-                const countryData = iti.getSelectedCountryData();
-                countryCodeInput.value = "+" + countryData.dialCode;
-                // countrySelect.value = countryData.name.split(" ")[0]; // Use only the first word in English
-                countryinput.value = countryData.name.split(" ")[0];
-                validatePhoneNumber();
-            });
-
-            // fetch("https://restcountries.com/v3.1/all")
-            //     .then(response => response.json())
-            //     .then(data => {
-            //         data.sort((a, b) => a.name.common.localeCompare(b.name.common));
-            //         data = data.filter(country => country.name.common !== "Israel"); // Exclude Israel
-            //         data.forEach(country => {
-            //             const option = document.createElement("option");
-            //             option.value = country.name.common;
-            //             option.textContent = country.name.common;
-            //             countrySelect.appendChild(option);
-            //         });
-            //     });
-
-            // Validate passwords
-            function validatePasswords() {
-                const passwordInput = document.querySelector("#password");
-                const confirmPasswordInput = document.querySelector("#password_confirmation");
-                const passwordError = document.querySelector("#password_error");
-                const confirmPasswordError = document.querySelector("#confirm_password_error");
-
-                const password = passwordInput.value;
-                const confirmPassword = confirmPasswordInput.value;
-
-                if (password.length < 6) {
-                    passwordError.textContent = "Password must be at least 6 characters.";
-                    return false;
-                } else {
-                    passwordError.textContent = "";
+            function getPhoneError(code) {
+                switch (code) {
+                    case intlTelInputUtils.validationError.INVALID_COUNTRY_CODE:
+                        return "The country code is invalid.";
+                    case intlTelInputUtils.validationError.TOO_SHORT:
+                        return "The phone number is too short.";
+                    case intlTelInputUtils.validationError.TOO_LONG:
+                        return "The phone number is too long.";
+                    case intlTelInputUtils.validationError.NOT_A_NUMBER:
+                        return "The phone number is not a number.";
+                    default:
+                        return "The phone number is invalid.";
                 }
-
-                if (password !== confirmPassword) {
-                    confirmPasswordError.textContent = "Passwords do not match.";
-                    return false;
-                } else {
-                    confirmPasswordError.textContent = "";
-                }
-
-                return true;
             }
-
-            document.querySelector("#password").addEventListener("keyup", validatePasswords);
-            document.querySelector("#password_confirmation").addEventListener("keyup", validatePasswords);
-
-            // Handle form submission
-            document.querySelector('form').addEventListener('submit', function(event) {
-                const isPhoneValid = validatePhoneNumber();
-                const arePasswordsValid = validatePasswords();
-
-                if (!isPhoneValid || !arePasswordsValid) {
-                    event.preventDefault();
-                    alert("Please correct the errors before submitting the form.");
-                }
-            });
         });
     </script>
 </x-guest-layout>

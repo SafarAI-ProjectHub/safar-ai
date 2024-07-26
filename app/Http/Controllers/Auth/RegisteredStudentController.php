@@ -40,6 +40,17 @@ class RegisteredStudentController extends Controller
             'subscription_status' => 'free',
         ]);
 
-        return redirect()->route('login')->with('success', 'Your account has been created successfully. Please login to continue.');
+        if ($user) {
+            return response()->json([
+                'success' => true,
+                'message' => 'Your account has been created successfully. Please login to continue.',
+                'redirect' => route('login')
+            ]);
+        } else {
+            return response()->json([
+                'success' => false,
+                'message' => 'Registration failed. Please try again later.'
+            ]);
+        }
     }
 }

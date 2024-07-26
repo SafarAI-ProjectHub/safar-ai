@@ -288,45 +288,45 @@
                 </div>
             </div>
         @endif
-
-        <div class="modal fade" id="courseModal" tabindex="-1" aria-labelledby="courseModalLabel" aria-hidden="true">
-            <div class="modal-dialog">
-                <div class="modal-content">
-                    <div class="modal-header">
-                        <h5 class="modal-title" id="courseModalLabel">Course Details</h5>
-                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-                    </div>
-                    <div class="modal-body">
-                        <div class="course-details">
-                            <h5 id="courseTitle" class="course-title"></h5>
-                            <p id="courseDescription" class="course-description"></p>
-                            <p><strong>Teacher Name:</strong> <span id="teacherName"></span></p>
-                            <p><strong>Years of Experience:</strong> <span id="teacherExperience"></span></p>
-                        </div>
-                        <button id="enrollButton" class="btn btn-primary w-100 mt-3">Enroll in Course</button>
-                    </div>
-                </div>
-            </div>
-        </div>
-
-        <div class="modal fade" id="videoModal" tabindex="-1" aria-labelledby="videoModalLabel" aria-hidden="true">
-            <div class="modal-dialog modal-lg">
-                <div class="modal-content">
-                    <div class="modal-header">
-                        <h5 id="videoTitle" class="course-title"></h5>
-                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-                    </div>
-                    <div class="modal-body">
-                        <div class="video-details">
-                            <div class="ratio ratio-16x9">
-                                <iframe id="videoFrame" src="" frameborder="0" allowfullscreen></iframe>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
     @endif
+
+    <div class="modal fade" id="courseModal" tabindex="-1" aria-labelledby="courseModalLabel" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="courseModalLabel">Course Details</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="course-details">
+                        <h5 id="courseTitle" class="course-title"></h5>
+                        <p id="courseDescription" class="course-description"></p>
+                        <p><strong>Teacher Name:</strong> <span id="teacherName"></span></p>
+                        <p><strong>Years of Experience:</strong> <span id="teacherExperience"></span></p>
+                    </div>
+                    <button id="enrollButton" class="btn btn-primary w-100 mt-3">Enroll in Course</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="modal fade" id="videoModal" tabindex="-1" aria-labelledby="videoModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 id="videoTitle" class="course-title"></h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="video-details">
+                        <div class="ratio ratio-16x9">
+                            <iframe id="videoFrame" src="" frameborder="0" allowfullscreen></iframe>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
 @endsection
 
 @section('scripts')
@@ -334,7 +334,7 @@
     <script>
         $(document).ready(function() {
             @if (Auth::user()->student->subscription_status !== 'subscribed' || $subscription->status !== 'active')
-                @if (auth()->user()->getAgeGroup() !== '0-5')
+                @if (auth()->user()->getAgeGroup() !== '1-5')
                     $('#subscriptionModal').modal('show');
                 @endif
             @endif
@@ -342,6 +342,7 @@
             $('.course-link').click(function() {
                 var courseId = $(this).data('course-id');
                 var isEnrolled = $(this).data('enrolled');
+                console.log("🚀 ~ $ ~ isEnrolled:", isEnrolled)
 
                 if (isEnrolled) {
                     window.location.href = '/courses/' + courseId + '/show';

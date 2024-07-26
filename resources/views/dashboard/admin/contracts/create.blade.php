@@ -6,7 +6,9 @@
         <form id="edit-contract-form">
             @csrf
             @method('PUT')
-            <input type="hidden" name="contract_id" value="{{ $contract->id }}">
+            @if (isset($contract))
+                <input type="hidden" name="contract_id" value="{{ $contract->id }}">
+            @endif
             <div class="mb-3">
                 <label for="other_party_name" class="form-label">Teacher Name</label>
                 <input type="text" class="form-control" name="other_party_name" value="{{ $contract->other_party_name }}"

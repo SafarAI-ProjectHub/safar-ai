@@ -249,7 +249,7 @@
                                             </div><!-- end lecture-overview-item -->
                                             <div class="section-block"></div>
                                             <div class="lecture-overview-item">
-                                                <div class="lecture-overview-stats-wrap d-flex">
+                                                <div class="lecture-overview-stats-wrap d-flex flex-wrap">
                                                     <div class="lecture-overview-stats-item">
                                                         <h3 class="fs-16 font-weight-semi-bold pb-2">By the numbers</h3>
                                                     </div><!-- end lecture-overview-stats-item -->
@@ -394,7 +394,7 @@
                                                             </div><!-- end lecture-overview-item --> --}}
                                             <div class="section-block"></div>
                                             <div class="lecture-overview-item">
-                                                <div class="lecture-overview-stats-wrap d-flex ">
+                                                <div class="lecture-overview-stats-wrap d-flex flex-wrap">
                                                     <div class="lecture-overview-stats-item">
                                                         <h3 class="fs-16 font-weight-semi-bold pb-2">Instructor</h3>
                                                     </div><!-- end lecture-overview-stats-item -->
@@ -470,7 +470,7 @@
 
                                     <div class="tab-pane fade" id="reviews" role="tabpanel"
                                         aria-labelledby="reviews-tab">
-                                        <div class="new-question-body pt-40px d-flex justify-content-between">
+                                        <div class="new-question-body pt-40px d-flex justify-content-between flex-wrap">
                                             <h3 class="fs-20 font-weight-semi-bold">Reviews ({{ $reviewsCount }})</h3>
                                             <h4>
                                                 Average Rating:

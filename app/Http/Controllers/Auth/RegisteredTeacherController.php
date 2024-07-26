@@ -51,6 +51,17 @@ class RegisteredTeacherController extends Controller
             'approval_status' => 'pending',
         ]);
 
-        return redirect()->route('login')->with('success', 'Your registration is successful. Please wait for the admin to approve your account.');
+        if ($user) {
+            return response()->json([
+                'success' => true,
+                'message' => 'Your registration is successful. Please wait for the admin to approve your account.',
+                'redirect' => route('login')
+            ]);
+        } else {
+            return response()->json([
+                'success' => false,
+                'message' => 'Registration failed. Please try again later.'
+            ]);
+        }
     }
 }

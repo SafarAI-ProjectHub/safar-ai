@@ -17730,3 +17730,20 @@ textarea {
   border-top-left-radius: 5px !important;
   border-bottom-left-radius: 5px !important;
 }
+
+@media (max-width: 425px) {
+  .hero-slider .owl-dots {
+    bottom: 175px;
+  }
+}
+@media (max-width: 375px) {
+  .hero-slider .owl-dots {
+    bottom: 200px;
+  }
+}
+
+@media (max-width: 320px) {
+  .hero-slider .owl-dots {
+    bottom: 220px;
+  }
+}

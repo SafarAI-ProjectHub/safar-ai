@@ -4,7 +4,7 @@
             width="650" alt="" />
     </x-slot>
 
-    <form method="POST" action="{{ route('register') }}" class="row g-3">
+    <form id="registerForm" class="row g-3">
         @csrf
 
         <!-- First Name -->
@@ -12,9 +12,7 @@
             <label for="first_name" class="form-label">First Name</label>
             <input type="text" class="form-control" id="first_name" name="first_name" value="{{ old('first_name') }}"
                 required placeholder="John">
-            @error('first_name')
-                <span class="text-danger d-block">{{ $message }}</span>
-            @enderror
+            <span class="text-danger d-block" id="error_first_name"></span>
         </div>
 
         <!-- Last Name -->
@@ -22,9 +20,7 @@
             <label for="last_name" class="form-label">Last Name</label>
             <input type="text" class="form-control" id="last_name" name="last_name" value="{{ old('last_name') }}"
                 required placeholder="Doe">
-            @error('last_name')
-                <span class="text-danger d-block">{{ $message }}</span>
-            @enderror
+            <span class="text-danger d-block" id="error_last_name"></span>
         </div>
 
         <!-- Email Address -->
@@ -32,17 +28,13 @@
             <label for="email" class="form-label">Email Address</label>
             <input type="email" class="form-control" id="email" name="email" value="{{ old('email') }}"
                 required placeholder="example@user.com">
-            @error('email')
-                <span class="text-danger d-block">{{ $message }}</span>
-            @enderror
+            <span class="text-danger d-block" id="error_email"></span>
         </div>
 
         <!-- Country -->
         <div class="col-12">
             <input type="hidden" name="country_location" id="country_location-input" value="">
-            @error('country_location')
-                <span class="text-danger d-block">{{ $message }}</span>
-            @enderror
+            <span class="text-danger d-block" id="error_country_location"></span>
         </div>
 
         <!-- Phone Number -->
@@ -54,9 +46,7 @@
                     value="{{ old('phone_number') }}" required placeholder="1234567890">
             </div>
             <div id="phone_error" class="text-danger"></div>
-            @error('phone_number')
-                <span class="text-danger d-block">{{ $message }}</span>
-            @enderror
+            <span class="text-danger d-block" id="error_phone_number"></span>
         </div>
 
         <!-- Date of Birth -->
@@ -64,9 +54,7 @@
             <label for="date_of_birth" class="form-label">Date of Birth</label>
             <input type="date" class="form-control" id="date_of_birth" name="date_of_birth"
                 value="{{ old('date_of_birth') }}" required>
-            @error('date_of_birth')
-                <span class="text-danger d-block">{{ $message }}</span>
-            @enderror
+            <span class="text-danger d-block" id="error_date_of_birth"></span>
         </div>
 
         <!-- Password -->
@@ -77,9 +65,7 @@
                     placeholder="Enter Password">
                 <a href="javascript:;" class="input-group-text bg-transparent"><i class="bx bx-hide"></i></a>
             </div>
-            @error('password')
-                <span class="text-danger d-block">{{ $message }}</span>
-            @enderror
+            <span class="text-danger d-block" id="error_password"></span>
         </div>
 
         <!-- Confirm Password -->
@@ -90,9 +76,7 @@
                     name="password_confirmation" required placeholder="Confirm Password">
                 <a href="javascript:;" class="input-group-text bg-transparent"><i class="bx bx-hide"></i></a>
             </div>
-            @error('password_confirmation')
-                <span class="text-danger d-block">{{ $message }}</span>
-            @enderror
+            <span class="text-danger d-block" id="error_password_confirmation"></span>
         </div>
 
         <!-- Terms and Conditions -->
@@ -102,6 +86,7 @@
                 <label class="form-check-label" for="flexSwitchCheckChecked">I read and agree to Terms &
                     Conditions</label>
             </div>
+            <span class="text-danger d-block" id="error_terms"></span>
         </div>
 
         <!-- Submit Button -->
@@ -116,17 +101,22 @@
             <p class="mb-0">Already have an account? <a href="{{ route('login') }}">Sign in here</a></p>
         </div>
     </form>
-
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/intl-tel-input/17.0.13/js/intlTelInput.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/intl-tel-input/17.0.13/js/intlTelInput-jquery.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/intl-tel-input/17.0.13/js/utils.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/intl-tel-input/17.0.13/js/intlTelInput.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/intl-tel-input/17.0.13/js/intlTelInput-jquery.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/intl-tel-input/17.0.13/js/utils.js"></script>
     <script>
         document.addEventListener("DOMContentLoaded", function() {
             const phoneInput = document.querySelector("#phone_number");
             const countryCodeInput = document.querySelector("#country_code");
-            // const countrySelect = document.querySelector("#country_location");
             const countryinput = document.querySelector("#country_location-input");
             const phoneError = document.querySelector("#phone_error");
 
             const iti = window.intlTelInput(phoneInput, {
                 initialCountry: "auto",
+                nationalMode: true,
                 geoIpLookup: function(callback) {
                     fetch('https://ipinfo.io?token=f77be74db12b48')
                         .then(response => response.json())
@@ -167,35 +157,18 @@
             phoneInput.addEventListener("keyup", validatePhoneNumber);
 
             phoneInput.addEventListener("countrychange", function() {
-
-
                 const countryData = iti.getSelectedCountryData();
                 countryCodeInput.value = "+" + countryData.dialCode;
                 const countryName = countryData.name.split(" (")[0];
-                // countrySelect.value = countryName;
                 countryinput.value = countryName;
                 validatePhoneNumber();
             });
 
-            // fetch("https://restcountries.com/v3.1/all")
-            //     .then(response => response.json())
-            //     .then(data => {
-            //         data.sort((a, b) => a.name.common.localeCompare(b.name.common));
-            //         data = data.filter(country => country.name.common !== "Israel"); // Exclude Israel
-            //         data.forEach(country => {
-            //             const option = document.createElement("option");
-            //             option.value = country.name.common;
-            //             option.textContent = country.name.common;
-            //             countrySelect.appendChild(option);
-            //         });
-            //     });
-
-            // Validate passwords
             function validatePasswords() {
                 const passwordInput = document.querySelector("#password");
                 const confirmPasswordInput = document.querySelector("#password_confirmation");
-                const passwordError = document.querySelector("#password_error");
-                const confirmPasswordError = document.querySelector("#confirm_password_error");
+                const passwordError = document.querySelector("#error_password");
+                const confirmPasswordError = document.querySelector("#error_password_confirmation");
 
                 const password = passwordInput.value;
                 const confirmPassword = confirmPasswordInput.value;
@@ -220,15 +193,36 @@
             document.querySelector("#password").addEventListener("keyup", validatePasswords);
             document.querySelector("#password_confirmation").addEventListener("keyup", validatePasswords);
 
-            // Handle form submission
-            document.querySelector('form').addEventListener('submit', function(event) {
-                const isPhoneValid = validatePhoneNumber();
-                const arePasswordsValid = validatePasswords();
+            document.querySelector("#registerForm").addEventListener("submit", function(event) {
+                event.preventDefault();
+                const form = event.target;
+                const formData = new FormData(form);
 
-                if (!isPhoneValid || !arePasswordsValid) {
-                    event.preventDefault();
-                    alert("Please correct the errors before submitting the form.");
-                }
+                fetch("{{ route('register') }}", {
+                        method: "POST",
+                        headers: {
+                            "X-CSRF-TOKEN": document.querySelector('input[name="_token"]').value,
+                            "Accept": "application/json"
+                        },
+                        body: formData
+                    })
+                    .then(response => response.json())
+                    .then(data => {
+                        // Clear previous errors
+                        document.querySelectorAll('.text-danger.d-block').forEach(el => el.textContent =
+                            '');
+
+                        if (data.errors) {
+                            for (const [key, messages] of Object.entries(data.errors)) {
+                                document.querySelector(`#error_${key}`).textContent = messages.join(
+                                    ", ");
+                            }
+                        } else {
+                            // Handle successful registration
+                            window.location.href = data.redirect;
+                        }
+                    })
+                    .catch(error => console.error("Error:", error));
             });
         });
     </script>

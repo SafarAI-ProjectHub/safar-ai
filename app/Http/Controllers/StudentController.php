@@ -29,16 +29,24 @@ class StudentController extends Controller
 {
     public function index(Request $request)
     {
-        if (Auth::user()->hasRole('Student') && Auth::user()->status === 'pending') {
-            $completedLevelTest = LevelTestAssessment::where('user_id', Auth::id())->exists();
+        if (Auth::user()->getAgeGroup() !== '1-5') {
 
-            if (!$completedLevelTest) {
-                $levelTestQuestions = LevelTestQuestion::with('levelTest')->whereHas('levelTest', function ($query) {
-                    $query->where('exam_type', 'student')->where('active', true);
-                })->get();
-                return view('dashboard.student.level_test', compact('levelTestQuestions'));
+            if (Auth::user()->hasRole('Student') && Auth::user()->status === 'pending') {
+                $completedLevelTest = LevelTestAssessment::where('user_id', Auth::id())->exists();
+
+                if (!$completedLevelTest) {
+                    $levelTestQuestions = LevelTestQuestion::with('levelTest')->whereHas('levelTest', function ($query) {
+                        $query->where('exam_type', 'student')->where('active', true);
+                    })->get();
+                    return view('dashboard.student.level_test', compact('levelTestQuestions'));
+                }
             }
+        } else {
+            $user = Auth::user();
+            $user->status = 'active';
+            $user->save();
         }
+
 
         $user = Auth::user();
 
