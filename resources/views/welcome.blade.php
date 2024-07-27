@@ -70,7 +70,7 @@
     <link rel="stylesheet" href="{{ asset('css/owl.carousel.min.css') }}">
     <link rel="stylesheet" href="{{ asset('css/owl.theme.default.min.css') }}">
     <link rel="stylesheet" href="{{ asset('css/bootstrap-select.min.css') }}">
-    {{-- <link rel="stylesheet" href="{{ asset('css/fancybox.css') }}"> --}}
+    <link rel="stylesheet" href="{{ asset('css/fancybox.css') }}">
     <link rel="stylesheet" href="{{ asset('css/tooltipster.bundle.css') }}">
     <link rel="stylesheet" href="{{ asset('css/style.css') }}">
 @endsection

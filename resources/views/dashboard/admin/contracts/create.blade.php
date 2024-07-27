@@ -2,67 +2,64 @@
 
 @section('content')
     <div class="container">
-        <h1>Edit Contract</h1>
-        <form id="edit-contract-form">
+        <h1>Create Contract</h1>
+        <form id="create-contract-form">
             @csrf
-            @method('PUT')
-            @if (isset($contract))
-                <input type="hidden" name="contract_id" value="{{ $contract->id }}">
-            @endif
+
+            <input type="hidden" name="teacher_id" value="{{ $teacher->id }}">
             <div class="mb-3">
                 <label for="other_party_name" class="form-label">Teacher Name</label>
-                <input type="text" class="form-control" name="other_party_name" value="{{ $contract->other_party_name }}"
-                    required>
+                <input type="text" class="form-control" name="other_party_name" required>
             </div>
             <div class="mb-3">
                 <label for="salary" class="form-label">Salary</label>
-                <input type="number" class="form-control" name="salary" value="{{ $contract->salary }}" required>
+                <input type="number" class="form-control" name="salary" required>
             </div>
             <div class="mb-3">
                 <label for="salary_period" class="form-label">Salary Period</label>
                 <select name="salary_period" class="form-control" required>
-                    <option value="hour" {{ $contract->salary_period == 'hour' ? 'selected' : '' }}>Hour</option>
-                    <option value="week" {{ $contract->salary_period == 'week' ? 'selected' : '' }}>Week</option>
-                    <option value="month" {{ $contract->salary_period == 'month' ? 'selected' : '' }}>Month</option>
+                    <option value="hour">Hour</option>
+                    <option value="week">Week</option>
+                    <option value="month">Month</option>
                 </select>
             </div>
             <div class="mb-3">
                 <label for="contract_agreement" class="form-label">Contract Agreement</label>
-                <div id="contract_agreement_editor" class="editor">{!! $contract->contract_agreement !!}</div>
+                <div id="contract_agreement_editor" class="editor"></div>
                 <textarea name="contract_agreement" class="form-control d-none"></textarea>
             </div>
             <div class="mb-3">
                 <label for="employee_duties" class="form-label">Employee Duties</label>
-                <div id="employee_duties_editor" class="editor">{!! $contract->employee_duties !!}</div>
+                <div id="employee_duties_editor" class="editor"></div>
                 <textarea name="employee_duties" class="form-control d-none"></textarea>
             </div>
             <div class="mb-3">
                 <label for="responsibilities" class="form-label">Responsibilities</label>
-                <div id="responsibilities_editor" class="editor">{!! $contract->responsibilities !!}</div>
+                <div id="responsibilities_editor" class="editor"></div>
                 <textarea name="responsibilities" class="form-control d-none"></textarea>
             </div>
             <div class="mb-3">
                 <label for="employment_period" class="form-label">Employment Period</label>
-                <div id="employment_period_editor" class="editor">{!! $contract->employment_period !!}</div>
+                <div id="employment_period_editor" class="editor"></div>
                 <textarea name="employment_period" class="form-control d-none"></textarea>
             </div>
             <div class="mb-3">
                 <label for="compensation" class="form-label">Compensation</label>
-                <div id="compensation_editor" class="editor">{!! $contract->compensation !!}</div>
+                <div id="compensation_editor" class="editor"></div>
                 <textarea name="compensation" class="form-control d-none"></textarea>
             </div>
             <div class="mb-3">
                 <label for="legal_terms" class="form-label">Legal Terms</label>
-                <div id="legal_terms_editor" class="editor">{!! $contract->legal_terms !!}</div>
+                <div id="legal_terms_editor" class="editor"></div>
                 <textarea name="legal_terms" class="form-control d-none"></textarea>
             </div>
-            <button type="submit" class="btn btn-primary">Update Contract</button>
+            <button type="submit" class="btn btn-primary">Create Contract</button>
         </form>
     </div>
 
     <link href="https://cdn.quilljs.com/1.3.6/quill.snow.css" rel="stylesheet">
     <script src="https://cdn.quilljs.com/1.3.6/quill.js"></script>
-
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@10"></script>
     <script>
         $(document).ready(function() {
             var editors = {};
@@ -107,7 +104,7 @@
                 });
             });
 
-            $('#edit-contract-form').on('submit', function(e) {
+            $('#create-contract-form').on('submit', function(e) {
                 e.preventDefault();
                 $('.editor').each(function() {
                     var editorId = $(this).attr('id');
@@ -115,17 +112,16 @@
                     $('textarea[name="' + editorId.replace('_editor', '') + '"]').val(htmlContent);
                 });
 
-                var contractId = $('input[name="contract_id"]').val();
                 $.ajax({
-                    url: '/admin/contracts/' + contractId,
-                    method: 'PUT',
+                    url: '{{ route('contracts.store') }}',
+                    method: 'POST',
                     data: $(this).serialize(),
                     success: function(response) {
-                        alert('Contract updated successfully.');
+                        swal('Success', 'Contract created successfully.', 'success');
                         window.location.href = '{{ route('contracts.index') }}';
                     },
                     error: function(response) {
-                        alert('Error updating contract.');
+                        alert('Error creating contract.');
                     }
                 });
             });

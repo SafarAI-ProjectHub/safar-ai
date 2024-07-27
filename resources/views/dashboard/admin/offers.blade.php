@@ -16,7 +16,8 @@
         <div class="card-body">
             <h5>Offers List</h5>
             <div class="d-flex justify-content-end mb-3">
-                <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#addOfferModal">Add New Offer</button>
+                <button class="btn btn-sm btn-primary" data-bs-toggle="modal" data-bs-target="#addOfferModal">Add New
+                    Offer</button>
             </div>
             <div class="table-responsive">
                 <table id="offers-table" class="table table-striped table-bordered">

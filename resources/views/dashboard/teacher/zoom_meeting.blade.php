@@ -4,7 +4,7 @@
     <div class="card">
         <div class="card-body">
             <div class="d-flex justify-content-end mb-3">
-                <a href="{{ route('zoom-meetings.create') }}" class="btn btn-primary">Add New Zoom Meeting</a>
+                <a href="{{ route('zoom-meetings.create') }}" class="btn btn-sm btn-primary">Add New Zoom Meeting</a>
             </div>
             <div class="table-responsive">
                 <table id="zoom-meetings-table" class="table table-striped table-bordered">

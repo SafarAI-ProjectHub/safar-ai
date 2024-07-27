@@ -8,7 +8,7 @@
         <div class="card-body table-responsive">
             <h5>Admin List</h5>
             <div class="d-flex justify-content-end mb-3">
-                <a href="{{ route('admin.create') }}" class="btn btn-primary">Create Admin</a>
+                <a href="{{ route('admin.create') }}" class="btn btn-sm btn-primary">Create Admin</a>
             </div>
             <table id="admin-table" class="table table-bordered table-striped">
                 <thead>

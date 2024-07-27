@@ -19,7 +19,7 @@
             <h5>Courses List</h5>
             @can('create courses')
                 <div class="d-flex justify-content-end mb-3">
-                    <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#addCourseModal">Add New
+                    <button class="btn btn-sm btn-primary" data-bs-toggle="modal" data-bs-target="#addCourseModal">Add New
                         Course</button>
                 </div>
             @endcan

@@ -126,6 +126,7 @@
 @section('scripts')
     <link href="https://cdn.quilljs.com/1.3.6/quill.snow.css" rel="stylesheet">
     <script src="https://cdn.quilljs.com/1.3.6/quill.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@10"></script>
     <script>
         $(document).ready(function() {
             username = getMessengerId();
@@ -134,7 +135,7 @@
                 $userImage = asset($contract->teacher->profile_image ? $contract->teacher->profile_image : asset('assets/images/avatars/profile-Img.png'));
 
             @endphp
-            $('.user-name').text('{{ $username }}');
+            $('.name-user').text('{{ $username }}');
             // class="avatar av-s header-avatar"
             var editors = {};
             $('.editor').each(function() {

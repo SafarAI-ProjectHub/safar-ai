@@ -99,7 +99,6 @@ class MessagesController extends Controller
      */
     public function send(Request $request)
     {
-
         // default variables
         $error = (object) [
             'status' => 0,
@@ -146,7 +145,6 @@ class MessagesController extends Controller
                 ]) : null,
                 'contract_id' => $request->contract_id ?? null,
             ]);
-            $message->contract_id = $request->contract_id ?? null;
             $message->save();
 
             $messageData = Chatify::parseMessage($message);
@@ -158,47 +156,46 @@ class MessagesController extends Controller
                     'contract_id' => $request->contract_id ?? null,
                 ]);
             }
-
-            if (Auth::user()->hasRole('Teacher')) {
-                $admins = User::whereHas('roles', function ($q) {
-                    $q->where('name', 'Admin')
-                        ->orWhere('name', 'Super Admin');
-                })->get();
+            if ($request->contract_id) {
                 $contract = Contract::find($request->contract_id);
+                if ($contract) {
+                    if (Auth::user()->hasRole('Teacher')) {
+                        $admins = User::whereHas('roles', function ($q) {
+                            $q->where('name', 'Admin')
+                                ->orWhere('name', 'Super Admin');
+                        })->get();
 
-                foreach ($admins as $admin) {
+                        foreach ($admins as $admin) {
+                            $notification = Notification::create([
+                                'user_id' => $admin->id,
+                                'title' => 'New message received',
+                                'message' => "You have a new message from " . $contract->teacher->full_name,
+                                'icon' => 'bx bx-message-rounded',
+                                'type' => 'admin-message',
+                                'is_seen' => false,
+                                'model_id' => $contract->id,
+                                'reminder' => false,
+                                'reminder_time' => null,
+                            ]);
 
-                    $notification = Notification::create([
-                        'user_id' => $admin->id,
-                        'title' => 'new message recived',
-                        'message' => "You have a new message from " . $contract->teacher->full_name,
-                        'icon' => 'bx bx-message-rounded',
-                        'type' => 'admin-message',
-                        'is_seen' => false,
-                        'model_id' => $contract->id,
-                        'reminder' => false,
-                        'reminder_time' => null,
-                    ]);
+                            event(new NotificationEvent($notification));
+                        }
+                    } elseif (Auth::user()->hasRole('Admin|Super Admin')) {
+                        $notification = Notification::create([
+                            'user_id' => $contract->teacher->id,
+                            'title' => 'New message received',
+                            'message' => "You have a new message for your Contract ",
+                            'icon' => 'bx bx-message-rounded',
+                            'type' => 'teacher-message',
+                            'is_seen' => false,
+                            'model_id' => $contract->id,
+                            'reminder' => false,
+                            'reminder_time' => null,
+                        ]);
 
-                    event(new NotificationEvent($notification));
-
+                        event(new NotificationEvent($notification));
+                    }
                 }
-
-            } elseif (Auth::user()->hasRole('Admin|Super Admin')) {
-                $contract = Contract::find($request->contract_id);
-                $notification = Notification::create([
-                    'user_id' => $contract->teacher->id,
-                    'title' => 'new message recived',
-                    'message' => "You have a new message for your Contract ",
-                    'icon' => 'bx bx-message-rounded',
-                    'type' => 'teacher-message',
-                    'is_seen' => false,
-                    'model_id' => $contract->id,
-                    'reminder' => false,
-                    'reminder_time' => null,
-                ]);
-
-                event(new NotificationEvent($notification));
             }
         }
 
@@ -210,6 +207,7 @@ class MessagesController extends Controller
             'tempID' => $request['temporaryMsgId'],
         ]);
     }
+
 
 
     /**

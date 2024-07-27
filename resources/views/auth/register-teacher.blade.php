@@ -110,85 +110,133 @@
     </form>
 
     <script src="https://cdnjs.cloudflare.com/ajax/libs/intl-tel-input/17.0.13/js/intlTelInput.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@10"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/intl-tel-input/17.0.13/js/utils.js"></script>
     <script>
         document.addEventListener("DOMContentLoaded", function() {
-            const phoneInputField = document.querySelector("#phone_number");
-            const phoneErrorField = document.querySelector("#error_phone_number");
-            const form = document.querySelector("#registerForm");
+            const phoneInput = document.querySelector("#phone_number");
+            const countryCodeInput = document.querySelector("#country_code");
+            const countryInput = document.querySelector("#country_location-input");
+            const phoneError = document.querySelector("#error_phone_number");
 
-            const iti = window.intlTelInput(phoneInputField, {
+            const iti = window.intlTelInput(phoneInput, {
                 initialCountry: "auto",
+                nationalMode: true,
+                geoIpLookup: function(callback) {
+                    fetch('https://ipinfo.io?token=f77be74db12b48')
+                        .then(response => response.json())
+                        .then(data => {
+                            const countryCode = (data && data.country) ? data.country : "us";
+                            callback(countryCode);
+                        });
+                },
                 utilsScript: "https://cdnjs.cloudflare.com/ajax/libs/intl-tel-input/17.0.13/js/utils.js"
             });
 
-            form.addEventListener('submit', function(event) {
-                event.preventDefault();
-
-                let isFormValid = validateForm();
-                if (!isFormValid) {
-                    alert('Please correct the errors before submitting the form.');
-                    return;
-                }
-
-                let formData = new FormData(form);
-                formData.append('country_code', iti.getSelectedCountryData().dialCode);
-
-                fetch(form.getAttribute('action'), {
-                        method: 'POST',
-                        body: formData,
-                        headers: {
-                            'X-CSRF-TOKEN': document.querySelector('input[name="_token"]').value,
-                            'Accept': 'application/json',
-                        },
-                    })
-                    .then(response => response.json())
-                    .then(data => {
-                        if (data.success) {
-                            window.location.href = data.redirect;
-                        } else {
-                            // Handle form errors
-                            Object.keys(data.errors).forEach(function(key) {
-                                const errorDiv = document.querySelector('#error_' + key);
-                                if (errorDiv) {
-                                    errorDiv.textContent = data.errors[key][0];
-                                }
-                            });
-                            alert('Please correct the errors and try again.');
-                        }
-                    })
-                    .catch(error => {
-                        console.error('Error:', error);
-                        alert('An error occurred, please try again.');
-                    });
+            iti.promise.then(function() {
+                // Set initial country code value
+                const selectedCountryData = iti.getSelectedCountryData();
+                countryCodeInput.value = "+" + selectedCountryData.dialCode;
             });
 
-            function validateForm() {
-                let isValid = iti.isValidNumber();
+            function validatePhoneNumber() {
+                const isValid = iti.isValidNumber();
                 if (!isValid) {
                     const errorCode = iti.getValidationError();
-                    let errorMessage = getPhoneError(errorCode);
-                    phoneErrorField.textContent = errorMessage;
+                    let errorMessage = "Invalid phone number.";
+                    switch (errorCode) {
+                        case intlTelInputUtils.validationError.INVALID_NUMBER:
+                            errorMessage = "The number entered is not valid.";
+                            break;
+                        case intlTelInputUtils.validationError.TOO_SHORT:
+                            errorMessage = "The number entered is too short.";
+                            break;
+                        case intlTelInputUtils.validationError.TOO_LONG:
+                            errorMessage = "The number entered is too long.";
+                            break;
+                        case intlTelInputUtils.validationError.INVALID_COUNTRY_CODE:
+                            errorMessage = "The country code entered is invalid.";
+                            break;
+                    }
+                    phoneError.textContent = errorMessage;
                 } else {
-                    phoneErrorField.textContent = '';
+                    phoneError.textContent = "";
                 }
                 return isValid;
             }
 
-            function getPhoneError(code) {
-                switch (code) {
-                    case intlTelInputUtils.validationError.INVALID_COUNTRY_CODE:
-                        return "The country code is invalid.";
-                    case intlTelInputUtils.validationError.TOO_SHORT:
-                        return "The phone number is too short.";
-                    case intlTelInputUtils.validationError.TOO_LONG:
-                        return "The phone number is too long.";
-                    case intlTelInputUtils.validationError.NOT_A_NUMBER:
-                        return "The phone number is not a number.";
-                    default:
-                        return "The phone number is invalid.";
+            phoneInput.addEventListener("keyup", validatePhoneNumber);
+
+            phoneInput.addEventListener("countrychange", function() {
+                const countryData = iti.getSelectedCountryData();
+                countryCodeInput.value = "+" + countryData.dialCode;
+                const countryName = countryData.name.split(" (")[0];
+                countryInput.value = countryName;
+                validatePhoneNumber();
+            });
+
+            function validatePasswords() {
+                const passwordInput = document.querySelector("#password");
+                const confirmPasswordInput = document.querySelector("#password_confirmation");
+                const passwordError = document.querySelector("#error_password");
+                const confirmPasswordError = document.querySelector("#error_password_confirmation");
+
+                const password = passwordInput.value;
+                const confirmPassword = confirmPasswordInput.value;
+
+                if (password.length < 8) {
+                    passwordError.textContent = "Password must be at least 8 characters.";
+                    return false;
+                } else {
+                    passwordError.textContent = "";
                 }
+
+                if (password !== confirmPassword) {
+                    confirmPasswordError.textContent = "Passwords do not match.";
+                    return false;
+                } else {
+                    confirmPasswordError.textContent = "";
+                }
+
+                return true;
             }
+
+            document.querySelector("#password").addEventListener("keyup", validatePasswords);
+            document.querySelector("#password_confirmation").addEventListener("keyup", validatePasswords);
+
+            document.querySelector("#registerForm").addEventListener("submit", function(event) {
+                event.preventDefault();
+                const form = event.target;
+                const formData = new FormData(form);
+
+                fetch("{{ route('register-teacher') }}", {
+                        method: "POST",
+                        headers: {
+                            "X-CSRF-TOKEN": document.querySelector('input[name="_token"]').value,
+                            "Accept": "application/json"
+                        },
+                        body: formData
+                    })
+                    .then(response => response.json())
+                    .then(data => {
+
+                        if (data.errors) {
+                            // Empty the old errors
+                            document.querySelectorAll('.text-danger').forEach(el => el.textContent =
+                                '');
+
+                            for (const [key, messages] of Object.entries(data.errors)) {
+                                document.querySelector(`#error_${key}`).textContent = messages.join(
+                                    ", ");
+                            }
+                        } else {
+                            swal("Success!", data.message, "success");
+                            window.location.href = data.redirect;
+                        }
+                    })
+                    .catch(error => console.error("Error:", error));
+            });
         });
     </script>
+
 </x-guest-layout>

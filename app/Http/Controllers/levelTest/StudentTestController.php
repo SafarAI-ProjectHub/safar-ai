@@ -70,8 +70,8 @@ class StudentTestController extends Controller
         return DataTables::of($levelTests)
             ->addColumn('actions', function ($test) {
                 return '<div class="d-flex justify-content-around gap-2">
-                <button class="btn btn-warning btn-sm edit-test" data-id="' . $test->id . '">Edit</button>
-                <button class="btn btn-danger btn-sm delete-test" data-id="' . $test->id . '">Delete</button>
+                <button class="btn btn-sm btn-warning btn-sm edit-test" data-id="' . $test->id . '">Edit</button>
+                <button class="btn btn-sm btn-danger btn-sm delete-test" data-id="' . $test->id . '">Delete</button>
             </div>';
             })
             ->rawColumns(['actions'])

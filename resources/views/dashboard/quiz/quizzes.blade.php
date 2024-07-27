@@ -5,7 +5,7 @@
         <div class="card-body">
             <h5>Manage Quizzes and Questions</h5>
             <div class="d-flex justify-content-end mb-3">
-                <a href="{{ route('quiz.addPage') }}" class="btn btn-primary">Add New Quiz</a>
+                <a href="{{ route('quiz.addPage') }}" class="btn btn-sm btn-primary">Add New Quiz</a>
             </div>
             <div class="table-responsive">
                 <table id="quizzes-table" class="table table-striped table-bordered">

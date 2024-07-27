@@ -25,8 +25,8 @@ class ContractController extends Controller
                 })
                 ->addColumn('actions', function ($row) {
                     return '<div class="d-flex justify-content-around gap-2">
-                                <button class="btn btn-primary view-contract" data-id="' . $row->id . '">View</button>
-                                <button class="btn btn-warning edit-contract" data-id="' . $row->id . '">Edit</button>
+                                <button class="btn btn-sm btn-primary view-contract" data-id="' . $row->id . '">View</button>
+                                <button class="btn btn-sm btn-warning edit-contract" data-id="' . $row->id . '">Edit</button>
                             </div>';
                 })
                 ->rawColumns(['actions'])

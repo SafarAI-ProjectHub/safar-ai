@@ -55,6 +55,7 @@
                         <div class="mb-3">
                             <label for="features" class="form-label">Features</label>
                             <textarea class="form-control" id="features" name="features"></textarea>
+                            <small class="form-text text-muted">Please enter each feature on a new line.</small>
                         </div>
                         <button type="submit" class="btn btn-primary">Save Subscription</button>
                     </form>

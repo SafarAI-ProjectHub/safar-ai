@@ -737,7 +737,7 @@ class AdminController extends Controller
                 return $teacher->teacher->years_of_experience;
             })
             ->addColumn('actions', function ($teacher) {
-                return '<button class="btn btn-primary view-assessment" data-id="' . $teacher->id . '">View Assessment</button>';
+                return '<button class="btn btn-sm btn-primary view-assessment" data-id="' . $teacher->id . '">View Assessment</button>';
             })
             ->rawColumns(['actions'])
             ->make(true);
@@ -796,7 +796,7 @@ class AdminController extends Controller
                 return $student->student->english_proficiency_level;
             })
             ->addColumn('actions', function ($student) {
-                return '<button class="btn btn-primary view-assessment" data-id="' . $student->id . '">View Assessment</button>';
+                return '<button class="btn btn-sm btn-primary view-assessment" data-id="' . $student->id . '">View Assessment</button>';
             })
             ->addColumn('age', function ($student) {
                 return \Carbon\Carbon::parse($student->date_of_birth)->diffInYears(now());

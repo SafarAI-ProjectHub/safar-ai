@@ -3,6 +3,9 @@
         <nav class="navbar navbar-expand gap-3">
             <div class="mobile-toggle-menu"><i class='bx bx-menu'></i>
             </div>
+            {{-- @if (Auth::check())
+                {{ dd(Auth::user()) }}
+            @endif --}}
             <div class="position-relative search-bar d-lg-block d-none" data-bs-toggle="modal"
                 data-bs-target="#SearchModal">
                 <input class="form-control px-5" disabled type="search" placeholder="Search">
@@ -606,7 +609,7 @@
                     <img src="{{ Auth::user()->profile_image ? asset(Auth::user()->profile_image) : asset('assets/images/avatars/profile-Img.png') }}"
                         class="user-img" alt="user avatar">
                     <div class="user-info">
-                        <p class="user-name mb-0">
+                        <p class="user-name bold mb-0">
                             @if (Auth::check())
                                 {{ Auth::user()->getFullNameAttribute() }}
                             @endif

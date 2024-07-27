@@ -1073,7 +1073,35 @@
     @endphp
     <script>
         @if ($course->units->count() > 0 && $firstUnit != null)
-            updateContent('{{ $firstUnit->content_type }}', `{!! $firstUnit->content !!}`, '{{ $firstUnit->title }}');
+            // updateContent('{{ $firstUnit->content_type }}', `{!! $firstUnit->content !!}`, '{{ $firstUnit->title }}');
+            const viewerContainer = document.querySelector('.lecture-viewer-container');
+
+            // Clear existing content
+            viewerContainer.innerHTML = '';
+            contentType = `{{ $firstUnit->content_type }}`;
+            // Generate and insert appropriate content based on type
+            if (contentType === 'video') {
+                viewerContainer.innerHTML = `
+                    <div class="lecture-video-item">
+                    <video controls crossorigin playsinline id="player">
+                    <source src="/{!! $firstUnit->content !!}" type="video/mp4">
+                    Your browser does not support the video tag.
+                    </video>
+                    </div>
+                    `;
+                // Reinitialize Plyr
+                new Plyr('#player');
+            } else { // Assuming 'text' type content
+                viewerContainer.innerHTML = `
+                <div class="lecture-viewer-text-wrap active">
+                <div class="lecture-viewer-text-content custom-scrollbar-styled">
+                <div class="lecture-viewer-text-body">
+                    {!! $firstUnit->content !!}
+                </div>
+                </div>
+                </div>
+                `;
+            }
         @endif
 
         function updateContent(contentType, content, title) {
@@ -1087,7 +1115,7 @@
                 viewerContainer.innerHTML = `
     <div class="lecture-video-item">
         <video controls crossorigin playsinline id="player">
-            <source src="/${content}" type="video/mp4">
+            <source src="${content}" type="video/mp4">
             Your browser does not support the video tag.
         </video>
     </div>
@@ -1229,6 +1257,9 @@
                         _token: '{{ csrf_token() }}'
                     },
                     success: function(response) {
+                        // empty form fields
+                        $('#ratingForm').trigger('reset');
+
                         if (response.success) {
                             Swal.fire({
                                 icon: 'success',

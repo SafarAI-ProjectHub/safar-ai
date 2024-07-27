@@ -5,7 +5,7 @@
         <div class="card-body">
             <h5>Manage Teacher Level Tests</h5>
             <div class="d-flex justify-content-end mb-3">
-                <a href="{{ route('teacherTest.addPage') }}" class="btn btn-primary">Add New Test</a>
+                <a href="{{ route('teacherTest.addPage') }}" class="btn btn-sm btn-primary">Add New Test</a>
             </div>
             <div class="table-responsive">
                 <table id="teacher-tests-table" class="table table-striped table-bordered">

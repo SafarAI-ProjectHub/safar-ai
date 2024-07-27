@@ -16,28 +16,48 @@ $(function () {
 		}),
 
 
+		$('document').ready(function () {
 
+			const userTheme = localStorage.getItem('theme');
+			setTheme(userTheme);
 
-		$(".dark-mode").on("click", function () {
+			$(".dark-mode").on("click", function () {
 
-			if ($(".dark-mode-icon i").attr("class") == 'bx bx-sun') {
-				$(".dark-mode-icon i").attr("class", "bx bx-moon");
-				$("html").attr("class", "light-theme")
-			} else {
-				$(".dark-mode-icon i").attr("class", "bx bx-sun");
-				$("html").attr("class", "dark-theme")
+				// Load the user's theme preference from localStorage
+				const userTheme = localStorage.getItem("theme") || "light-theme";
+				setTheme(userTheme);
+
+				// Toggle the theme and save the preference
+				$(".dark-mode").on("click", function () {
+					let currentTheme = $("html").attr("class");
+					let newTheme;
+
+					if (currentTheme == "light-theme") {
+						newTheme = "dark-theme";
+						$(".dark-mode-icon i").attr("class", "bx bx-sun");
+					} else {
+						newTheme = "light-theme";
+						$(".dark-mode-icon i").attr("class", "bx bx-moon");
+					}
+
+					setTheme(newTheme);
+				});
+			});
+			function setTheme(theme) {
+				$("html").attr("class", theme);
+				localStorage.setItem("theme", theme);
 			}
+		});
 
-		}),
 
 
-		$(".toggle-icon").click(function () {
-			$(".wrapper").hasClass("toggled") ? ($(".wrapper").removeClass("toggled"), $(".sidebar-wrapper").unbind("hover")) : ($(".wrapper").addClass("toggled"), $(".sidebar-wrapper").hover(function () {
-				$(".wrapper").addClass("sidebar-hovered")
-			}, function () {
-				$(".wrapper").removeClass("sidebar-hovered")
-			}))
-		}),
+	$(".toggle-icon").click(function () {
+		$(".wrapper").hasClass("toggled") ? ($(".wrapper").removeClass("toggled"), $(".sidebar-wrapper").unbind("hover")) : ($(".wrapper").addClass("toggled"), $(".sidebar-wrapper").hover(function () {
+			$(".wrapper").addClass("sidebar-hovered")
+		}, function () {
+			$(".wrapper").removeClass("sidebar-hovered")
+		}))
+	}),
 		$(document).ready(function () {
 			$(window).on("scroll", function () {
 				$(this).scrollTop() > 300 ? $(".back-to-top").fadeIn() : $(".back-to-top").fadeOut()
