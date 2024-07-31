@@ -5,6 +5,9 @@
     <meta charset="UTF-8">
     <title>Certificate</title>
     <style>
+        /* Import the 'Great Vibes' font */
+        @import url('https://fonts.googleapis.com/css2?family=Great+Vibes&display=swap');
+
         body {
             font-family: Arial, sans-serif;
             margin: 0;
@@ -235,6 +238,50 @@
             display: flex;
             justify-content: center;
             align-items: center;
+            position: relative;
+        }
+
+        .certificate-wrapper:before,
+        .certificate-wrapper:after,
+        .certificate:before,
+        .certificate:after {
+            content: '';
+            position: absolute;
+            background: url('{{ asset('img/corner.png') }}') no-repeat;
+            background-size: contain;
+            filter: grayscale(100%) brightness(50%);
+        }
+
+        .certificate-wrapper:before {
+            top: 0;
+            left: 0;
+            width: 150px;
+            height: 200px;
+            z-index: 1;
+        }
+
+        .certificate-wrapper:after {
+            bottom: 0;
+            right: 0;
+            width: 150px;
+            height: 200px;
+            transform: rotate(180deg);
+        }
+
+        .certificate:before {
+            top: -36px;
+            right: 5px;
+            width: 150px;
+            height: 200px;
+            transform: rotate(90deg);
+        }
+
+        .certificate:after {
+            bottom: 17px;
+            left: -30px;
+            width: 200px;
+            height: 150px;
+            transform: rotate(270deg);
         }
 
         .certificate {
@@ -244,6 +291,12 @@
             box-sizing: border-box;
             width: 90%;
             height: 90%;
+            background-color: #f8f1e4;
+            background-image: linear-gradient(135deg, rgba(255, 255, 255, 0.15) 25%, transparent 25%, transparent 50%, rgba(255, 255, 255, 0.15) 50%, rgba(255, 255, 255, 0.15) 75%, transparent 75%, transparent), linear-gradient(225deg, rgba(255, 255, 255, 0.15) 25%, transparent 25%, transparent 50%, rgba(255, 255, 255, 0.15) 50%, rgba(255, 255, 255, 0.15) 75%, transparent 75%, transparent), radial-gradient(circle, rgba(238, 232, 202, 0.5) 1px, transparent 1px), radial-gradient(circle, rgba(238, 232, 202, 0.5) 1px, transparent 1px);
+            background-size: 15px 44px, 27px 27px, 12px 23px, 21px 24px;
+            background-position: 0 0, 30px 30px, 0 0, 15px 15px;
+            color: #5a4e3c;
+            text-shadow: 1px 1px #f5f0df;
         }
 
         .certificate__header {
@@ -276,6 +329,12 @@
             font-size: 1.8rem;
         }
 
+        .certificate__signature .entry-column__input {
+            font-family: 'Great Vibes', cursive;
+            font-size: 2rem;
+            color: #d4af37;
+        }
+
         .certificate__footer {
             display: flex;
             justify-content: space-between;
@@ -305,7 +364,7 @@
             line-height: 2em;
             text-align: center;
             padding: 0 3em;
-            background: #C45ACD;
+            background: #d4af37;
             color: #FFF;
             margin: 10px 0;
             font-size: 2rem;
@@ -404,7 +463,7 @@
                     </div>
                 </div>
                 <div class="certificate__body">
-                    <div class="certificate__description">This certifies that</div>
+                    <div class="certificate__description cecrtify">This certifies that</div>
                     <div class="certificate__recipient-name">{{ $user->full_name }}</div>
                     <div class="certificate__description">has successfully completed the</div>
                     <div class="ribbon certificate__content">{{ $course->title }}</div>

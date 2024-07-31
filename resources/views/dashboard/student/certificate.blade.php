@@ -2,15 +2,74 @@
 
 @section('styles')
     <style>
+        /* Import the 'Great Vibes' font */
+        @import url('https://fonts.googleapis.com/css2?family=Great+Vibes&display=swap');
+
+        .certificate__signature .entry-column__input {
+            font-family: 'Great Vibes', cursive;
+            font-size: 2rem;
+            color: #d4af37;
+        }
+
+        @media (max-width: 1200px) {
+
+            .certificate-wrapper:before,
+            .certificate-wrapper:after,
+            .certificate:before,
+            .certificate:after {
+                width: 100px;
+                height: 100px;
+
+            }
+        }
+
+        @media (max-width: 992px) {
+
+            .certificate-wrapper:before,
+            .certificate-wrapper:after,
+            .certificate:before,
+            .certificate:after {
+                width: 75px;
+                height: 75px;
+            }
+        }
+
+        @media (max-width: 768px) {
+
+            .certificate-wrapper:before,
+            .certificate-wrapper:after,
+            .certificate:before,
+            .certificate:after {
+                width: 50px;
+                height: 50px;
+            }
+        }
+
         @media (max-width: 641px) {
             html {
                 font-size: small;
+            }
+
+            .certificate-wrapper:before,
+            .certificate-wrapper:after,
+            .certificate:before,
+            .certificate:after {
+                width: 40px;
+                height: 40px;
             }
         }
 
         @media (max-width: 321px) {
             html {
                 font-size: x-small;
+            }
+
+            .certificate-wrapper:before,
+            .certificate-wrapper:after,
+            .certificate:before,
+            .certificate:after {
+                width: 30px;
+                height: 30px;
             }
         }
 
@@ -39,12 +98,63 @@
         .certificate-wrapper {
             margin: 1rem;
             padding: 1rem;
+            position: relative;
+        }
+
+        .certificate-wrapper:before,
+        .certificate-wrapper:after,
+        .certificate:before,
+        .certificate:after {
+            content: '';
+            position: absolute;
+            background: url('{{ asset('img/corner.png') }}') no-repeat;
+            background-size: contain;
+            filter: grayscale(100%) brightness(50%);
+        }
+
+        .certificate-wrapper:before {
+            top: 0;
+            left: 0;
+            width: 150px;
+            height: 200px;
+            z-index: 1;
+        }
+
+        .certificate-wrapper:after {
+            bottom: 0;
+            right: 0;
+            width: 150px;
+            height: 200px;
+            transform: rotate(180deg);
+        }
+
+        .certificate:before {
+            top: -36px;
+            right: 5px;
+            width: 150px;
+            height: 200px;
+            transform: rotate(90deg);
+        }
+
+        .certificate:after {
+            bottom: 17px;
+            left: -30px;
+            width: 200px;
+            height: 150px;
+            transform: rotate(270deg);
         }
 
         .certificate {
             padding: 1rem;
             text-align: center;
             background-color: #ffffff;
+            position: relative;
+            background-color: #f8f1e4;
+            background-image: linear-gradient(135deg, rgba(255, 255, 255, 0.15) 25%, transparent 25%, transparent 50%, rgba(255, 255, 255, 0.15) 50%, rgba(255, 255, 255, 0.15) 75%, transparent 75%, transparent), linear-gradient(225deg, rgba(255, 255, 255, 0.15) 25%, transparent 25%, transparent 50%, rgba(255, 255, 255, 0.15) 50%, rgba(255, 255, 255, 0.15) 75%, transparent 75%, transparent), radial-gradient(circle, rgba(238, 232, 202, 0.5) 1px, transparent 1px), radial-gradient(circle, rgba(238, 232, 202, 0.5) 1px, transparent 1px);
+            background-size: 15px 44px, 27px 27px, 12px 23px, 21px 24px;
+            background-position: 0 0, 30px 30px, 0 0, 15px 15px;
+            color: #5a4e3c;
+            text-shadow: 1px 1px #f5f0df;
         }
 
         .certificate__body {
@@ -124,7 +234,7 @@
             line-height: 1.5em;
             text-align: center;
             padding: 0 2em;
-            background: #C45ACD;
+            background: #d4af37;
             color: #FFF;
             box-sizing: border-box;
             margin: 10px 0 10px 0;
@@ -155,35 +265,6 @@
             border-style: solid;
         }
 
-        .frame {
-            position: relative;
-            padding: 1.25rem;
-            background:
-                radial-gradient(circle at top left, transparent 1.25rem, #C45ACD 1.25rem, #C45ACD 1.5rem, transparent 1.5rem) left top / 1.5rem 1.5rem no-repeat,
-                radial-gradient(circle at top right, transparent 1.25rem, #C45ACD 1.25rem, #C45ACD 1.5rem, transparent 1.5rem) right top / 1.5rem 1.5rem no-repeat,
-                radial-gradient(circle at bottom left, transparent 1.25rem, #C45ACD 1.25rem, #C45ACD 1.5rem, transparent 1.5rem) left bottom / 1.5rem 1.5rem no-repeat,
-                radial-gradient(circle at bottom right, transparent 1.25rem, #C45ACD 1.25rem, #C45ACD 1.5rem, transparent 1.5rem) right bottom / 1.5rem 1.5rem no-repeat,
-                linear-gradient(90deg, transparent 1.25rem, #C45ACD 1.5rem) left top / 51% 0.25rem no-repeat,
-                linear-gradient(-90deg, transparent 1.25rem, #C45ACD 1.5rem) right top / 51% 0.25rem no-repeat,
-                linear-gradient(90deg, transparent 1.25rem, #C45ACD 1.5rem) left bottom / 51% 0.25rem no-repeat,
-                linear-gradient(-90deg, transparent 1.25rem, #C45ACD 1.5rem) right bottom / 51% 0.25rem no-repeat,
-                linear-gradient(180deg, transparent 1.25rem, #C45ACD 1.5rem) left top / 0.25rem 51% no-repeat,
-                linear-gradient(0deg, transparent 1.25rem, #C45ACD 1.5rem) left bottom / 0.25rem 51% no-repeat,
-                linear-gradient(180deg, transparent 1.25rem, #C45ACD 1.5rem) right top / 0.25rem 51% no-repeat,
-                linear-gradient(0deg, transparent 1.25rem, #C45ACD 1.5rem) right bottom / 0.25rem 51% no-repeat;
-        }
-
-        .frame:before {
-            position: absolute;
-            content: "";
-            border: 0.25rem double #C45ACD;
-            margin: 0.5rem;
-            top: 0;
-            left: 0;
-            right: 0;
-            bottom: 0;
-        }
-
         @media print {
             .ribbon:before {
                 left: -0.25px;
@@ -202,9 +283,16 @@
             width: 300px;
             margin-bottom: 20px;
         }
+
+        .title-decoration__sub {
+            font-size: 0.5em;
+        }
+
+        .certificate__description {
+            font-size: 1.5rem;
+        }
     </style>
 @endsection
-
 
 @section('content')
     <div class="container" style="font-family: Arial, sans-serif;">
@@ -218,7 +306,7 @@
                     </div>
                 </div>
                 <div class="certificate__body">
-                    <div class="certificate__description">This certifies that</div>
+                    <div class="certificate__description cecrtify">This certifies that</div>
                     <div class="certificate__recipient-name">{{ Auth::user()->full_name }}</div>
                     <div class="certificate__description">has successfully completed the</div>
                     <div class="ribbon certificate__content">{{ $course->title }}</div>
@@ -243,7 +331,7 @@
             </div>
         </div>
         <button id="download-certificate" class="btn btn-primary d-block mx-auto"
-            style="background-color: #844DCD; border-color: #844DCD; color: #fff; margin-top: 20px;">Download
+            style="background-color: #d4af37; border-color: #d4af37; color: #fff; margin-top: 20px;">Download
             Certificate as PDF</button>
     </div>
 

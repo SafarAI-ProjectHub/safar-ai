@@ -12,7 +12,7 @@
     <link rel="stylesheet" href="{{ asset('css/style.css') }}">
     <style>
         .card.card-item {
-            height: 450px;
+            height: 100%;
         }
 
         .card-text.description {
