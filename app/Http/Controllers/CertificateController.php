@@ -145,9 +145,16 @@ class CertificateController extends Controller
             'date' => $certificate->completed_at->format('F j, Y')
         ];
         $pdf = PDF::loadView('pdf.certificate', $data);
+        $pdf->setOption('page-size', 'A4');
         $pdf->setOption('orientation', 'landscape');
+        $pdf->setOption('page-width', '224mm');
+        $pdf->setOption('page-height', '300mm');
+        $pdf->setOption('margin-top', '0');
+        $pdf->setOption('margin-right', '0');
+        $pdf->setOption('margin-bottom', '0');
+        $pdf->setOption('margin-left', '0');
 
-        return $pdf->download('certificate.pdf');
+        return $pdf->download('certificate-' . $course->title . '.pdf');
     }
 
     public function myCertificates(Request $request)

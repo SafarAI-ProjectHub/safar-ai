@@ -8,211 +8,17 @@
         /* Import the 'Great Vibes' font */
         @import url('https://fonts.googleapis.com/css2?family=Great+Vibes&display=swap');
 
-        body {
-            font-family: Arial, sans-serif;
+        @page {
+            size: 990mm 290mm;
             margin: 0;
-            padding: 0;
-            background-color: #f4f4f4;
-            color: #333;
-        }
-
-        .contract-container {
-            width: 80%;
-            margin: 20px auto;
-            background: white;
-            padding: 30px;
-            border-radius: 10px;
-            box-shadow: 0 0 15px rgba(0, 0, 0, 0.1);
-        }
-
-        header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            border-bottom: 2px solid #333;
-            padding-bottom: 20px;
-            margin-bottom: 20px;
-        }
-
-        .company-logo {
-            width: 100px;
-            height: auto;
-        }
-
-        .company-info h1 {
-            margin: 0;
-            font-size: 28px;
-        }
-
-        .company-info p {
-            margin: 5px 0 0 0;
-            font-size: 16px;
-        }
-
-        .contract-section {
-            margin-bottom: 20px;
-        }
-
-        .contract-section h2 {
-            font-size: 24px;
-            margin-bottom: 10px;
-            color: #444;
-            border-bottom: 1px solid #333;
-            padding-bottom: 5px;
-        }
-
-        .contract-section p {
-            margin: 10px 0;
-            line-height: 1.6;
-        }
-
-        .inline-logo {
-            width: 30px;
-            height: auto;
-            vertical-align: middle;
-        }
-
-        footer {
-            text-align: center;
-            border-top: 2px solid #333;
-            padding-top: 10px;
-            margin-top: 20px;
-        }
-
-        footer p {
-            margin: 0;
-            font-size: 14px;
-            color: #777;
-        }
-
-        .signature-section {
-            margin-top: 40px;
-            display: flex;
-            justify-content: flex-end;
-        }
-
-        .signature-line {
-            display: block;
-            border-top: 1px solid #333;
-            margin-top: 50px;
-            text-align: center;
-            font-size: 16px;
-            color: #444;
-        }
-
-        .contract-template {
-            font-family: Arial, sans-serif;
-            margin: 20px;
-            padding: 20px;
-            border: 1px solid #ddd;
-            background-color: #fff;
-        }
-
-        .contract-header {
-            text-align: center;
-            margin-bottom: 20px;
-        }
-
-        .contract-logo {
-            max-width: 150px;
-            margin-bottom: 10px;
-        }
-
-        .contract-company-name {
-            font-size: 24px;
-            font-weight: bold;
-        }
-
-        .contract-title {
-            text-align: center;
-            font-size: 20px;
-            margin-bottom: 20px;
-        }
-
-        .contract-template p {
-            font-size: 16px;
-            margin: 10px 0;
-        }
-
-        .contract-template p strong {
-            font-weight: bold;
-        }
-
-        .contract-section {
-            margin-bottom: 20px;
-        }
-
-        .contract-section h2 {
-            font-size: 24px;
-            margin-bottom: 10px;
-            color: #444;
-            border-bottom: 1px solid #333;
-            padding-bottom: 5px;
-        }
-
-        .contract-section p {
-            margin: 10px 0;
-            line-height: 1.6;
-        }
-
-        .signature-section {
-            margin-top: 40px;
-            display: flex;
-            justify-content: space-between;
-            /* margin: 0 40px; */
-        }
-
-        .date-div {
-            margin: 0;
-            padding: 0 20px;
-        }
-
-        .signature-line {
-            display: block;
-            border-bottom: 1px solid #333;
-            margin-bottom: 50px;
-            text-align: center;
-            font-size: 16px;
-            color: #444;
-        }
-
-        .signature {
-            margin-top: 20px;
-            text-align: center;
-            font-size: 16px;
-            color: #444;
-        }
-
-        footer {
-            text-align: center;
-            border-top: 2px solid #333;
-            padding-top: 10px;
-            margin-top: 20px;
-        }
-
-        p#contract-date {
-            border-bottom: 1px solid black;
-            width: fit-content;
-            text-align: left;
-        }
-
-        footer p {
-            margin: 0;
-            font-size: 14px;
-            color: #777;
-        }
-
-        p.date-p {
-            text-align: left;
         }
 
         html,
         body,
         .content {
-            margin: 10px 0 10px 0;
-            height: 97%;
+            margin: 0;
+            height: 100%;
             width: 100%;
-            overflow: hidden;
         }
 
         body {
@@ -231,8 +37,10 @@
         }
 
         .certificate-wrapper {
-            width: 500mm;
-            height: 300mm;
+            width: 990mm;
+            /* 10mm smaller */
+            height: 290mm;
+            /* 10mm smaller */
             padding: 0;
             box-sizing: border-box;
             display: flex;
@@ -247,39 +55,47 @@
         .certificate:after {
             content: '';
             position: absolute;
-            background: url('{{ asset('img/corner.png') }}') no-repeat;
+            background: url('{{ url('img/corner.png') }}') no-repeat;
             background-size: contain;
             filter: grayscale(100%) brightness(50%);
         }
 
         .certificate-wrapper:before {
-            top: 0;
-            left: 0;
+            top: 55px;
+            /* Adjusted for better positioning */
+            left: 65px;
+            /* Adjusted for better positioning */
             width: 150px;
-            height: 200px;
+            height: 150px;
             z-index: 1;
         }
 
         .certificate-wrapper:after {
-            bottom: 0;
-            right: 0;
+            bottom: 60px;
+            /* Adjusted for better positioning */
+            right: 65px;
+            /* Adjusted for better positioning */
             width: 150px;
-            height: 200px;
+            height: 150px;
             transform: rotate(180deg);
         }
 
         .certificate:before {
-            top: -36px;
-            right: 5px;
+            top: 0px;
+            /* Adjusted for better positioning */
+            right: -5px;
+            /* Adjusted for better positioning */
             width: 150px;
-            height: 200px;
+            height: 150px;
             transform: rotate(90deg);
         }
 
         .certificate:after {
-            bottom: 17px;
-            left: -30px;
-            width: 200px;
+            bottom: 8px;
+            /* Adjusted for better positioning */
+            left: 0px;
+            /* Adjusted for better positioning */
+            width: 150px;
             height: 150px;
             transform: rotate(270deg);
         }
@@ -291,6 +107,7 @@
             box-sizing: border-box;
             width: 90%;
             height: 90%;
+            position: relative;
             background-color: #f8f1e4;
             background-image: linear-gradient(135deg, rgba(255, 255, 255, 0.15) 25%, transparent 25%, transparent 50%, rgba(255, 255, 255, 0.15) 50%, rgba(255, 255, 255, 0.15) 75%, transparent 75%, transparent), linear-gradient(225deg, rgba(255, 255, 255, 0.15) 25%, transparent 25%, transparent 50%, rgba(255, 255, 255, 0.15) 50%, rgba(255, 255, 255, 0.15) 75%, transparent 75%, transparent), radial-gradient(circle, rgba(238, 232, 202, 0.5) 1px, transparent 1px), radial-gradient(circle, rgba(238, 232, 202, 0.5) 1px, transparent 1px);
             background-size: 15px 44px, 27px 27px, 12px 23px, 21px 24px;
@@ -309,19 +126,23 @@
         }
 
         .certificate__recipient-name {
-            font-family: cursive;
-            font-size: 5rem;
+            font-size: 4rem;
             margin: 1rem 0;
+        }
+
+        .certificate__body {
+            padding: 1rem 0;
         }
 
         .certificate__content {
             font-size: 2.5rem;
+            white-space: nowrap;
         }
 
         .certificate__description {
             font-size: 1.5rem;
             margin: 0 auto 1rem auto;
-            max-width: 90%;
+            max-width: 70%;
         }
 
         .certificate__date,
@@ -329,15 +150,9 @@
             font-size: 1.8rem;
         }
 
-        .certificate__signature .entry-column__input {
-            font-family: 'Great Vibes', cursive;
-            font-size: 2rem;
-            color: #d4af37;
-        }
-
         .certificate__footer {
             display: flex;
-            justify-content: space-between;
+            justify-content: space-around;
             margin-top: 2rem;
         }
 
@@ -349,7 +164,7 @@
 
         .entry-column__input {
             font-size: 1.8rem;
-            font-family: cursive;
+            font-family: 'Great Vibes', cursive;
         }
 
         .entry-column__label {
@@ -360,14 +175,14 @@
         .ribbon {
             display: inline-block;
             position: relative;
-            height: 2em;
-            line-height: 2em;
+            height: 1.5em;
+            line-height: 1.5em;
             text-align: center;
-            padding: 0 3em;
+            padding: 0 2em;
             background: #d4af37;
             color: #FFF;
-            margin: 10px 0;
-            font-size: 2rem;
+            box-sizing: border-box;
+            margin: 10px 0 10px 0;
         }
 
         .ribbon:before,
@@ -382,7 +197,7 @@
         .ribbon:before {
             top: 0;
             left: 0;
-            border-width: 1em 0 1em 0.75em;
+            border-width: 0.75em 0 0.75em 0.5em;
             border-color: transparent transparent transparent #fff;
             border-style: solid;
         }
@@ -390,47 +205,26 @@
         .ribbon:after {
             top: 0;
             right: 0;
-            border-width: 1em 0.75em 1em 0;
+            border-width: 0.75em 0.5em 0.75em 0;
             border-color: transparent #fff transparent transparent;
             border-style: solid;
         }
 
-        .frame {
-            position: relative;
-            padding: 1.25rem;
-            background:
-                radial-gradient(circle at top left, transparent 1.25rem, #C45ACD 1.25rem, #C45ACD 1.5rem, transparent 1.5rem) left top / 1.5rem 1.5rem no-repeat,
-                radial-gradient(circle at top right, transparent 1.25rem, #C45ACD 1.25rem, #C45ACD 1.5rem, transparent 1.5rem) right top / 1.5rem 1.5rem no-repeat,
-                radial-gradient(circle at bottom left, transparent 1.25rem, #C45ACD 1.25rem, #C45ACD 1.5rem, transparent 1.5rem) left bottom / 1.5rem 1.5rem no-repeat,
-                radial-gradient(circle at bottom right, transparent 1.25rem, #C45ACD 1.25rem, #C45ACD 1.5rem, transparent 1.5rem) right bottom / 1.5rem 1.5rem no-repeat,
-                linear-gradient(90deg, transparent 1.25rem, #C45ACD 1.5rem) left top / 51% 0.25rem no-repeat,
-                linear-gradient(-90deg, transparent 1.25rem, #C45ACD 1.5rem) right top / 51% 0.25rem no-repeat,
-                linear-gradient(90deg, transparent 1.25rem, #C45ACD 1.5rem) left bottom / 51% 0.25rem no-repeat,
-                linear-gradient(-90deg, transparent 1.25rem, #C45ACD 1.5rem) right bottom / 51% 0.25rem no-repeat,
-                linear-gradient(180deg, transparent 1.25rem, #C45ACD 1.5rem) left top / 0.25rem 51% no-repeat,
-                linear-gradient(0deg, transparent 1.25rem, #C45ACD 1.5rem) left bottom / 0.25rem 51% no-repeat,
-                linear-gradient(180deg, transparent 1.25rem, #C45ACD 1.5rem) right top / 0.25rem 51% no-repeat,
-                linear-gradient(0deg, transparent 1.25rem, #C45ACD 1.5rem) right bottom / 0.25rem 51% no-repeat;
+        .title-decoration {
+            display: flex;
+            flex-direction: column;
         }
 
-        .frame:before {
-            position: absolute;
-            content: "";
-            border: 0.25rem double #C45ACD;
-            margin: 0.5rem;
-            top: 0;
-            left: 0;
-            right: 0;
-            bottom: 0;
+        .title-decoration__main {
+            line-height: 1em;
         }
 
-        .certificate__logo {
-            width: 300px;
-            margin-bottom: 20px;
+        .title-decoration__sub {
+            font-size: 0.25em;
         }
 
         @page {
-            size: 1000mm 300mm;
+            size: 990mm 290mm;
             margin: 0;
         }
 
@@ -452,10 +246,10 @@
 
 <body>
     <div class="content">
-        <div class="certificate-wrapper frame">
+        <div class="certificate-wrapper">
             <div class="certificate">
                 <div class="certificate__header">
-                    <img src="{{ asset('assets/images/logo-img.png') }}" alt="Safar AI Academy Logo"
+                    <img src="{{ url('assets/images/logo-img.png') }}" alt="Safar AI Academy Logo"
                         class="certificate__logo">
                     <div class="certificate__title title-decoration">
                         <span class="title-decoration__main">Certificate</span>
@@ -463,20 +257,20 @@
                     </div>
                 </div>
                 <div class="certificate__body">
-                    <div class="certificate__description cecrtify">This certifies that</div>
-                    <div class="certificate__recipient-name">{{ $user->full_name }}</div>
+                    <div class="certificate__description">This certifies that</div>
+                    <div class="certificate__recipient-name">{{ Auth::user()->full_name }}</div>
                     <div class="certificate__description">has successfully completed the</div>
                     <div class="ribbon certificate__content">{{ $course->title }}</div>
-                    <div class="certificate__description">This certificate is awarded by Safar AI Academy in recognition
-                        of the dedication and commitment demonstrated in achieving this milestone.</div>
+                    <div class="certificate__description">course. This certificate is awarded by Safar AI Academy in
+                        recognition of the dedication and commitment demonstrated in achieving this milestone.</div>
                 </div>
                 <div class="certificate__footer">
                     <div class="certificate__date entry-column">
-                        <span class="entry-column__input">{{ $date }}</span>
+                        <span class="entry-column__input">{{ \Carbon\Carbon::parse($date)->format('F j, Y') }}</span>
                         <span class="entry-column__label">Date Completed</span>
                     </div>
                     <div class="certificate__signature entry-column">
-                        <span class="entry-column__input">{{ $user->full_name }}</span>
+                        <span class="entry-column__input">{{ Auth::user()->full_name }}</span>
                         <span class="entry-column__label">Signature</span>
                     </div>
                 </div>
