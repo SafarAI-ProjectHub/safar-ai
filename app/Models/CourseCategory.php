@@ -13,4 +13,8 @@ class CourseCategory extends Model
     {
         return $this->hasMany(Course::class, 'category_id');
     }
+    public function levelTests()
+    {
+        return $this->hasMany(LevelTest::class, 'age_group_id');
+    }
 }

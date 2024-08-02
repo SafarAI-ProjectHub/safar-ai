@@ -16,7 +16,7 @@
             <div class="alert alert-info" role="alert">
                 <h4 class="alert-heading">Approval Pending</h4>
                 <p>Your account is currently pending approval. Please wait for the admin to approve your account. If you
-                    have any questions, feel free to contact support.(example@email.com)</p>
+                    have any questions, feel free to contact support.{{ env('Email_Adrees') ?? 'safar-ai@example.com' }}</p>
                 <hr>
                 <p class="mb-0">Thank you for your patience.</p>
             </div>

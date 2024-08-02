@@ -138,18 +138,30 @@
                     },
                     success: function(response) {
                         table.ajax.reload(null,
-                            false); // Reload the table without resetting pagination
-                        Swal.fire(
-                            'Success!',
-                            'The test has been ' + (isActive ? 'activated' :
-                                'deactivated') + '.',
-                            'success'
-                        );
+                            false);
+                        if (response.status) {
+                            Swal.fire(
+                                'Success!',
+                                'The test has been ' + (isActive ? 'activated' :
+                                    'deactivated') + '.',
+                                'success'
+                            );
+                        } else {
+                            Swal.fire(
+                                'Error!',
+                                response.message,
+                                'error'
+                            );
+                        }
+
                     },
                     error: function(response) {
+                        table.ajax.reload(null,
+                            false);
+                        console.log(response.responseJSON);
                         Swal.fire(
                             'Error!',
-                            'There was an error updating the test status.',
+                            response.responseJSON.message,
                             'error'
                         );
                     }

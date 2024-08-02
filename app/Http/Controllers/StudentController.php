@@ -29,22 +29,39 @@ class StudentController extends Controller
 {
     public function index(Request $request)
     {
-        if (Auth::user()->getAgeGroup() !== '1-5') {
+        $user = Auth::user();
+        $ageGroup = $user->getAgeGroup();
 
-            if (Auth::user()->hasRole('Student') && Auth::user()->status === 'pending') {
+        if ($ageGroup === '1-5') {
+            $user->status = 'active';
+            $user->save();
+            $user->student->updateProficiencyLevel(1);
+        } else {
+            if ($user->hasRole('Student') && $user->status === 'pending') {
                 $completedLevelTest = LevelTestAssessment::where('user_id', Auth::id())->exists();
 
                 if (!$completedLevelTest) {
-                    $levelTestQuestions = LevelTestQuestion::with('levelTest')->whereHas('levelTest', function ($query) {
-                        $query->where('exam_type', 'student')->where('active', true);
-                    })->get();
-                    return view('dashboard.student.level_test', compact('levelTestQuestions'));
+                    // Find an active level test for the user's age group
+                    $levelTestQuestions = LevelTestQuestion::with('levelTest')
+                        ->whereHas('levelTest', function ($query) use ($ageGroup) {
+                            $query->where('exam_type', 'student')
+                                ->where('active', true)
+                                ->whereHas('ageGroup', function ($q) use ($ageGroup) {
+                                    $q->where('age_group', $ageGroup);
+                                });
+                        })
+                        ->get();
+
+                    // If no level test found, update user status and proficiency level
+                    if ($levelTestQuestions->isEmpty()) {
+                        $user->status = 'active';
+                        $user->save();
+                        $user->student->updateProficiencyLevel(1);
+                    } else {
+                        return view('dashboard.student.level_test', compact('levelTestQuestions'));
+                    }
                 }
             }
-        } else {
-            $user = Auth::user();
-            $user->status = 'active';
-            $user->save();
         }
 
 

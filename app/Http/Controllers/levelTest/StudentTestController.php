@@ -9,6 +9,7 @@ use App\Models\LevelTestQuestion;
 use App\Models\LevelTestChoice;
 use Illuminate\Support\Facades\Auth;
 use Yajra\DataTables\DataTables;
+use App\Models\CourseCategory;
 
 class StudentTestController extends Controller
 {
@@ -48,7 +49,8 @@ class StudentTestController extends Controller
             return response()->json(['message' => 'Not authenticated'], 401);
         }
 
-        return view('dashboard.level_test.add_student_test');
+        $ageGroups = CourseCategory::all();
+        return view('dashboard.level_test.add_student_test', compact('ageGroups'));
     }
 
     /**
@@ -68,6 +70,9 @@ class StudentTestController extends Controller
         }
 
         return DataTables::of($levelTests)
+            ->addColumn('age_group', function ($test) {
+                return $test->ageGroup->age_group;
+            })
             ->addColumn('actions', function ($test) {
                 return '<div class="d-flex justify-content-around gap-2">
                 <button class="btn btn-sm btn-warning btn-sm edit-test" data-id="' . $test->id . '">Edit</button>
@@ -89,6 +94,7 @@ class StudentTestController extends Controller
         $validatedData = $request->validate([
             'title' => 'required|string|max:255',
             'description' => 'nullable|string',
+            'age_group_id' => 'required|exists:course_categories,id',
             'questions' => 'required|array|min:1',
             'questions.*.text' => 'required|string',
             'questions.*.sub_text' => 'nullable|string',
@@ -103,7 +109,9 @@ class StudentTestController extends Controller
             'description' => $request->description,
             'exam_type' => 'student',
             'active' => false,
+            'age_group_id' => $request->age_group_id,
         ]);
+        dd($request->all());
 
         foreach ($validatedData['questions'] as $question) {
             $createdQuestion = LevelTestQuestion::create([
@@ -141,8 +149,8 @@ class StudentTestController extends Controller
         if (!$user) {
             return response()->json(['message' => 'Not authenticated'], 401);
         }
-
-        return view('dashboard.level_test.edit_student_test', compact('levelTest'));
+        $ageGroups = CourseCategory::all();
+        return view('dashboard.level_test.edit_student_test', compact('levelTest', 'ageGroups'));
     }
 
     /**
@@ -159,6 +167,7 @@ class StudentTestController extends Controller
         $validatedData = $request->validate([
             'title' => 'required|string|max:255',
             'description' => 'nullable|string',
+            'age_group_id' => 'required|exists:course_categories,id',
             'questions' => 'required|array|min:1',
             'questions.*.text' => 'required|string',
             'questions.*.sub_text' => 'nullable|string',
@@ -168,10 +177,24 @@ class StudentTestController extends Controller
             'questions.*.choices.*.is_correct' => 'required_if:questions.*.question_type,choice|boolean',
         ]);
 
+        // Check if the level test is being set to active
+        if ($levelTest->active) {
+            // Ensure no other level test in the same age group is active
+            $otherActiveTest = LevelTest::where('age_group_id', $request->age_group_id)
+                ->where('id', '!=', $testId)
+                ->where('active', true)
+                ->first();
+
+            if ($otherActiveTest) {
+                // Deactivate the current level test
+                $levelTest->update(['active' => false]);
+            }
+        }
+
         $levelTest->update([
             'title' => $request->title,
             'description' => $request->description,
-            'active' => $levelTest->active,
+            'age_group_id' => $request->age_group_id,
         ]);
 
         // Delete existing questions and choices
@@ -202,6 +225,7 @@ class StudentTestController extends Controller
 
         return response()->json(['message' => 'Level test and questions updated successfully', 'levelTest' => $levelTest]);
     }
+
 
     /**
      * Delete a level test and its questions.
@@ -234,9 +258,43 @@ class StudentTestController extends Controller
     public function activateTest(Request $request, $testId)
     {
         $levelTest = LevelTest::findOrFail($testId);
-        LevelTest::where('exam_type', 'student')->update(['active' => false]);
-        $levelTest->update(['active' => 1]);
 
-        return response()->json(['message' => 'Test status updated successfully']);
+        // Convert the 'active' parameter to a boolean
+        $isActive = filter_var($request->input('active'), FILTER_VALIDATE_BOOLEAN);
+
+        if ($isActive) {
+            // Get the age group ID of the test to be activated
+            $ageGroupId = $levelTest->age_group_id;
+
+            // Deactivate all tests in the same age group
+            LevelTest::where('exam_type', 'student')
+                ->where('age_group_id', $ageGroupId)
+                ->update(['active' => false]);
+
+            // Activate the selected test
+            $levelTest->update(['active' => true]);
+
+            return response()->json(['status' => true, 'message' => 'Test status updated successfully']);
+        } else {
+            // Ensure at least one test is active per age group
+            $ageGroupId = $levelTest->age_group_id;
+
+            // Count the number of active tests in the same age group
+            $activeTestCount = LevelTest::where('exam_type', 'student')
+                ->where('age_group_id', $ageGroupId)
+                ->where('active', true)
+                ->count();
+
+            if ($activeTestCount <= 1) {
+                return response()->json(['status' => false, 'message' => 'You cannot deactivate all tests in this age group. At least one test must be active.'], 400);
+            }
+
+            // Deactivate the selected test
+            $levelTest->update(['active' => false]);
+
+            return response()->json(['status' => true, 'message' => 'Test deactivated successfully']);
+        }
     }
+
+
 }

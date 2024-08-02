@@ -23,7 +23,6 @@
                     <thead>
                         <tr>
                             <th>Full Name</th>
-                            <th>Email</th>
                             <th>Country</th>
                             <th>Age</th>
                             <th>Actions</th>
@@ -51,10 +50,6 @@
                 columns: [{
                         data: 'full_name',
                         name: 'full_name'
-                    },
-                    {
-                        data: 'email',
-                        name: 'email'
                     },
                     {
                         data: 'country_location',
@@ -90,7 +85,7 @@
                     }
                 ],
                 columnDefs: [{
-                    targets: 4,
+                    targets: 3,
                     width: '10%'
                 }],
                 lengthChange: false

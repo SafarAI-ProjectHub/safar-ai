@@ -261,13 +261,25 @@
                     },
                     success: function(response) {
                         table.ajax.reload(null,
-                            false); // Reload the table without resetting pagination
-                        Swal.fire('Success!', 'The subscription has been ' + (isActive ?
-                            'activated' : 'deactivated') + '.', 'success');
+                            false);
+
+                        Swal.fire(
+                            'Success!',
+                            'The test has been ' + (isActive ? 'activated' :
+                                'deactivated') + '.',
+                            'success'
+                        );
+
                     },
                     error: function(response) {
-                        Swal.fire('Error!',
-                            'There was an error updating the subscription status.', 'error');
+                        table.ajax.reload(null,
+                            false);
+                        console.log(response.responseJSON);
+                        Swal.fire(
+                            'Error!',
+                            response.responseJSON.message,
+                            'error'
+                        );
                     }
                 });
             });

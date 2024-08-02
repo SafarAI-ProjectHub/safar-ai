@@ -11,8 +11,10 @@
                 <table id="student-tests-table" class="table table-striped table-bordered">
                     <thead>
                         <tr>
+                            <th>#</th>
                             <th>Title</th>
                             <th>Description</th>
+                            <th>Age Group</th>
                             <th>Active</th>
                             <th>Actions</th>
                         </tr>
@@ -32,12 +34,20 @@
                 serverSide: true,
                 ajax: '{{ route('studentTests.datatable') }}',
                 columns: [{
+                        data: 'id',
+                        name: 'id'
+                    },
+                    {
                         data: 'title',
                         name: 'title'
                     },
                     {
                         data: 'description',
                         name: 'description'
+                    },
+                    {
+                        data: 'age_group',
+                        name: 'age_group'
                     },
                     {
                         data: 'active',
@@ -138,18 +148,30 @@
                     },
                     success: function(response) {
                         table.ajax.reload(null,
-                            false); // Reload the table without resetting pagination
-                        Swal.fire(
-                            'Success!',
-                            'The test has been ' + (isActive ? 'activated' :
-                                'deactivated') + '.',
-                            'success'
-                        );
+                            false);
+                        if (response.status) {
+                            Swal.fire(
+                                'Success!',
+                                'The test has been ' + (isActive ? 'activated' :
+                                    'deactivated') + '.',
+                                'success'
+                            );
+                        } else {
+                            Swal.fire(
+                                'Error!',
+                                response.message,
+                                'error'
+                            );
+                        }
+
                     },
                     error: function(response) {
+                        table.ajax.reload(null,
+                            false);
+                        console.log(response.responseJSON);
                         Swal.fire(
                             'Error!',
-                            'There was an error updating the test status.',
+                            response.responseJSON.message,
                             'error'
                         );
                     }

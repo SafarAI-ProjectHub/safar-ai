@@ -237,9 +237,26 @@ class TeacherTestController extends Controller
     public function activateTest(Request $request, $testId)
     {
         $levelTest = LevelTest::findOrFail($testId);
-        LevelTest::where('exam_type', 'teacher')->update(['active' => false]);
-        $levelTest->update(['active' => 1]);
 
-        return response()->json(['message' => 'Test status updated successfully']);
+        // Convert the 'active' parameter to a boolean
+        $isActive = filter_var($request->input('active'), FILTER_VALIDATE_BOOLEAN);
+
+        if ($isActive) {
+            // Activate the selected test
+            LevelTest::where('exam_type', 'teacher')->update(['active' => false]);
+            $levelTest->update(['active' => true]);
+            return response()->json(['status' => true, 'message' => 'Test status updated successfully']);
+        } else {
+            // Deactivate the selected test
+            $activeTestCount = LevelTest::where('exam_type', 'teacher')->where('active', true)->count();
+
+            if ($activeTestCount <= 1) {
+                return response()->json(['status' => false, 'message' => 'You cannot deactivate all tests. At least one test must be active.'], 400);
+            }
+
+            $levelTest->update(['active' => false]);
+            return response()->json(['status' => true, 'message' => 'Test deactivated successfully']);
+        }
     }
+
 }

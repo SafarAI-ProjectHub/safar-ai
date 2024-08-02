@@ -89,7 +89,7 @@
                     <h2 data-aos="fade-up" data-aos-delay="400"> Learn English with AI 🌟</h2>
                     <div data-aos="fade-up" data-aos-delay="600">
                         <div class="text-center text-lg-start">
-                            <a href="#about"
+                            <a href="/register"
                                 class="btn-get-started scrollto d-inline-flex align-items-center justify-content-center align-self-center">
                                 <span>Get Started</span>
                                 <i class="bi bi-arrow-right"></i>
@@ -109,7 +109,7 @@
         <!-- ======= About Section ======= -->
         <section id="about" class="about">
             <div class="container" data-aos="fade-up">
-                <div class="row gx-0">
+                <div class="row gx-0 d-flex justify-content-between">
                     <div class="col-lg-6 d-flex flex-column justify-content-center" data-aos="fade-up" data-aos-delay="200">
                         <div class="content">
                             <h2>About SafarAI</h2>
@@ -132,7 +132,7 @@
                             </p>
                         </div>
                     </div>
-                    <div class="col-lg-6 d-flex align-items-center" data-aos="zoom-out" data-aos-delay="200">
+                    <div class="col-lg-5 d-flex align-items-center" data-aos="zoom-out" data-aos-delay="200">
                         <img src="assets/img/logo2.png" class="img-fluid" alt="About SafarAI">
                     </div>
                 </div>
@@ -518,16 +518,14 @@
                                 <h2 class="accordion-header">
                                     <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse"
                                         data-bs-target="#faq-content-1">
-                                        Non consectetur a erat nam at lectus urna duis?
+                                        What is Safar AI?
                                     </button>
                                 </h2>
                                 <div id="faq-content-1" class="accordion-collapse collapse" data-bs-parent="#faqlist1">
                                     <div class="accordion-body">
-                                        Feugiat pretium nibh ipsum consequat. Tempus iaculis urna id volutpat lacus
-                                        laoreet
-                                        non curabitur gravida. Venenatis lectus magna fringilla urna porttitor rhoncus
-                                        dolor
-                                        purus non.
+                                        Safar AI leverages advanced AI technology to offer personalized English learning
+                                        experiences. Our platform is designed to make learning English both easy and
+                                        effective, suitable for all age groups.
                                     </div>
                                 </div>
                             </div>
@@ -536,18 +534,13 @@
                                 <h2 class="accordion-header">
                                     <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse"
                                         data-bs-target="#faq-content-2">
-                                        Feugiat scelerisque varius morbi enim nunc faucibus a pellentesque?
+                                        What types of courses does Safar AI offer?
                                     </button>
                                 </h2>
                                 <div id="faq-content-2" class="accordion-collapse collapse" data-bs-parent="#faqlist1">
                                     <div class="accordion-body">
-                                        Dolor sit amet consectetur adipiscing elit pellentesque habitant morbi. Id
-                                        interdum
-                                        velit laoreet id donec ultrices. Fringilla phasellus faucibus scelerisque
-                                        eleifend
-                                        donec pretium. Est pellentesque elit ullamcorper dignissim. Mauris ultrices eros
-                                        in
-                                        cursus turpis massa tincidunt dui.
+                                        From basic communication skills to advanced linguistic challenges, our courses cover
+                                        a comprehensive range of English learning topics.
                                     </div>
                                 </div>
                             </div>
@@ -556,16 +549,13 @@
                                 <h2 class="accordion-header">
                                     <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse"
                                         data-bs-target="#faq-content-3">
-                                        Dolor sit amet consectetur adipiscing elit pellentesque habitant morbi?
+                                        How do I start learning with Safar AI?
                                     </button>
                                 </h2>
                                 <div id="faq-content-3" class="accordion-collapse collapse" data-bs-parent="#faqlist1">
                                     <div class="accordion-body">
-                                        Eleifend mi in nulla posuere sollicitudin aliquam ultrices sagittis orci.
-                                        Faucibus
-                                        pulvinar elementum integer enim. Sem nulla pharetra diam sit amet nisl suscipit.
-                                        Rutrum tellus pellentesque eu tincidunt. Lectus urna duis convallis convallis
-                                        tellus. Urna molestie at elementum eu facilisis sed odio morbi quis
+                                        You can sign up directly on our website to begin your personalized English learning
+                                        journey.
                                     </div>
                                 </div>
                             </div>
@@ -582,18 +572,13 @@
                                 <h2 class="accordion-header">
                                     <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse"
                                         data-bs-target="#faq2-content-1">
-                                        Ac odio tempor orci dapibus. Aliquam eleifend mi in nulla?
+                                        Is Safar AI suitable for non-native English speakers?
                                     </button>
                                 </h2>
                                 <div id="faq2-content-1" class="accordion-collapse collapse" data-bs-parent="#faqlist2">
                                     <div class="accordion-body">
-                                        Dolor sit amet consectetur adipiscing elit pellentesque habitant morbi. Id
-                                        interdum
-                                        velit laoreet id donec ultrices. Fringilla phasellus faucibus scelerisque
-                                        eleifend
-                                        donec pretium. Est pellentesque elit ullamcorper dignissim. Mauris ultrices eros
-                                        in
-                                        cursus turpis massa tincidunt dui.
+                                        Absolutely, our AI-driven lessons are designed to assist learners at all proficiency
+                                        levels, making it ideal for non-native speakers.
                                     </div>
                                 </div>
                             </div>
@@ -602,15 +587,13 @@
                                 <h2 class="accordion-header">
                                     <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse"
                                         data-bs-target="#faq2-content-2">
-                                        Tempus quam pellentesque nec nam aliquam sem et tortor consequat?
+                                        Does Safar AI offer certifications or qualifications?
                                     </button>
                                 </h2>
                                 <div id="faq2-content-2" class="accordion-collapse collapse" data-bs-parent="#faqlist2">
                                     <div class="accordion-body">
-                                        Molestie a iaculis at erat pellentesque adipiscing commodo. Dignissim
-                                        suspendisse in
-                                        est ante in. Nunc vel risus commodo viverra maecenas accumsan. Sit amet nisl
-                                        suscipit adipiscing bibendum est. Purus gravida quis blandit turpis cursus in
+                                        Upon completion of certain courses, Safar AI provides certificates that may be
+                                        useful for academic or professional purposes.
                                     </div>
                                 </div>
                             </div>
@@ -619,19 +602,13 @@
                                 <h2 class="accordion-header">
                                     <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse"
                                         data-bs-target="#faq2-content-3">
-                                        Varius vel pharetra vel turpis nunc eget lorem dolor?
+                                        How can I contact Safar AI for more information?
                                     </button>
                                 </h2>
                                 <div id="faq2-content-3" class="accordion-collapse collapse" data-bs-parent="#faqlist2">
                                     <div class="accordion-body">
-                                        Laoreet sit amet cursus sit amet dictum sit amet justo. Mauris vitae ultricies
-                                        leo
-                                        integer malesuada nunc vel. Tincidunt eget nullam non nisi est sit amet. Turpis
-                                        nunc
-                                        eget lorem dolor sed. Ut venenatis tellus in metus vulputate eu scelerisque.
-                                        Pellentesque diam volutpat commodo sed egestas egestas fringilla phasellus
-                                        faucibus.
-                                        Nibh tellus molestie nunc non blandit massa enim nec.
+                                        For more inquiries, you can reach us via the contact form on our website, or by
+                                        email at <a href="mailto:{{ env('Email_Adrees') }}">{{ env('Email_Adrees') }}</a>
                                     </div>
                                 </div>
                             </div>
@@ -647,7 +624,7 @@
 
 
         <section class="hero-area">
-            <div class="hero-slider owl-carousel owl-theme" data-aos="fade-up">
+            <div class="hero-slider owl-carousel owl-theme aos-init aos-animate" data-aos="fade-up">
                 @foreach ($offers as $index => $offer)
                     <div class="hero-slider-item"
                         style="background-image: url('{{ asset('storage/' . $offer->background_image) }}');">
@@ -1288,12 +1265,12 @@
     <script>
         document.addEventListener('DOMContentLoaded', function() {
             AOS.init({
-                offset: window.innerHeight / 2.5,
-                delay: 0,
-                duration: 50,
-                easing: 'ease',
-                once: true,
-                mirror: false,
+                offset: 0, // Trigger animations as soon as elements come into view
+                delay: 0, // No delay before the animation starts
+                duration: 300, // Adjusted duration for smoother animations
+                easing: 'ease-in-out', // Smoother easing function
+                once: true, // Only animate once
+                mirror: false, // Elements do not animate out while scrolling past them
             });
         });
     </script>

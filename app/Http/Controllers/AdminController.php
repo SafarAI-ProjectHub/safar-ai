@@ -47,7 +47,10 @@ class AdminController extends Controller
         if ($request->ajax()) {
             $admins = User::whereHas('roles', function ($query) {
                 $query->where('name', 'Admin');
-            })->select(['id', 'first_name', 'last_name', 'email', 'phone_number', 'date_of_birth', 'country_location', 'status']);
+            })->whereDoesntHave('roles', function ($query) {
+                $query->where('name', 'Super Admin');
+            })->select(['id', 'first_name', 'last_name', 'email', 'phone_number', 'date_of_birth', 'country_location', 'status'])->get();
+
 
             return DataTables::of($admins)
                 ->addColumn('action', function ($admin) {

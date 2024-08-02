@@ -81,10 +81,23 @@ class AdminSubscriptionController extends Controller
     public function toggleActive($id)
     {
         $subscription = Subscription::findOrFail($id);
-        Subscription::where('id', '!=', $id)->update(['is_active' => false]);
-        $subscription->update(['is_active' => !$subscription->is_active]);
 
-        return response()->json(['success' => 'Subscription status updated successfully.']);
+        if ($subscription->is_active) {
+
+            $activeSubscriptionCount = Subscription::where('is_active', true)->count();
+
+            if ($activeSubscriptionCount <= 1) {
+                return response()->json(['success' => false, 'message' => 'You cannot deactivate all subscriptions. At least one subscription must be active.'], 400);
+            }
+
+            $subscription->update(['is_active' => false]);
+        } else {
+            // Activate the selected subscription and deactivate others
+            Subscription::where('id', '!=', $id)->update(['is_active' => false]);
+            $subscription->update(['is_active' => true]);
+        }
+
+        return response()->json(['success' => true, 'message' => 'Subscription status updated successfully.']);
     }
 
     private function processFeatures($features)

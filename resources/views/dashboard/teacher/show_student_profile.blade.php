@@ -56,22 +56,24 @@
                                         {{ $student->first_name }} {{ $student->last_name }}
                                     </div>
                                 </div>
-                                <div class="row mb-3">
-                                    <div class="col-sm-3">
-                                        <h6 class="mb-0">Email</h6>
+                                @if (Auth::user()->hasRole('Admin|Super Admin'))
+                                    <div class="row mb-3">
+                                        <div class="col-sm-3">
+                                            <h6 class="mb-0">Email</h6>
+                                        </div>
+                                        <div class="col-sm-9 text-secondary">
+                                            {{ $student->email }}
+                                        </div>
                                     </div>
-                                    <div class="col-sm-9 text-secondary">
-                                        {{ $student->email }}
+                                    <div class="row mb-3">
+                                        <div class="col-sm-3">
+                                            <h6 class="mb-0">Phone</h6>
+                                        </div>
+                                        <div class="col-sm-9 text-secondary">
+                                            {{ $student->phone_number }}
+                                        </div>
                                     </div>
-                                </div>
-                                <div class="row mb-3">
-                                    <div class="col-sm-3">
-                                        <h6 class="mb-0">Phone</h6>
-                                    </div>
-                                    <div class="col-sm-9 text-secondary">
-                                        {{ $student->phone_number }}
-                                    </div>
-                                </div>
+                                @endif
                                 <div class="row mb-3">
                                     <div class="col-sm-3">
                                         <h6 class="mb-0">Date of Birth</h6>

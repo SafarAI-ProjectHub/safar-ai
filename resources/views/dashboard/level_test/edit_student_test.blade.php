@@ -100,6 +100,18 @@
                                         <textarea class="form-control" id="test-description" name="description">{{ $levelTest->description }}</textarea>
                                         <div class="invalid-feedback"></div>
                                     </div>
+                                    <div class="mb-3">
+                                        <label for="age-group" class="form-label">Age Group</label>
+                                        <select class="form-select" id="age-group" name="age_group_id" required>
+                                            <option value="" disabled>Select Age Group</option>
+                                            @foreach ($ageGroups as $ageGroup)
+                                                <option value="{{ $ageGroup->id }}"
+                                                    {{ $levelTest->age_group_id == $ageGroup->id ? 'selected' : '' }}>
+                                                    {{ $ageGroup->age_group }}</option>
+                                            @endforeach
+                                        </select>
+                                        <div class="invalid-feedback"></div>
+                                    </div>
                                     <button type="button" class="btn btn-primary" id="next-to-step2">Next</button>
                                 </div>
                                 <div id="step2" role="tabpanel" class="bs-stepper-pane"
@@ -176,10 +188,18 @@
             var stepper3 = new Stepper(document.querySelector('#stepper3'));
 
             $('#next-to-step2').on('click', function() {
-                if ($('#test-title').val()) {
+                if ($('#test-title').val() && $('#age-group').val()) {
                     stepper3.next();
                 } else {
-                    showFieldError($('#test-title'), 'Please enter a test title.');
+                    if (!$('#test-title').val()) {
+                        showFieldError($('#test-title'), 'Please enter a test title.');
+                    }
+                    if (!$('#test-description').val()) {
+                        showFieldError($('#test-description'), 'Please enter a test description.');
+                    }
+                    if (!$('#age-group').val()) {
+                        showFieldError($('#age-group'), 'Please select an age group.');
+                    }
                 }
             });
 
@@ -294,6 +314,7 @@
                     _method: 'PUT',
                     title: $('#test-title').val(),
                     description: $('#test-description').val(),
+                    age_group_id: $('#age-group').val(),
                     questions: []
                 };
 

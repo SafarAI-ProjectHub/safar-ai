@@ -14,10 +14,17 @@ class LevelTest extends Model
         'description',
         'exam_type',
         'active',
+        'age_group_id'
     ];
 
     public function questions()
     {
         return $this->hasMany(LevelTestQuestion::class);
+    }
+    //use App\Models\CourseCategory;
+
+    public function ageGroup()
+    {
+        return $this->belongsTo(CourseCategory::class, 'age_group_id');
     }
 }
