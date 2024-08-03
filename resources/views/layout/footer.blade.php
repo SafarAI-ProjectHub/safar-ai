@@ -38,13 +38,20 @@
                   <div class="col-lg-2 col-6 footer-links">
                       <h4>Useful Links</h4>
                       <ul>
-                          <li><i class="bi bi-chevron-right"></i> <a href="#hero">Home</a></li>
-                          <li><i class="bi bi-chevron-right"></i> <a href="#about">About us</a></li>
-                          <li><i class="bi bi-chevron-right"></i> <a href="#services">Services</a></li>
-                          <li><i class="bi bi-chevron-right"></i> <a href="#">Terms of service</a></li>
-                          <li><i class="bi bi-chevron-right"></i> <a href="#">Privacy policy</a></li>
+                          <li><i class="bi bi-chevron-right"></i> <a
+                                  href="{{ request()->is('/') ? '#hero' : '/#hero' }}">Home</a></li>
+                          <li><i class="bi bi-chevron-right"></i> <a
+                                  href="{{ request()->is('/') ? '#about' : '/#about' }}">About us</a></li>
+                          <li><i class="bi bi-chevron-right"></i> <a
+                                  href="{{ request()->is('/') ? '#services' : '/#services' }}">Services</a></li>
+                          <li><i class="bi bi-chevron-right"></i> <a
+                                  href="{{ request()->routeIs('terms') ? '#' : route('terms') }}">Terms of service</a>
+                          <li><i class="bi bi-chevron-right"></i> <a
+                                  href="{{ request()->routeIs('privacy') ? '#' : route('privacy') }}">Privacy
+                                  policy</a>
                       </ul>
                   </div>
+
 
 
                   {{-- <div class="col-lg-2 col-6 footer-links">

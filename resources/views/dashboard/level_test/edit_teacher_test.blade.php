@@ -200,15 +200,16 @@
 
             $('#add-question-button').on('click', function() {
                 var questionCount = $('#questions-container .question').length;
-                if (questionCount < 10) {
-                    addNewQuestion();
-                    if (questionCount + 1 === 10) {
-                        $(this).hide();
-                    }
-                } else {
-                    showAlert('danger', 'You cannot add more than 10 questions.',
-                        'bx bxs-message-square-x');
-                }
+                addNewQuestion();
+                // if (questionCount < 10) {
+                //     addNewQuestion();
+                //     if (questionCount + 1 === 10) {
+                //         $(this).hide();
+                //     }
+                // } else {
+                //     showAlert('danger', 'You cannot add more than 10 questions.',
+                //         'bx bxs-message-square-x');
+                // }
             });
 
             function addNewQuestion() {

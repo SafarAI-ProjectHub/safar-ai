@@ -77,4 +77,13 @@ class HomeController extends Controller
 
         return view('welcome', compact('teachers', 'offers', 'reviews', 'learningHours', 'totalStudents', 'totalCourses', 'totalTeachers'));
     }
+    public function terms()
+    {
+        return view('terms_and_conditions');
+    }
+
+    public function privacy()
+    {
+        return view('privacy_policy');
+    }
 }

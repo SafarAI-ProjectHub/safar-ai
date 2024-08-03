@@ -61,6 +61,9 @@ class TeacherController extends Controller
     public function getCourses()
     {
         if (auth()->user()->hasRole('Teacher')) {
+            if (auth()->user()->teacher->approval_status == 'pending') {
+                return redirect()->route('teacher.dashboard');
+            }
             $teacherId = Teacher::where('teacher_id', auth()->id())->first()->id;
             $courses = Course::where('teacher_id', $teacherId)->get();
             $categories = CourseCategory::all();
@@ -89,6 +92,9 @@ class TeacherController extends Controller
 
             $courses = Course::all();
         } else {
+            if (auth()->user()->teacher->approval_status == 'pending') {
+                return redirect()->route('teacher.dashboard');
+            }
             $teacherId = Teacher::where('teacher_id', $user->id)->first()->id;
             $courses = Course::where('teacher_id', $teacherId)->get();
 
@@ -225,7 +231,7 @@ class TeacherController extends Controller
                     ];
                 }
 
-                $assessment->correct = false; // Needs manual or AI review later
+                $assessment->correct = false;
                 $assessment->save();
                 $assessments[] = $assessment;
             }

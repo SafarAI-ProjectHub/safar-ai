@@ -30,7 +30,9 @@ class RegisterTeacherRequest extends FormRequest
 
             'country_location' => ['required', 'string', 'max:255'],
             'cv' => ['required', 'file', 'mimes:pdf,doc,docx', 'max:2048'],
-            'years_of_experience' => ['required', 'integer', 'min:0', 'max:100'],
+            // years_of_experience should be an integer between 0 and 100 and the value should be less than the age with logical message why 
+            'years_of_experience' => ['required', 'integer', 'min:0', 'max:100', 'lt:' . now()->diffInYears(request('date_of_birth'))],
+
         ];
     }
 
@@ -55,6 +57,10 @@ class RegisterTeacherRequest extends FormRequest
             'cv.mimes' => 'The CV must be a file of type: pdf, doc, docx.',
             'cv.max' => 'The CV must not be greater than 2MB.',
             'years_of_experience.required' => 'The years of experience field is required.',
+            'years_of_experience.integer' => 'The years of experience must be an integer.',
+            'years_of_experience.min' => 'The years of experience must be at least 0.',
+            'years_of_experience.max' => 'The years of experience must be less than 100.',
+            'years_of_experience.lt' => 'The years of experience must be less than your age.',
         ];
     }
 }

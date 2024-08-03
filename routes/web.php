@@ -51,6 +51,8 @@ Broadcast::routes(['middleware' => ['auth']]);
 
 
 Route::get('/', [HomeController::class, 'index']);
+Route::get('/terms-and-conditions', [HomeController::class, 'terms'])->name('terms');
+Route::get('/privacy-policy', [HomeController::class, 'privacy'])->name('privacy');
 
 // PayPal webhook
 Route::post('/paypal/webhook', [PayPalWebhookController::class, 'handleWebhook'])->name('paypal.webhook');

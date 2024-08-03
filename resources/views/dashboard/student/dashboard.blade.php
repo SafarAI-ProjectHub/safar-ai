@@ -214,57 +214,65 @@
             $isSUB = false;
         @endphp
         <div class="container my-5">
-            <div class="row" id="video-list">
-                @foreach ($videos as $video)
-                    <div class="col-md-4 mb-4">
-                        <div class="card card-item youtube h-100">
-                            <div class="card-image">
-                                <a href="javascript:void(0);" class="d-block video-link"
-                                    data-video-id="{{ $video->id }}">
-                                    <img class="card-img-top lazy" src="{{ $video->thumbnail_url }}" alt="Video Thumbnail">
-                                    <div class="play-button">
-                                        <svg version="1.1" xmlns="http://www.w3.org/2000/svg" x="0px" y="0px"
-                                            viewBox="-307.4 338.8 91.8 91.8" xml:space="preserve">
-                                            <style type="text/css">
-                                                .st0 {
-                                                    opacity: 0.6;
-                                                    fill: #000000;
-                                                    border-radius: 100px;
-                                                }
+            @if ($videos->isEmpty())
+                <div class="col-md-12 text-center">
+                    <h3>No videos available</h3>
+                </div>
+            @else
+                <div class="row" id="video-list">
+                    @foreach ($videos as $video)
+                        <div class="col-md-4 mb-4">
+                            <div class="card card-item youtube h-100">
+                                <div class="card-image">
+                                    <a href="javascript:void(0);" class="d-block video-link"
+                                        data-video-id="{{ $video->id }}">
+                                        <img class="card-img-top lazy" src="{{ $video->thumbnail_url }}"
+                                            alt="Video Thumbnail">
+                                        <div class="play-button">
+                                            <svg version="1.1" xmlns="http://www.w3.org/2000/svg" x="0px" y="0px"
+                                                viewBox="-307.4 338.8 91.8 91.8" xml:space="preserve">
+                                                <style type="text/css">
+                                                    .st0 {
+                                                        opacity: 0.6;
+                                                        fill: #000000;
+                                                        border-radius: 100px;
+                                                    }
 
-                                                .st1 {
-                                                    fill: #ffffff;
-                                                }
-                                            </style>
-                                            <g>
-                                                <circle class="st0" cx="-261.5" cy="384.7" r="45.9"></circle>
-                                                <path class="st1"
-                                                    d="M-272.9,363.2l35.8,20.7c0.7,0.4,0.7,1.3,0,1.7l-35.8,20.7c-0.7,0.4-1.5-0.1-1.5-0.9V364 C-274.4,363.3-273.5,362.8-272.9,363.2z">
-                                                </path>
-                                            </g>
-                                        </svg>
+                                                    .st1 {
+                                                        fill: #ffffff;
+                                                    }
+                                                </style>
+                                                <g>
+                                                    <circle class="st0" cx="-261.5" cy="384.7" r="45.9"></circle>
+                                                    <path class="st1"
+                                                        d="M-272.9,363.2l35.8,20.7c0.7,0.4,0.7,1.3,0,1.7l-35.8,20.7c-0.7,0.4-1.5-0.1-1.5-0.9V364 C-274.4,363.3-273.5,362.8-272.9,363.2z">
+                                                    </path>
+                                                </g>
+                                            </svg>
+                                        </div>
+                                    </a>
+                                </div>
+                                <div class="card-body d-flex flex-column youtube">
+                                    <h5 class="card-title mb-1">{{ $video->title }}</h5>
+
+                                    <div class="d-flex justify-content-between mt-auto">
+                                        <p class="card-text">
+                                            <i class="bi bi-eye"></i> {{ $video->view_count }} Views
+                                        </p>
+                                        <p class="card-text">
+                                            <i class="bi bi-hand-thumbs-up"></i> {{ $video->like_count }} Likes
+                                        </p>
                                     </div>
-                                </a>
-                            </div>
-                            <div class="card-body d-flex flex-column youtube">
-                                <h5 class="card-title mb-1">{{ $video->title }}</h5>
-
-                                <div class="d-flex justify-content-between mt-auto">
-                                    <p class="card-text">
-                                        <i class="bi bi-eye"></i> {{ $video->view_count }} Views
-                                    </p>
-                                    <p class="card-text">
-                                        <i class="bi bi-hand-thumbs-up"></i> {{ $video->like_count }} Likes
-                                    </p>
                                 </div>
                             </div>
                         </div>
-                    </div>
-                @endforeach
-            </div>
-            <div class="d-flex justify-content-center">
-                {!! $videos->links() !!}
-            </div>
+                    @endforeach
+                </div>
+                <div class="d-flex justify-content-center">
+                    {!! $videos->links() !!}
+                </div>
+            @endif
+
         </div>
         @if (auth()->user()->getAgeGroup() !== '1-5')
             <div class="modal fade" id="subscriptionModal" tabindex="-1" aria-labelledby="subscriptionModalLabel"
@@ -272,7 +280,8 @@
                 <div class="modal-dialog">
                     <div class="modal-content">
                         <div class="modal-header">
-                            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                            <button type="button" class="btn-close" data-bs-dismiss="modal"
+                                aria-label="Close"></button>
                         </div>
                         <div class="modal-body">
                             <h5 class="modal-title">Unlock Premium Features</h5>

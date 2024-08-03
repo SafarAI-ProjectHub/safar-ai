@@ -111,7 +111,8 @@
                 @endif
             </div>
         </div>
-        <form id="level-test-form" method="POST" action="{{ route('level-test.submit') }}" enctype="multipart/form-data">
+        <form id="level-test-form" method="POST" action="{{ route('teacher.level-test.submit') }}"
+            enctype="multipart/form-data">
             @csrf
 
             @foreach ($levelTestQuestions as $question)
@@ -282,7 +283,7 @@
                     success: function(data) {
                         $('#loader').css('display', 'none');
                         if (data.success) {
-                            window.location.href = '{{ route('teacher.courses') }}';
+                            window.location.href = '{{ route('teacher.dashboard') }}';
                         } else {
                             Swal.fire({
                                 icon: 'error',

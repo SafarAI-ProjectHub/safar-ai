@@ -1,3 +1,4 @@
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/sweetalert2@10">
 <x-guest-layout>
     <x-slot name="imageSlot">
         <img src="{{ asset('assets/images/login-images/register-cover.svg') }}" class="img-fluid auth-img-cover-login"
@@ -83,8 +84,9 @@
         <div class="col-12">
             <div class="form-check form-switch">
                 <input class="form-check-input" type="checkbox" id="flexSwitchCheckChecked" name="terms" required>
-                <label class="form-check-label" for="flexSwitchCheckChecked">I read and agree to Terms &
-                    Conditions</label>
+                <label class="form-check-label" for="flexSwitchCheckChecked">I read and agree to <a
+                        href="{{ route('terms') }}"> Terms &
+                        Conditions </a> And <a href="{{ route('privacy') }}"> Privacy Policy </a></label>
             </div>
             <span class="text-danger d-block" id="error_terms"></span>
         </div>

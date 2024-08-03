@@ -45,7 +45,7 @@
     </div>
 
     <!-- Add Modal -->
-    <div class="modal fade" id="addModal" tabindex="-1" aria-labelledby="addModalLabel" aria-hidden="false">
+    <div class="modal fade" id="addModal" tabindex="-1" aria-labelledby="addModalLabel" aria-hidden="true">
         <div class="modal-dialog">
             <div class="modal-content">
                 <div class="modal-header  text-white">
@@ -228,8 +228,21 @@
                     success: function(response) {
                         $('#addModal').modal('hide');
                         $('#addModal').find('input').val('');
+
+                        // Use Bootstrap's modal event to ensure proper cleanup
+                        $('#addModal').on('hidden.bs.modal', function() {
+                            // Remove modal backdrop
+                            $('.modal-backdrop').remove();
+                            // Allow body to scroll again
+                            $('body').removeClass('modal-open');
+                            $('body').css('padding-right', '');
+                        });
+
                         $('#youtube-videos-table').DataTable().ajax.reload();
-                        Swal.fire('Success', response.success, 'success');
+                        Swal.fire('Success', response.success, 'success').then(() => {
+                            location.reload();
+                        });
+
                     },
                     error: function(xhr) {
                         Swal.fire('Error', xhr.responseText, 'error');

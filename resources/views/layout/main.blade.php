@@ -4,6 +4,7 @@
 <head>
     @include('layout.app')
     @yield('styles')
+
 </head>
 
 <body>
@@ -16,6 +17,12 @@
     @include('layout.footer')
 
     @yield('scripts')
+
+    <style>
+        #loom-companion-mv3 {
+            display: none !important;
+        }
+    </style>
 </body>
 
 </html>

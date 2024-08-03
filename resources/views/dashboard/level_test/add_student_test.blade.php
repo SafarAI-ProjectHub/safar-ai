@@ -207,7 +207,7 @@
                     var questionElement = $(questionTemplate).clone();
                     questionElement.find('.question-number').text(1);
                     questionElement.find('.remove-question-button')
-                .remove(); // Remove the remove button for the first question
+                        .remove(); // Remove the remove button for the first question
                     $('#questions-container').append(questionElement);
                     addDefaultChoices(questionElement);
                 }
@@ -215,15 +215,16 @@
 
             $('#add-question-button').on('click', function() {
                 var questionCount = $('#questions-container .question').length;
-                if (questionCount < 10) {
-                    addNewQuestion();
-                    if (questionCount + 1 === 10) {
-                        $(this).hide(); // Hide add question button if question limit is reached
-                    }
-                } else {
-                    showAlert('danger', 'You cannot add more than 10 questions.',
-                    'bx bxs-message-square-x');
-                }
+                addNewQuestion();
+                // if (questionCount < 10) {
+                //     addNewQuestion();
+                //     if (questionCount + 1 === 10) {
+                //         $(this).hide(); // Hide add question button if question limit is reached
+                //     }
+                // } else {
+                //     showAlert('danger', 'You cannot add more than 10 questions.',
+                //         'bx bxs-message-square-x');
+                // }
             });
 
             function addNewQuestion() {
@@ -270,7 +271,7 @@
                 var choiceElement = $(choiceTemplate).clone();
                 if (!withRemoveButton) {
                     choiceElement.find('.remove-choice-button')
-                .remove(); // Remove the remove button for default choices
+                        .remove(); // Remove the remove button for default choices
                 }
                 questionElement.find('.choices-container').append(choiceElement);
             }
@@ -290,7 +291,7 @@
                     questionElement.find('.multiple-choice-options').show();
                     questionElement.find('.choices-container').empty();
                     addDefaultChoices(
-                    questionElement); // Add default choices when selecting multiple choice
+                        questionElement); // Add default choices when selecting multiple choice
                 } else {
                     questionElement.find('.multiple-choice-options').hide();
                     questionElement.find('.choices-container').empty();
@@ -361,7 +362,7 @@
                         showAlert('success', 'Test and questions added successfully',
                             'bxs-check-circle');
                         window.location.href =
-                        "{{ route('studentTests.index') }}"; // Redirect to the student tests page
+                            "{{ route('studentTests.index') }}"; // Redirect to the student tests page
                     },
                     error: function(response) {
                         if (response.responseJSON && response.responseJSON.errors) {
