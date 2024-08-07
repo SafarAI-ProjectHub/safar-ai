@@ -46,11 +46,11 @@ class SubscriptionController extends Controller
             $payment = new Payment();
             $subscription = new UserSubscription();
         }
-        $planDetails->features = json_decode($subscription->features, true);
+
         $otherPlan = Subscription::where('is_active', true)
             ->where('subscription_type', '!=', $planDetails->subscription_type)
-            ->get();
-        $otherPlan->features = json_decode($subscription->features, true);
+            ->first();
+        // dd($otherPlan);
         $cliqUserName = config('cliq.username');
         $activePlan = Subscription::where('is_active', true)->first();
         $monthlyActivePlan = Subscription::where('is_active', true)->where('subscription_type', 'monthly')->first();

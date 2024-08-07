@@ -57,6 +57,7 @@
                 ? $subscription->next_billing_time->format('M d, Y')
                 : 'N/A';
         $features = $planDetails ? json_decode($planDetails->features, true) : [];
+        $Otherfeatures = $otherPlan ? json_decode($otherPlan->features, true) : [];
         $payment = $payment ?? null;
     @endphp
 
@@ -132,7 +133,6 @@
                 @endif
             </div>
         </div>
-
         <div class="card-body">
             <div class="border-bottom pt-0 pb-2">
                 <div class="row mb-4">
@@ -157,7 +157,7 @@
                     <div class="col-lg-3 col-md-3 col-6 mb-2 mb-lg-0">
                         <span class="fs-6">Price</span>
                         <h6 class="mb-0">
-                            {{ '$ ' . $planDetails->price . '/' . ($payment->payment_type == 'paypal' ? 'Monthly' : 'One Time') }}
+                            {{ '$ ' . $planDetails->price . ' / Monthly' }}</h6>
                     </div>
                     <div class="col-lg-3 col-md-3 col-6 mb-2 mb-lg-0">
                         <span class="fs-6">Access</span>
@@ -179,6 +179,63 @@
                                 <div class="row">
                                     <ul class="list-unstyled d-flex flex-wrap">
                                         @foreach ($features as $index => $feature)
+                                            <div class="col-lg-6 col-md-6 col-12 mb-2">
+                                                <li class="d-flex align-items-start">
+                                                    <i class="bi bi-check-circle-fill text-success me-2"></i>
+                                                    <span>{{ $feature }}</span>
+                                                </li>
+                                            </div>
+                                        @endforeach
+                                    </ul>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                @endif
+            </div>
+            <div class="border-bottom pt-0 pb-2">
+                <div class="row mb-4">
+                    <div class="col-lg-6 col-md-8 col-7 mb-2 mb-lg-0">
+                        <span class="d-block">
+                            <span class="h4">{{ $otherPlan->subscription_type == 'Yearly' ? 'Yearly' : 'Monthly' }}
+                            </span>
+                            <span class="badge bg-warning ms-2">
+                                InActive
+                            </span>
+                        </span>
+                        <p class="mb-0 fs-6">Subscription ID:
+                            N/A
+                    </div>
+                </div>
+                <div class="row">
+                    <div class="col-lg-3 col-md-3 col-6 mb-2 mb-lg-0">
+                        <span class="fs-6">Started On</span>
+                        <h6 class="mb-0"> N/A</h6>
+                    </div>
+                    <div class="col-lg-3 col-md-3 col-6 mb-2 mb-lg-0">
+                        <span class="fs-6">Price</span>
+                        <h6 class="mb-0">
+                            {{ '$ ' . $otherPlan->price }}
+                    </div>
+                    <div class="col-lg-3 col-md-3 col-6 mb-2 mb-lg-0">
+                        <span class="fs-6">Access</span>
+                        <h6 class="mb-0">
+                            Access All Courses </h6>
+                    </div>
+                    <div class="col-lg-3 col-md-3 col-6 mb-2 mb-lg-0">
+                        <span class="fs-6"> Billing Date</span>
+                        <h6 class="mb-0">
+                            N/A
+                    </div>
+                </div>
+                @if ($Otherfeatures)
+                    <div class="mt-4">
+                        <h4>Features</h4>
+                        <div class="card">
+                            <div class="card-body">
+                                <div class="row">
+                                    <ul class="list-unstyled d-flex flex-wrap">
+                                        @foreach ($Otherfeatures as $index => $feature)
                                             <div class="col-lg-6 col-md-6 col-12 mb-2">
                                                 <li class="d-flex align-items-start">
                                                     <i class="bi bi-check-circle-fill text-success me-2"></i>
