@@ -64,7 +64,7 @@
         <div class="card-body">
             @if ($subscriptionStatus == 'active')
                 <h2 class="fw-bold mb-0">
-                    ${{ $planDetails->price }}/{{ $subscriptionStatus == 'active' ? ($payment->payment_type == 'paypal' ? 'Monthly ' : 'one time paymen') : 'Monthly' }}
+                    ${{ $planDetails->price }}/{{ $subscriptionStatus == 'active' ? ($payment->payment_type == 'paypal' ? 'Monthly ' : 'one time payment') : 'Monthly' }}
                 </h2>
                 @if ($subscriptionStatus == 'active' && $payment->payment_type != 'paypal')
                     <p class="mb-0">
@@ -157,7 +157,7 @@
                     <div class="col-lg-3 col-md-3 col-6 mb-2 mb-lg-0">
                         <span class="fs-6">Price</span>
                         <h6 class="mb-0">
-                            {{ '$ ' . $planDetails->price . ' / Monthly' }}</h6>
+                            {{ '$ ' . $planDetails->price . '/' . ($payment->payment_type == 'paypal' ? 'Monthly' : 'One Time') }}
                     </div>
                     <div class="col-lg-3 col-md-3 col-6 mb-2 mb-lg-0">
                         <span class="fs-6">Access</span>

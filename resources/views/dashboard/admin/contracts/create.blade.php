@@ -117,7 +117,12 @@
                     method: 'POST',
                     data: $(this).serialize(),
                     success: function(response) {
-                        swal('Success', 'Contract created successfully.', 'success');
+                        swal.fire({
+                            title: 'Success',
+                            text: 'Contract created successfully.',
+                            icon: 'success',
+                            confirmButtonText: 'OK'
+                        });
                         window.location.href = '{{ route('contracts.index') }}';
                     },
                     error: function(response) {

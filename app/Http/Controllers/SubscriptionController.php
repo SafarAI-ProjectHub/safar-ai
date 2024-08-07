@@ -25,38 +25,40 @@ class SubscriptionController extends Controller
         if ($user->getAgeGroup() == '1-5') {
             return redirect()->route('student.dashboard')->with('error', 'You are not eligible to subscribe to any plan.');
         }
+
         $subscription = UserSubscription::where('user_id', $user->id)->first();
 
         if ($subscription) {
             if ($subscription->status == 'active' || $subscription->status == 'suspend') {
                 if ($subscription->subscription_id == 'cliq-' . $user->id) {
-                    $planDetails = Subscription::where('is_active', true)->first();
+                    $planDetails = Subscription::where('id', $subscription->subscriptionId)->first();
                     $payment = Payment::where('user_id', $user->id)->latest()->first();
                 } else {
                     $planDetails = Subscription::where('paypal_plan_id', $subscription->subscription_id)->first();
                     $payment = Payment::where('user_id', $user->id)->latest()->first();
                 }
             } else {
-                if ($subscription->subscription_id == 'cliq-' . $user->id) {
-                    $planDetails = Subscription::where('is_active', true)->first();
-                    $payment = Payment::where('user_id', $user->id)->latest()->first();
-                } else {
-                    $planDetails = Subscription::where('is_active', true)->first();
-                    $payment = Payment::where('user_id', $user->id)->latest()->first();
-                }
+                $planDetails = Subscription::where('is_active', true)->first();
+                $payment = Payment::where('user_id', $user->id)->latest()->first();
             }
         } else {
             $planDetails = Subscription::where('is_active', true)->first();
             $payment = new Payment();
             $subscription = new UserSubscription();
-
         }
-
+        $planDetails->features = json_decode($subscription->features, true);
+        $otherPlan = Subscription::where('is_active', true)
+            ->where('subscription_type', '!=', $planDetails->subscription_type)
+            ->get();
+        $otherPlan->features = json_decode($subscription->features, true);
         $cliqUserName = config('cliq.username');
         $activePlan = Subscription::where('is_active', true)->first();
+        $monthlyActivePlan = Subscription::where('is_active', true)->where('subscription_type', 'monthly')->first();
+        $yearlyActivePlan = Subscription::where('is_active', true)->where('subscription_type', 'yearly')->first();
 
-        return view('dashboard.student.subscription_details', compact('planDetails', 'subscription', 'activePlan', 'cliqUserName', 'payment'));
+        return view('dashboard.student.subscription_details', compact('planDetails', 'subscription', 'cliqUserName', 'payment', 'otherPlan', 'monthlyActivePlan', 'yearlyActivePlan', 'activePlan'));
     }
+
 
 
 
@@ -74,7 +76,7 @@ class SubscriptionController extends Controller
 
         $userSubscription = UserSubscription::updateOrCreate(
             ['user_id' => $user->id],
-            ['subscription_id' => $planId, 'status' => 'inactive']
+            ['subscription_id' => $planId, 'status' => 'inactive', 'subscriptionId' => $subscription_id]
         );
 
         // Create PayPal subscription

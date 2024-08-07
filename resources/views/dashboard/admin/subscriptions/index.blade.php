@@ -20,6 +20,7 @@
                             <th>Product Name</th>
                             <th>Description</th>
                             <th>Price</th>
+                            <th>Subscription Type</th>
                             <th>Status</th>
                         </tr>
                     </thead>
@@ -51,6 +52,13 @@
                         <div class="mb-3">
                             <label for="price" class="form-label">Price</label>
                             <input type="number" class="form-control" id="price" name="price" required>
+                        </div>
+                        <div class="mb-3">
+                            <label for="subscription_type" class="form-label">Subscription Type</label>
+                            <select class="form-control" id="subscription_type" name="subscription_type" required>
+                                <option value="monthly">Monthly</option>
+                                <option value="yearly">Yearly</option>
+                            </select>
                         </div>
                         <div class="mb-3">
                             <label for="features" class="form-label">Features</label>
@@ -90,6 +98,13 @@
                             <input type="number" class="form-control" id="edit_price" name="price" required>
                         </div>
                         <div class="mb-3">
+                            <label for="edit_subscription_type" class="form-label">Subscription Type</label>
+                            <select class="form-control" id="edit_subscription_type" name="subscription_type" required>
+                                <option value="monthly">Monthly</option>
+                                <option value="yearly">Yearly</option>
+                            </select>
+                        </div>
+                        <div class="mb-3">
                             <label for="edit_features" class="form-label">Features</label>
                             <textarea class="form-control" id="edit_features" name="features"></textarea>
                         </div>
@@ -126,6 +141,10 @@
                         name: 'price'
                     },
                     {
+                        data: 'subscription_type',
+                        name: 'subscription_type'
+                    },
+                    {
                         data: 'is_active',
                         name: 'is_active'
                     }
@@ -149,9 +168,8 @@
                     }
                 ],
                 columnDefs: [{
-                    targets: 4,
+                    targets: 5,
                     width: '10%'
-
                 }],
                 lengthChange: false
             });
@@ -171,6 +189,7 @@
                     $('#edit_subscription_id').val(data.id);
                     $('#edit_description').val(data.description);
                     $('#edit_price').val(data.price);
+                    $('#edit_subscription_type').val(data.subscription_type);
                     $('#edit_features').val(data.features ? data.features.join('\n') : '');
                     $('#editSubscriptionModal').modal('show');
                 });
@@ -260,26 +279,13 @@
                         is_active: isActive
                     },
                     success: function(response) {
-                        table.ajax.reload(null,
-                            false);
-
-                        Swal.fire(
-                            'Success!',
-                            'The test has been ' + (isActive ? 'activated' :
-                                'deactivated') + '.',
-                            'success'
-                        );
-
+                        table.ajax.reload(null, false);
+                        Swal.fire('Success!', 'The subscription has been ' + (isActive ?
+                            'activated' : 'deactivated') + '.', 'success');
                     },
                     error: function(response) {
-                        table.ajax.reload(null,
-                            false);
-                        console.log(response.responseJSON);
-                        Swal.fire(
-                            'Error!',
-                            response.responseJSON.message,
-                            'error'
-                        );
+                        table.ajax.reload(null, false);
+                        Swal.fire('Error!', response.responseJSON.message, 'error');
                     }
                 });
             });

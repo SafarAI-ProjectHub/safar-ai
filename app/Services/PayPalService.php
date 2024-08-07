@@ -28,8 +28,10 @@ class PayPalService
         return $response;
     }
 
-    public function createPlan(string $productId, string $name, string $description, float $price)
+    public function createPlan(string $productId, string $name, string $description, float $price, string $subscriptionType)
     {
+        $intervalUnit = $subscriptionType === 'yearly' ? 'YEAR' : 'MONTH';
+
         $response = $this->paypal->createPlan([
             'product_id' => $productId,
             'name' => $name,
@@ -38,7 +40,7 @@ class PayPalService
             'billing_cycles' => [
                 [
                     'frequency' => [
-                        'interval_unit' => 'MONTH',
+                        'interval_unit' => $intervalUnit,
                         'interval_count' => 1,
                     ],
                     'tenure_type' => 'REGULAR',

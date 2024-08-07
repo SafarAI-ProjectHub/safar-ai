@@ -46,6 +46,7 @@ class AdminSubscriptionController extends Controller
             'description' => 'required|string',
             'price' => 'required|numeric',
             'features' => 'nullable|string',
+            'subscription_type' => 'required|string|in:monthly,yearly',
         ]);
 
         $featuresArray = $this->processFeatures($request->features);
@@ -53,13 +54,14 @@ class AdminSubscriptionController extends Controller
         $productResponse = $this->paypalService->createProduct($request->name, $request->description);
 
         if (isset($productResponse['id'])) {
-            $planResponse = $this->paypalService->createPlan($productResponse['id'], $request->name, $request->description, $request->price);
+            $planResponse = $this->paypalService->createPlan($productResponse['id'], $request->name, $request->description, $request->price, $request->subscription_type);
             if (isset($planResponse['id'])) {
                 Subscription::create([
                     'name' => $request->name,
                     'paypal_plan_id' => $planResponse['id'],
                     'paypal_product_id' => $productResponse['id'],
                     'product_name' => $request->name,
+                    'subscription_type' => $request->subscription_type,
                     'price' => $request->price,
                     'user_id' => Auth::user()->id,
                     'description' => $productResponse['description'],
@@ -76,29 +78,32 @@ class AdminSubscriptionController extends Controller
         }
     }
 
-
-
     public function toggleActive($id)
     {
         $subscription = Subscription::findOrFail($id);
+        $subscriptionType = $subscription->subscription_type;
 
         if ($subscription->is_active) {
-
-            $activeSubscriptionCount = Subscription::where('is_active', true)->count();
+            $activeSubscriptionCount = Subscription::where('is_active', true)
+                ->where('subscription_type', $subscriptionType)
+                ->count();
 
             if ($activeSubscriptionCount <= 1) {
-                return response()->json(['success' => false, 'message' => 'You cannot deactivate all subscriptions. At least one subscription must be active.'], 400);
+                return response()->json(['success' => false, 'message' => 'You cannot deactivate all subscriptions. At least one subscription of each type must be active.'], 400);
             }
 
             $subscription->update(['is_active' => false]);
         } else {
-            // Activate the selected subscription and deactivate others
-            Subscription::where('id', '!=', $id)->update(['is_active' => false]);
+            Subscription::where('id', '!=', $id)
+                ->where('subscription_type', $subscriptionType)
+                ->update(['is_active' => false]);
             $subscription->update(['is_active' => true]);
         }
 
         return response()->json(['success' => true, 'message' => 'Subscription status updated successfully.']);
     }
+
+
 
     private function processFeatures($features)
     {
