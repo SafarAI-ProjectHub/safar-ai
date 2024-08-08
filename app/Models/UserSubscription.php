@@ -15,6 +15,7 @@ class UserSubscription extends Model
         'status',
         'start_date',
         'next_billing_time',
+        'subscriptionId',
 
     ];
     protected $casts = [
@@ -36,9 +37,9 @@ class UserSubscription extends Model
     {
         return $this->hasOne(Payment::class, 'user_subscription_id')->latest();
     }
-    // public function subscription()
-    // {
-    //     return $this->belongsTo(Subscription::class);
-    // }
+    public function subscription()
+    {
+        return $this->belongsTo(Subscription::class, 'subscriptionId', 'id');
+    }
 
 }

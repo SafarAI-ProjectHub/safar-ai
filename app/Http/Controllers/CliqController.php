@@ -14,8 +14,10 @@ use App\Models\Student;
 
 class CliqController extends Controller
 {
-    public function payWithCliq(Request $request, $action = 'initial')
+    public function payWithCliq(Request $request)
     {
+        $action = $request->query('action');
+
         $customMessages = [
             'userName.required' => 'The user name is required.',
             'userName.string' => 'The user name must be a string.',
@@ -32,33 +34,55 @@ class CliqController extends Controller
 
         $path = $request->file('payment_image')->store('payments', 'public');
         $path = 'storage/' . $path;
+        // dd($action);
+        $subscription = Subscription::where('is_active', true)
+            ->where('subscription_type', $action === 'yearly' || $action === 'extend-yearly' ? 'yearly' : 'monthly')
+            ->first();
+        if ($subscription === null) {
+            return response()->json(['success' => false, 'message' => 'Subscription not found'], 404);
+        }
 
-        $subscription = Subscription::where('is_active', true)->first();
 
 
-        $userSubscription = UserSubscription::updateOrCreate(
-            ['user_id' => auth()->id()],
-            [
+        $userSubscription = UserSubscription::where('user_id', auth()->id())->first();
+
+        if ($userSubscription) {
+            // If the subscription exists, just update the necessary fields without changing the status
+            $userSubscription->update([
+                'subscription_id' => 'cliq-' . auth()->id(),
+                'subscriptionId' => $subscription->id,
+            ]);
+        } else {
+            // If the subscription does not exist, create a new one with the given details
+            $userSubscription = UserSubscription::create([
+                'user_id' => auth()->id(),
                 'subscription_id' => 'cliq-' . auth()->id(),
                 'status' => 'inactive',
+                'subscriptionId' => $subscription->id,
+            ]);
+        }
 
-            ]
-        );
+        // $userSubscription = UserSubscription::updateOrCreate(
+        //     ['user_id' => auth()->id()],
+        //     [
+        //         'subscription_id' => 'cliq-' . auth()->id(),
+        //         'status' => 'inactive',
+        //         'subscriptionId' => $subscription->id,
+        //     ]
+        // );
 
-        // Create a new payment record for extension
         $payment = Payment::create([
             'user_id' => auth()->id(),
             'payment_image' => $path,
             'payment_type' => 'cliq',
-            'status' => 'pending',
-            'subscription_id' => 0,
+            'payment_status' => 'pending',
+            'subscription_id' => $subscription->id,
             'amount' => $subscription->price,
             'transaction_date' => now(),
             'user_subscription_id' => $userSubscription->id,
             'rejection_reason' => null,
         ]);
 
-        // Notify all admins
         $pendingPaymentsCount = Payment::where('payment_type', 'cliq')->where('payment_status', 'pending')->count();
         $admins = User::whereHas('roles', function ($q) {
             $q->whereIn('name', ['Admin', 'Super Admin']);
@@ -97,17 +121,25 @@ class CliqController extends Controller
             $student->subscription_status = 'subscribed';
             $student->save();
 
-
-            // Update or create the user's subscription
             $userSubscription = UserSubscription::firstOrNew(['user_id' => $payment->user_id]);
             if ($userSubscription->exists) {
+
                 if ($userSubscription->next_billing_time > now()) {
-                    $userSubscription->next_billing_time = Carbon::parse($userSubscription->next_billing_time)->addMonths(1);
+                    if ($userSubscription->subscription->subscription_type == 'Yearly') {
+                        $userSubscription->next_billing_time = Carbon::parse($userSubscription->next_billing_time)->addMonths(12);
+                    } else {
+                        $userSubscription->next_billing_time = Carbon::parse($userSubscription->next_billing_time)->addMonths(1);
+                    }
+
                 } else {
-                    $userSubscription->next_billing_time = now()->addMonths(1);
+                    if ($userSubscription->subscription->subscription_type == 'Yearly') {
+                        $userSubscription->next_billing_time = now()->addMonths(12);
+                    } else {
+                        $userSubscription->next_billing_time = now()->addMonths(1);
+                    }
                 }
             } else {
-                $userSubscription->next_billing_time = now()->addMonths(1);
+                $userSubscription->next_billing_time = now()->addMonths($userSubscription->subscription->subscription_type == 'Yearly' ? 12 : 1);
                 $userSubscription->subscription_id = 'cliq-' . $payment->user_id;
                 $userSubscription->user_id = $payment->user_id;
                 $userSubscription->start_date = now();
@@ -115,7 +147,6 @@ class CliqController extends Controller
             $userSubscription->status = 'active';
             $userSubscription->save();
 
-            // Send notification to the user
             $notification = Notification::create([
                 'user_id' => $payment->user_id,
                 'title' => 'Subscription Approved',
@@ -134,7 +165,6 @@ class CliqController extends Controller
         return response()->json(['success' => false], 404);
     }
 
-
     public function rejectPayment(Request $request, $id)
     {
         $request->validate([
@@ -147,7 +177,6 @@ class CliqController extends Controller
             $payment->rejection_reason = $request->reason;
             $payment->save();
 
-            // Send notification to the user
             $notification = Notification::create([
                 'user_id' => $payment->user_id,
                 'title' => 'Subscription Rejected',
@@ -166,7 +195,6 @@ class CliqController extends Controller
         return response()->json(['success' => false], 404);
     }
 
-
     public function reuploadPaymentProof(Request $request, $id)
     {
         $customMessages = [
@@ -176,10 +204,9 @@ class CliqController extends Controller
             'payment_image.required' => 'A payment image is required.',
             'payment_image.image' => 'The payment image must be an image.',
             'payment_image.mimes' => 'The payment image must be a file of type: jpeg, png, jpg, gif.',
-            'payment_image.max' => 'The payment image may not be greater than 5 megabytes',
+            'payment_image.max' => 'The payment image may not be greater than 10 megabytes',
         ];
 
-        // Validate the request
         $request->validate([
             'userName' => 'required|string|max:255',
             'payment_image' => 'required|image|mimes:jpeg,png,jpg,gif|max:10240',
@@ -188,16 +215,13 @@ class CliqController extends Controller
         $payment = Payment::find($id);
 
         if ($payment && $payment->payment_status == 'rejected') {
-            // Store the new payment proof
             $path = $request->file('payment_image')->store('payments', 'public');
             $path = 'storage/' . $path;
-            // Update the payment record
             $payment->payment_image = $path;
-            $payment->payment_status = 'pending'; // Reset status to pending
-            $payment->rejection_reason = null; // Clear rejection reason
+            $payment->payment_status = 'pending';
+            $payment->rejection_reason = null;
             $payment->save();
 
-            // Notify all admins
             $pendingPaymentsCount = Payment::where('payment_type', 'cliq')->where('payment_status', 'pending')->count();
             $admins = User::whereHas('roles', function ($q) {
                 $q->whereIn('name', ['Admin', 'Super Admin']);
@@ -228,9 +252,8 @@ class CliqController extends Controller
     {
         $pendingPayments = Payment::where('payment_type', 'cliq')
             ->where('payment_status', 'pending')
-            ->with('user')
+            ->with('user', 'userSubscription', 'userSubscription.subscription')
             ->get();
-
         return view('dashboard.admin.subscriptions.cliq_payments', compact('pendingPayments'));
     }
 }

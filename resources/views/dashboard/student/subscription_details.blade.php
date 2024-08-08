@@ -98,10 +98,16 @@
                 <h3 class="mb-0">My Subscriptions</h3>
                 <p class="mb-0">Here is a list of packages/products that you have subscribed to.</p>
             </div>
-            <div>
+            <div class="d-flex gap-2 ">
                 @if ($subscriptionStatus == 'active')
                     @if ($payment !== null && $payment->payment_type == 'cliq')
-                        <button id="extend-subscription" class="btn btn-primary btn-sm">Add +1 Month via Cliq</button>
+                        @if ($payment->payment_status == 'pending')
+                            <span class="badge bg-warning">Pending Approval</span>
+                        @else
+                            <button id="extend-subscription" class="btn btn-primary btn-sm">Add +1 Month via Cliq</button>
+                            <button id="extend-subscription-yearly" class="btn btn-primary btn-sm">Add +1 Year via
+                                Cliq</button>
+                        @endif
                     @else
                         <button id="cancel-subscription" class="btn btn-danger btn-sm">Cancel Subscription</button>
                     @endif
@@ -113,22 +119,36 @@
                     @else
                         <button id="upgrade" class="btn btn-success btn-sm">Upgrade Now — Go Pro
                             ${{ $activePlan->price }}</button>
+
+                        <button id="upgrade-yearly" class="btn btn-success btn-sm">Upgrade Now — Go Pro Yearly
+                            ${{ $yearlyActivePlan->price }}</button>
                         @if (auth()->user()->country_location == 'Jordan')
                             <button id="pay-with-cliq" class="btn btn-primary btn-sm">Pay with Cliq</button>
+                            <button id="pay-with-cliq-yearly" class="btn btn-primary btn-sm">Pay with Cliq For A
+                                Year</button>
                         @endif
                     @endif
                 @elseif ($subscriptionStatus == 'suspended')
-                    <button id="reactivate-subscription" class="btn btn-success btn-sm">Reactivate Subscription</button>
+                    <button id="reactivate-subscription" class="btn btn-success btn-sm">Reactivate
+                        Subscription</button>
                     <button id="upgrade" class="btn btn-success btn-sm">Upgrade Now — Go Pro
                         ${{ $activePlan->price }}</button>
+
+                    <button id="upgrade-yearly" class="btn btn-success btn-sm">Upgrade Now — Go Pro Yearly
+                        ${{ $yearlyActivePlan->price }}</button>
+
                     @if (auth()->user()->country_location == 'Jordan')
                         <button id="pay-with-cliq" class="btn btn-primary btn-sm">Pay with Cliq</button>
+                        <button id="pay-with-cliq-yearly" class="btn btn-primary btn-sm">Pay with Cliq For A Year</button>
                     @endif
                 @else
                     <button id="upgrade" class="btn btn-success btn-sm">Upgrade Now — Go Pro
                         ${{ $activePlan->price }}</button>
+                    <button id="upgrade-yearly" class="btn btn-success btn-sm">Upgrade Now — Go Pro Yearly
+                        ${{ $yearlyActivePlan->price }}</button>
                     @if (auth()->user()->country_location == 'Jordan')
                         <button id="pay-with-cliq" class="btn btn-primary btn-sm">Pay with Cliq</button>
+                        <button id="pay-with-cliq-yearly" class="btn btn-primary btn-sm">Pay with Cliq For A Year</button>
                     @endif
                 @endif
             </div>
@@ -162,7 +182,7 @@
                     <div class="col-lg-3 col-md-3 col-6 mb-2 mb-lg-0">
                         <span class="fs-6">Access</span>
                         <h6 class="mb-0">
-                            {{ $subscriptionStatus == 'active' ? 'Access All Courses' : 'Access YouTube Videos' }}</h6>
+                            Access All Courses</h6>
                     </div>
                     <div class="col-lg-3 col-md-3 col-6 mb-2 mb-lg-0">
                         <span
@@ -194,17 +214,21 @@
                 @endif
             </div>
             <div class="border-bottom pt-0 pb-2">
-                <div class="row mb-4">
-                    <div class="col-lg-6 col-md-8 col-7 mb-2 mb-lg-0">
-                        <span class="d-block">
+                <div class="row my-4">
+                    <div class="col mb-2 mb-lg-0">
+                        <span class="d-block mt-3">
                             <span class="h4">{{ $otherPlan->subscription_type == 'Yearly' ? 'Yearly' : 'Monthly' }}
                             </span>
-                            <span class="badge bg-warning ms-2">
+                            <span class="badge bg-danger ms-2">
                                 InActive
                             </span>
                         </span>
                         <p class="mb-0 fs-6">Subscription ID:
                             N/A
+                        </p>
+                    </div>
+                    <div class="col-auto">
+                        <a href="#" class="btn btn-light btn-sm disabled">InActive</a>
                     </div>
                 </div>
                 <div class="row">
@@ -289,8 +313,8 @@
 @endsection
 
 @section('scripts')
-    <script src="https://js.pusher.com/7.0/pusher.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/laravel-echo/dist/echo.iife.min.js"></script>
+    {{-- <script src="https://js.pusher.com/7.0/pusher.min.js"></script> --}}
+    {{-- <script src="https://cdn.jsdelivr.net/npm/laravel-echo/dist/echo.iife.min.js"></script> --}}
     <script src="https://unpkg.com/filepond/dist/filepond.js"></script>
     <script src="https://unpkg.com/filepond-plugin-file-validate-size/dist/filepond-plugin-file-validate-size.js"></script>
     <script src="https://unpkg.com/filepond-plugin-image-preview/dist/filepond-plugin-image-preview.js"></script>
@@ -298,63 +322,13 @@
 
     <script>
         $(document).ready(function() {
-            $('[data-toggle="tooltip"]').tooltip();
-        });
-        Pusher.logToConsole = true;
+            FilePond.registerPlugin(FilePondPluginFileValidateSize, FilePondPluginFileValidateType);
 
-        window.Echo = new Echo({
-            broadcaster: 'pusher',
-            key: '{{ env('PUSHER_APP_KEY') }}',
-            cluster: '{{ env('PUSHER_APP_CLUSTER') }}',
-            forceTLS: true,
-            authEndpoint: '/broadcasting/auth',
-            auth: {
-                headers: {
-                    Authorization: 'Bearer ' + '{{ csrf_token() }}',
-                },
-            },
-        });
-
-        function showLoader(message) {
-            var loaderHtml = `
-                <div class="loader-overlay">
-                    <div class="spinner-border text-primary" role="status">
-                        <span class="sr-only"></span>
-                    </div>
-                    <div class="loader-message">${message}</div>
-                </div>
-            `;
-            $('body').append(loaderHtml);
-        }
-
-        function hideLoader() {
-            $('.loader-overlay').remove();
-        }
-
-        function showAlert(type, message) {
-            Swal.fire({
-                icon: type,
-                title: type.charAt(0).toUpperCase() + type.slice(1),
-                text: message,
-            });
-        }
-
-        function copyCliqUserName() {
-            const cliqUserName = document.getElementById('cliqUserName').innerText.trim();
-            navigator.clipboard.writeText(cliqUserName).then(function() {
-                showAlertS('success', 'copied to clipboard!', 'bi-check-circle');
-            }, function(err) {
-                showAlertS('error', 'Failed to copy text: ' + err, 'bi-exclamation-circle');
-            });
-        }
-
-
-        $(document).ready(function() {
-            FilePond.registerPlugin(FilePondPluginFileValidateSize,
-                FilePondPluginFileValidateType);
-
-            $('#upgrade').click(function() {
+            $('#upgrade, #upgrade-yearly').click(function(event) {
                 showLoader('Processing your subscription, please wait...');
+                const isYearly = event.target.id === 'upgrade-yearly';
+                const planId = isYearly ? '{{ $yearlyActivePlan->paypal_plan_id }}' :
+                    '{{ $monthlyActivePlan->paypal_plan_id }}';
                 $.ajax({
                     url: '{{ route('subscriptions.create') }}',
                     method: 'POST',
@@ -362,7 +336,7 @@
                         _token: '{{ csrf_token() }}',
                         user_id: '{{ Auth::id() }}',
                         email: '{{ Auth::user()->email }}',
-                        plan_id: '{{ $activePlan->paypal_plan_id }}'
+                        plan_id: planId
                     },
                     success: function(response) {
                         if (response.success) {
@@ -375,6 +349,209 @@
                     error: function(error) {
                         hideLoader();
                         showAlert('error', 'Failed to subscribe. Please try again.');
+                    }
+                });
+            });
+
+            $('#pay-with-cliq, #pay-with-cliq-yearly, #extend-subscription, #extend-subscription-yearly').click(
+                function(event) {
+                    console.log(event.target.id);
+
+                    const isYearly = event.target.id === 'pay-with-cliq-yearly' || event.target.id ===
+                        'extend-subscription-yearly';
+                    console.log(isYearly);
+
+                    const isExtend = event.target.id === 'extend-subscription' || event.target.id ===
+                        'extend-subscription-yearly';
+                    console.log(isExtend);
+
+                    const action = isExtend ? (isYearly ? 'extend-yearly' : 'extend') : (isYearly ? 'yearly' :
+                        'initial');
+                    console.log(action);
+
+                    const paymentStatus = '{{ $payment !== null ? $payment->payment_status : 'none' }}';
+                    console.log(paymentStatus);
+                    const rejectionReason = '{{ $payment ? $payment->rejection_reason : '' }}';
+                    const price = isYearly ? '{{ $yearlyActivePlan->price }}' :
+                        '{{ $monthlyActivePlan->price }}';
+
+                    let htmlContent = `
+                <form id="cliqPaymentForm">
+                    <div class="mb-3 text-center">
+                        <div>
+                            <h3><strong>Pay with</strong> <img src="{{ asset('img/cliq.svg') }}" alt="Cliq Logo" style="max-width: 50px;"></h3>
+                        </div>
+                        <div>
+                            <h2 id="cliqUserName" class="border fw-bold d-inline-block" onclick="copyCliqUserName()" data-toggle="tooltip" data-placement="top" title="Click to copy">{{ $cliqUserName }} <i class="bi bi-clipboard" style="cursor: pointer;" onclick="copyCliqUserName()"></i></h2>
+                        </div>
+                        <div>
+                            <h6 class="text">You can pay to the Cliq account using the above aliases and then upload the proof of payment below.</h6>
+                            <h5 class="text">The amount to be paid is <span class="text-primary">$${price}</span></h5>
+                            <h6 class="text-success">The payment will be confirmed within 24-48 hours.</h6>
+                        </div>
+                    </div>
+                    <div class="mb-3">
+                        <label for="userName" class="form-label">Your Full Name</label>
+                        <input type="text" class="form-control" id="userName" name="userName" required>
+                    </div>
+                    <div class="mb-3">
+                        <label for="payment_image" class="form-label">Proof of Payment</label>
+                        <input type="file" class="form-control" id="payment_image" name="payment_image" accept="image/*" required>
+                    </div>`;
+
+                    if (paymentStatus === 'pending') {
+                        htmlContent += `<div class="alert alert-info" role="alert">
+                        Your payment is still pending approval.
+                    </div>`;
+                    } else if (paymentStatus === 'rejected') {
+                        htmlContent += `<div class="alert alert-danger" role="alert">
+                       Your payment was rejected. Reason: ${rejectionReason}
+                    </div>`;
+                    }
+
+                    htmlContent += `</form>`;
+
+                    Swal.fire({
+                        title: '',
+                        html: htmlContent,
+                        showCancelButton: true,
+                        confirmButtonText: 'Submit',
+                        didOpen: () => {
+                            const inputElement = document.querySelector(
+                                'input[name="payment_image"]');
+                            pond = FilePond.create(inputElement, {
+                                allowFileTypeValidation: true,
+                                acceptedFileTypes: ['image/*'],
+                                fileValidateTypeLabelExpectedTypes: 'Expected file type: Image'
+                            });
+                        },
+                        preConfirm: () => {
+                            const form = document.getElementById('cliqPaymentForm');
+                            const formData = new FormData();
+                            if (!form.userName.value) {
+                                Swal.showValidationMessage('Please enter your full name.');
+                                return;
+                            }
+                            formData.append('userName', form.userName.value);
+
+                            if (pond.getFiles().length > 0) {
+                                const file = pond.getFile();
+                                formData.append('payment_image', file.file);
+                            } else {
+                                Swal.showValidationMessage('Please upload a proof of payment.');
+                                return;
+                            }
+
+                            return fetch(`/pay-with-cliq?action=${action}`, {
+                                    method: 'POST',
+                                    body: formData,
+                                    headers: {
+                                        'X-CSRF-TOKEN': '{{ csrf_token() }}'
+                                    }
+                                })
+                                .then(response => response.json())
+                                .then(data => {
+                                    if (!data.success) {
+                                        throw new Error(data.message ||
+                                            'There was an error submitting your payment proof.'
+                                        );
+                                    }
+                                    window.location.reload();
+                                    return data;
+                                })
+                                .catch(error => {
+                                    Swal.showValidationMessage(`Request failed: ${error}`);
+                                });
+                        }
+                    }).then((result) => {
+                        if (result.isConfirmed) {
+                            Swal.fire('Submitted!',
+                                'Your payment proof has been submitted. Await admin approval.',
+                                'success');
+                        }
+                    });
+                });
+
+
+
+            $('#reupload-payment').click(function() {
+                const rejectionReason = '{{ $payment ? $payment->rejection_reason : '' }}';
+                const paymentStatus = '{{ $payment !== null ? $payment->payment_status : 'none' }}';
+                let htmlContent = `
+                <form id="reuploadPaymentForm">
+                    <div class="mb-3 text-center">
+                        <div>
+                            <h3><strong>Reupload Payment for</strong> <img src="{{ asset('img/cliq.svg') }}" alt="Cliq Logo" style="max-width: 50px;"></h3>
+                        </div>
+                        <div>
+                            <h2 id="cliqUserName" onclick="copyCliqUserName()" data-toggle="tooltip" data-placement="top" title="Click to copy" class="border fw-bold d-inline-block">{{ $cliqUserName }} <i class="bi bi-clipboard" style="cursor: pointer;" onclick="copyCliqUserName()"></i></h2>
+                        </div>
+                    </div>
+                    <div class="alert alert-danger" role="alert">
+                        Your payment was rejected. Reason: ${rejectionReason}
+                    </div>
+                    <div>
+                        <h6 class="text">You can pay to the Cliq account using the above aliases and then upload the proof of payment below.</h6>
+                        <h5 class="text">The amount to be paid is <span class="text-primary">$${paymentStatus === 'yearly' ? '{{ $yearlyActivePlan->price }}' : '{{ $monthlyActivePlan->price }}'}</span></h5>
+                        <h6 class="text-success">The payment will be confirmed within 24-48 hours.</h6>
+                    </div>
+                    <div class="mb-3">
+                        <label for="userName" class="form-label">Your Full Name</label>
+                        <input type="text" class="form-control" id="userName" name="userName" required>
+                    </div>
+                    <div class="mb-3">
+                        <label for="payment_image" class="form-label">Proof of Payment</label>
+                        <input type="file" class="form-control" id="payment_image" name="payment_image" accept="image/*" required>
+                    </div>
+                </form>`;
+
+                Swal.fire({
+                    title: '',
+                    html: htmlContent,
+                    showCancelButton: true,
+                    confirmButtonText: 'Submit',
+                    didOpen: () => {
+                        const inputElement = document.querySelector(
+                            'input[name="payment_image"]');
+                        pond = FilePond.create(inputElement, {
+                            allowFileTypeValidation: true,
+                            acceptedFileTypes: ['image/*'],
+                            fileValidateTypeLabelExpectedTypes: 'Expected file type: Image'
+                        });
+                    },
+                    preConfirm: () => {
+                        const form = document.getElementById('reuploadPaymentForm');
+                        const formData = new FormData();
+                        var file = pond.getFile();
+                        formData.append('userName', form.userName.value);
+                        formData.append('payment_image', file.file);
+
+                        return fetch(`/reupload-payment-proof/{{ $payment->id }}`, {
+                                method: 'POST',
+                                body: formData,
+                                headers: {
+                                    'X-CSRF-TOKEN': '{{ csrf_token() }}'
+                                }
+                            })
+                            .then(response => response.json())
+                            .then(data => {
+                                if (!data.success) {
+                                    throw new Error(data.message ||
+                                        'There was an error re-uploading your payment proof.'
+                                    );
+                                }
+                                window.location.reload();
+                                return data;
+                            })
+                            .catch(error => {
+                                Swal.showValidationMessage(`Request failed: ${error}`);
+                            });
+                    }
+                }).then((result) => {
+                    if (result.isConfirmed) {
+                        Swal.fire('Submitted!',
+                            'Your payment proof has been re-uploaded. Await admin approval.',
+                            'success');
                     }
                 });
             });
@@ -428,245 +605,80 @@
                 });
             });
 
-            $('#pay-with-cliq, #extend-subscription').click(function(event) {
-                const isExtend = event.target.id === 'extend-subscription';
-                const action = isExtend ? 'extend' : 'initial';
-                const paymentStatus = '{{ $payment !== null ? $payment->payment_status : 'none' }}';
-                const rejectionReason = '{{ $payment ? $payment->rejection_reason : '' }}';
-
-                let htmlContent = `
-                <form id="cliqPaymentForm">
-                    <div class="mb-3 text-center">
-                        <div>
-                            <h3><strong>Pay with</strong> <img src="{{ asset('img/cliq.svg') }}" alt="Cliq Logo" style="max-width: 50px;"></h3>
-                        </div>
-                        <div>
-                            <h2 id="cliqUserName" class="border fw-bold d-inline-block" onclick="copyCliqUserName()" data-toggle="tooltip" data-placement="top" title="Click to copy">{{ $cliqUserName }} <i class="bi bi-clipboard" style="cursor: pointer;" onclick="copyCliqUserName()"></i></h2>
-                        </div>
-                        <dev>
-                            <h6 class="text">you can pay to the cliq account using the Above Aliases and then upload the proof of the payment below</h6>
-                            <h5 class="text">the Amount to be paid is <span class="text-primary">${{ $activePlan->price }}</span></h5>
-                            <h6 class="text-success">The payment will be confirmed within 24-48 hours</h6>
-                        </dev>
-                    </div>
-                    <div class="mb-3">
-                        <label for="userName" class="form-label">Your Full Name</label>
-                        <input type="text" class="form-control" id="userName" name="userName" required>
-                    </div>
-                    <div class="mb-3">
-                        <label for="payment_image" class="form-label">Proof of Payment</label>
-                        <input type="file" class="form-control" id="payment_image" name="payment_image" accept="image/*" required>
-                    </div>`;
-
-                if (paymentStatus === 'pending') {
-                    htmlContent += `<div class="alert alert-info" role="alert">
-                        Your payment is still pending approval.
-                    </div>`;
-                } else if (paymentStatus === 'rejected') {
-                    htmlContent += `<div class="alert alert-danger" role="alert">
-                       Your payment was rejected. Reason: 
-                             ${rejectionReason}
-                    </div>`;
-                }
-
-                htmlContent += `</form>`;
-
-                Swal.fire({
-                    title: '',
-                    html: htmlContent,
-                    showCancelButton: true,
-                    confirmButtonText: 'Submit',
-                    didOpen: () => {
-                        const inputElement = document.querySelector(
-                            'input[name="payment_image"]');
-                        pond = FilePond.create(inputElement, {
-                            allowFileTypeValidation: true,
-                            acceptedFileTypes: ['image/*'],
-                            fileValidateTypeLabelExpectedTypes: 'Expected file type: Image'
-                        });
-                    },
-                    preConfirm: () => {
-                        const form = document.getElementById('cliqPaymentForm');
-                        const formData = new FormData();
-                        if (form.userName.value == null || form.userName.value == '') {
-                            Swal.showValidationMessage('Please enter your full name.');
-                            return;
-                        }
-                        formData.append('userName', form.userName.value);
-
-                        if (pond.getFiles().length > 0) {
-                            file = pond.getFile();
-
-                            formData.append('payment_image', file.file);
-
-                        } else {
-                            Swal.showValidationMessage('Please upload a proof of payment.');
-                            return;
-                        }
-
-
-                        return fetch(`/pay-with-cliq?action=${action}`, {
-                                method: 'POST',
-                                body: formData,
-                                headers: {
-                                    'X-CSRF-TOKEN': '{{ csrf_token() }}'
-                                }
-                            })
-                            .then(response => response.json())
-                            .then(data => {
-                                if (!data.success) {
-                                    throw new Error(data.message ||
-                                        'There was an error submitting your payment proof.'
-                                    );
-                                }
-                                window.location.reload();
-                                return data;
-
-
-                            })
-                            .catch(error => {
-                                Swal.showValidationMessage(`Request failed: ${error}`);
-                            });
-
-                    }
-                }).then((result) => {
-                    if (result.isConfirmed) {
-                        Swal.fire('Submitted!',
-                            'Your payment proof has been submitted. Await admin approval.',
-                            'success');
-                    }
-                });
-            });
-
-            $('#reupload-payment').click(function() {
-                const rejectionReason = '{{ $payment ? $payment->rejection_reason : '' }}';
-
-                let htmlContent = `
-                <form id="reuploadPaymentForm">
-                    <div class="mb-3 text-center">
-                        <div>
-                            <h3><strong>Reupload Payment for</strong> <img src="{{ asset('img/cliq.svg') }}" alt="Cliq Logo" style="max-width: 50px;"></h3>
-                        </div>
-                        <div>
-                            <h2 id="cliqUserName" onclick="copyCliqUserName()" data-toggle="tooltip" data-placement="top" title="Click to copy" class="border fw-bold d-inline-block">{{ $cliqUserName }} <i class="bi bi-clipboard" style="cursor: pointer;" onclick="copyCliqUserName()"></i></h2>
-                        </div>
-                    </div>
-                    <div class="alert alert-danger" role="alert">
-                        Your payment was rejected. Reason: ${rejectionReason}
-                    </div>
-                    <dev>
-                            <h6 class="text">you can pay to the cliq account using the Above Aliases and then upload the proof of the payment below</h6>
-                            <h5 class="text">the Amount to be paid is <span class="text-primary">${{ $activePlan->price }}</span></h5>
-                            <h6 class="text-success">The payment will be confirmed within 24-48 hours</h6>
-                        </dev>
-                    <div class="mb-3">
-                        <label for="userName" class="form-label">Your Full Name</label>
-                        <input type="text" class="form-control" id="userName" name="userName" required>
-                    </div>
-                    <div class="mb-3">
-                        <label for="payment_image" class="form-label">Proof of Payment</label>
-                        <input type="file" class="form-control" id="payment_image" name="payment_image" accept="image/*" required>
-                    </div>`;
-
-                htmlContent += `</form>`;
-
-                Swal.fire({
-                    title: '',
-                    html: htmlContent,
-                    showCancelButton: true,
-                    confirmButtonText: 'Submit',
-                    didOpen: () => {
-                        const inputElement = document.querySelector(
-                            'input[name="payment_image"]');
-                        pond = FilePond.create(inputElement, {
-                            allowFileTypeValidation: true,
-                            acceptedFileTypes: ['image/*'],
-                            fileValidateTypeLabelExpectedTypes: 'Expected file type: Image'
-                        });
-                    },
-                    preConfirm: () => {
-
-                        const form = document.getElementById('reuploadPaymentForm');
-                        const formData = new FormData();
-                        var file = pond.getFile();
-                        formData.append('userName', form.userName.value);
-                        formData.append('payment_image', file.file);
-
-                        return fetch(`/reupload-payment-proof/{{ $payment->id }}`, {
-                                method: 'POST',
-                                body: formData,
-                                headers: {
-                                    'X-CSRF-TOKEN': '{{ csrf_token() }}'
-                                }
-                            })
-                            .then(response => response.json())
-                            .then(data => {
-                                if (!data.success) {
-                                    throw new Error(data.message ||
-                                        'There was an error re-uploading your payment proof.'
-                                    );
-                                }
-                                window.location.reload();
-                                return data;
-
-                            })
-                            .catch(error => {
-                                Swal.showValidationMessage(`Request failed: ${error}`);
-                            });
-
-                    }
-                }).then((result) => {
-                    if (result.isConfirmed) {
-                        Swal.fire('Submitted!',
-                            'Your payment proof has been re-uploaded. Await admin approval.',
-                            'success');
-                    }
-                });
-            });
-
             function listenForEvent(type, userId) {
-                let eventReceived = false;
+                //         let eventReceived = false;
 
-                Echo.private('subscriptions.' + userId)
-                    .listen('SubscriptionEvent', (e) => {
-                        if (e.type === type) {
-                            eventReceived = true;
-                            hideLoader();
-                            showAlert('success', `Subscription ${type} successfully.`);
-                            location.reload();
-                        }
-                    });
+                //         Echo.private('subscriptions.' + userId)
+                //             .listen('SubscriptionEvent', (e) => {
+                //                 if (e.type === type) {
+                //                     eventReceived = true;
+                //                     hideLoader();
+                //                     showAlert('success', `Subscription ${type} successfully.`);
+                //                     location.reload();
+                //                 }
+                //             });
 
-                setTimeout(() => {
-                    if (!eventReceived) {
-                        hideLoader();
-                        showAlert('warning',
-                            'Timeout waiting for subscription confirmation. Redirecting...');
-                        setTimeout(() => {
-                            window.location.href = '{{ route('student.dashboard') }}';
-                        }, 2000);
-                    }
-                }, 30000); // 30 seconds timeout
+                //         setTimeout(() => {
+                //             if (!eventReceived) {
+                //                 hideLoader();
+                //                 showAlert('warning',
+                //                     'Timeout waiting for subscription confirmation. Redirecting...');
+                //                 setTimeout(() => {
+                //                     window.location.href = '{{ route('student.dashboard') }}';
+                //                 }, 2000);
+                //             }
+                //         }, 30000); // 30 seconds timeout
             }
-
-
         });
+
+        function showLoader(message) {
+            var loaderHtml = `
+                <div class="loader-overlay">
+                    <div class="spinner-border text-primary" role="status">
+                        <span class="sr-only"></span>
+                    </div>
+                    <div class="loader-message">${message}</div>
+                </div>
+            `;
+            $('body').append(loaderHtml);
+        }
+
+        function hideLoader() {
+            $('.loader-overlay').remove();
+        }
+
+        function showAlert(type, message) {
+            Swal.fire({
+                icon: type,
+                title: type.charAt(0).toUpperCase() + type.slice(1),
+                text: message,
+            });
+        }
+
+        function copyCliqUserName() {
+            const cliqUserName = document.getElementById('cliqUserName').innerText.trim();
+            navigator.clipboard.writeText(cliqUserName).then(function() {
+                showAlertS('success', 'Copied to clipboard!', 'bi-check-circle');
+            }, function(err) {
+                showAlertS('error', 'Failed to copy text: ' + err, 'bi-exclamation-circle');
+            });
+        }
 
         function showAlertS(type, message, icon) {
             var alertHtml = `
-                    <div class="alert alert-${type} border-0 bg-${type} alert-dismissible fade show py-2 position-fixed top-0 end-0 m-3" role="alert">
-                        <div class="d-flex align-items-center">
-                            <div class="font-35 text-white">
-                                <i class="bx ${icon}"></i>
-                            </div>
-                            <div class="ms-3">
-                                <h6 class="mb-0 text-white">${type.charAt(0).toUpperCase() + type.slice(1)}</h6>
-                                <div class="text-white">${message}</div>
-                            </div>
+                <div class="alert alert-${type} border-0 bg-${type} alert-dismissible fade show py-2 position-fixed top-0 end-0 m-3" role="alert">
+                    <div class="d-flex align-items-center">
+                        <div class="font-35 text-white">
+                            <i class="bx ${icon}"></i>
                         </div>
-                        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                        <div class="ms-3">
+                            <h6 class="mb-0 text-white">${type.charAt(0).toUpperCase() + type.slice(1)}</h6>
+                            <div class="text-white">${message}</div>
+                        </div>
                     </div>
-                `;
+                    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                </div>
+            `;
             $('body').append(alertHtml);
             setTimeout(function() {
                 $('.alert').alert('close');

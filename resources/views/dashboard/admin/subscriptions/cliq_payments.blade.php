@@ -57,6 +57,8 @@
                         <div class="card-body">
                             <h6 class="card-title">Name: {{ $payment->user->full_name }}</h6>
                             <p class="card-text">Amount: ${{ $payment->amount }}</p>
+                            <p class="card-text">Subscription Type :
+                                {{ $payment->usersubscription->subscription->subscription_type }}
                             <p class="card-text">Date:
                                 {{ \Carbon\Carbon::parse($payment->transaction_date)->format('M d, Y') }}</p>
                             <p class="card-text">Contact info:</p>
