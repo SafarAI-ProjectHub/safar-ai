@@ -18,6 +18,7 @@ use App\Models\User;
 use App\Models\LevelTestAssessment;
 use OpenAI\Laravel\Facades\OpenAI;
 use App\Services\VideoToAudioService;
+use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Artisan;
 use Carbon\Carbon;
 use Illuminate\Support\Facades\Hash;
@@ -498,7 +499,7 @@ class AdminController extends Controller
         $request->validate([
             'title' => 'required|string|max:255',
             'subtitle' => 'nullable|string|max:255',
-            'content_type' => 'required|in:video,text',
+            'content_type' => 'required|in:video,text,youtube',
             'content' => 'required_if:content_type,text',
             // 'video' => 'required_if:content_type,video|file|mimes:mp4,mov,ogg,qt,avi|max:20000'
         ]);
@@ -516,6 +517,14 @@ class AdminController extends Controller
             $filename = uniqid() . '.' . $file->getClientOriginalExtension();
             $path = $file->storeAs('uploads', $filename, 'public');
             $unit->content = 'storage/' . $path;
+        } else if ($request->content_type == 'youtube') {
+            $videoId = $this->extractVideoId($request->youtube);
+            $checkUrl = $this->checkUrl($videoId);
+            if ($checkUrl['status'] == 'error') {
+                return response()->json(['error' => $checkUrl['error']], 422);
+            }
+            $unit->content = $videoId;
+            $unit->script = $request->youtube;
         }
 
         $unit->save();
@@ -525,6 +534,32 @@ class AdminController extends Controller
         return response()->json(['success' => 'Unit added successfully']);
     }
 
+    private function extractVideoId($url)
+    {
+        parse_str(parse_url($url, PHP_URL_QUERY), $queryParams);
+        return $queryParams['v'] ?? null;
+    }
+    private function checkUrl($videoId)
+    {
+        $apiKey = env('YOUTUBE_API_KEY');
+        // dd(env('YOUTUBE_API_KEY'));
+        $apiUrl = "https://www.googleapis.com/youtube/v3/videos?id={$videoId}&key={$apiKey}&part=snippet,statistics";
+
+        $response = Http::get($apiUrl);
+        // dd($response->json());
+        if ($response->successful() && !empty($response->json()['items'])) {
+            $item = $response->json()['items'][0];
+            return [
+                'status' => 'success',
+                'message' => 'Correct YouTube Video URL',
+            ];
+        }
+
+        return [
+            'status' => 'error',
+            'error' => 'Invalid YouTube Video URL'
+        ];
+    }
     public function editUnit($id)
     {
         $unit = Unit::findOrFail($id);
@@ -536,8 +571,8 @@ class AdminController extends Controller
         $request->validate([
             'title' => 'required|string|max:255',
             'subtitle' => 'nullable|string|max:255',
-            'content_type' => 'required|in:video,text',
-            'content' => 'required_if:content_type,text',
+            'content_type' => 'required|in:video,text,youtube',
+            'content' => 'required_if:content_type,text,youtube',
             'video' => 'required_if:content_type,video|file|mimes:mp4,mov,ogg,qt|max:20000'
         ]);
 
@@ -559,11 +594,17 @@ class AdminController extends Controller
             $filename = uniqid() . '.' . $file->getClientOriginalExtension();
             $path = $file->storeAs('uploads', $filename, 'public');
             $unit->content = 'storage/' . $path;
+        } else if ($request->content_type == 'youtube') {
+            $videoId = $this->extractVideoId($request->youtube);
+            $checkUrl = $this->checkUrl($videoId);
+            if ($checkUrl['status'] == 'error') {
+                return response()->json(['error' => $checkUrl['error']], 422);
+            }
+            $unit->content = $videoId;
+            $unit->script = $request->youtube;
         }
-
         $unit->save();
         ProcessUnitAI::dispatch($unit->id, $this->videoToAudioService);
-
         return response()->json(['success' => 'Unit updated successfully']);
     }
 

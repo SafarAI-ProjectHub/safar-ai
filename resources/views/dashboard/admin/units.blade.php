@@ -15,8 +15,7 @@
             overflow-y: auto;
         }
 
-        .alert-info,
-        .alert-success {
+        .index-0 {
             z-index: 0 !important;
         }
     </style>
@@ -26,13 +25,13 @@
     <div class="card">
         <div class="card-body">
             <h5>Units for Course: <a href="{{ route('admin.courses') }}">{{ $course->title }}</a></h5>
-            <div class="alert alert-info" role="alert">
+            <div class="alert alert-info index-0" role="alert">
                 {{-- note to check the script to make sure that the ai wote corect script about the video or the text becuze the corectines of the ai when checking the student answers on thr quizes will be based on the script corectness --}}
                 <strong>Note:</strong> The script is used by the AI to check the correctness of student answers in quizzes.
                 please make sure the script is accurate.
             </div>
             @if ($course->completed)
-                <div class="alert alert-success" role="alert">
+                <div class="alert alert-success index-0" role="alert">
                     This course is marked as completed. You can no longer add units to it.
                 </div>
             @else
@@ -83,6 +82,7 @@
                                 <option value="" disabled selected>Select Content Type</option>
                                 <option value="video">Video</option>
                                 <option value="text">Text</option>
+                                <option value="youtube">Youtube</option>
                             </select>
                         </div>
                         <div class="mb-3" id="text-content" style="display:none;">
@@ -94,6 +94,10 @@
                             <label for="video" class="form-label">Upload Video</label>
                             <input type="file" class="filepond" name="video" data-allow-reorder="true"
                                 data-max-file-size="100MB" data-max-files="1">
+                        </div>
+                        <div class="mb-3" id="youtube-content" style="display:none;">
+                            <label for="yotube" class="form-label">Youtube Link</label>
+                            <input type="text" class="youtube form-control" name="youtube">
                         </div>
                     </div>
                     <div class="modal-footer">
@@ -155,6 +159,7 @@
                                 <option value="" disabled selected>Select Content Type</option>
                                 <option value="video">Video</option>
                                 <option value="text">Text</option>
+                                <option value="youtube">Youtube</option>
                             </select>
                         </div>
                         <div class="mb-3" id="edit-text-content" style="display:none;">
@@ -166,6 +171,10 @@
                             <label for="edit-video" class="form-label">Upload Video</label>
                             <input id="edit-video" type="file" class="filepond" name="video" multiple
                                 data-allow-reorder="true" data-max-file-size="100MB" data-max-files="1">
+                        </div>
+                        <div class="mb-3" id="edit-youtube-content" style="display:none;">
+                            <label for="yotube" class="form-label">Youtube Link</label>
+                            <input type="text" class="edit-youtube form-control" name="youtube" id=edit-youtube>
                         </div>
                     </div>
                     <div class="modal-footer">
@@ -295,7 +304,7 @@
                         $('#updateScriptForm').data('unit-id', unitId);
                     },
                     error: function() {
-                        showAlert('danger', 'Error fetching script');
+                        showAlert('danger', 'Error fetching script', 'bx-error');
                     }
                 });
             });
@@ -311,11 +320,11 @@
                     data: formData,
                     success: function(response) {
                         $('#showScriptModal').modal('hide');
-                        showAlert('success', response.success);
+                        showAlert('success', response.success, 'bx-check');
                         table.ajax.reload();
                     },
                     error: function() {
-                        showAlert('danger', 'Error updating script');
+                        showAlert('danger', 'Error updating script', 'bx-error');
                     }
                 });
             });
@@ -435,12 +444,19 @@
                 if (selectedType === 'text') {
                     $('#text-content').show();
                     $('#video-content').hide();
+                    $('#youtube-content').hide();
                 } else if (selectedType === 'video') {
                     $('#video-content').show();
+                    $('#text-content').hide();
+                    $('#youtube-content').hide();
+                } else if (selectedType === 'youtube') {
+                    $('#youtube-content').show();
+                    $('#video-content').hide();
                     $('#text-content').hide();
                 } else {
                     $('#text-content').hide();
                     $('#video-content').hide();
+                    $('#youtube-content').hide();
                 }
             });
 
@@ -450,12 +466,19 @@
                 if (selectedType === 'text') {
                     $('#edit-text-content').show();
                     $('#edit-video-content').hide();
+                    $('#edit-youtube-content').hide();
                 } else if (selectedType === 'video') {
                     $('#edit-video-content').show();
                     $('#edit-text-content').hide();
+                    $('#edit-youtube-content').hide();
+                } else if (selectedType === 'youtube') {
+                    $('#edit-youtube-content').show();
+                    $('#edit-text-content').hide();
+                    $('#edit-video-content').hide();
                 } else {
                     $('#edit-text-content').hide();
                     $('#edit-video-content').hide();
+                    $('#edit-youtube-content').hide();
                 }
             });
             const contentTypeSelect = document.getElementById('content_type');
@@ -467,6 +490,9 @@
                     } else if (this.value === 'video') {
                         textContentDiv.style.display = 'none';
                         videoContentDiv.style.display = 'block';
+                    } else if (this.value === 'youtube') {
+                        textContentDiv.style.display = 'none';
+                        videoContentDiv.style.display = 'none';
                     } else {
                         textContentDiv.style.display = 'none';
                         videoContentDiv.style.display = 'none';
@@ -550,12 +576,16 @@
                     contentType: false,
                     success: function(response) {
                         $('#addUnitModal').modal('hide');
-                        showAlert('success', 'Unit added successfully!');
+                        showAlert('success', 'Unit added successfully!', 'bx-check');
                         clearModal('#addUnitModal');
                         table.ajax.reload();
                     },
                     error: function(response) {
-                        showAlert('danger', 'Error adding unit');
+                        if (response.responseJSON.error) {
+                            showAlert('danger', response.responseJSON.error, 'bx-error');
+                        } else {
+                            showAlert('danger', 'Error adding unit', 'bx-error');
+                        }
                     }
                 });
             });
@@ -590,11 +620,11 @@
                     contentType: false,
                     success: function(response) {
                         $('#editUnitModal').modal('hide');
-                        showAlert('success', 'Unit updated successfully!');
+                        showAlert('success', 'Unit updated successfully!', 'bx-check');
                         clearModal('#editUnitModal');
                     },
                     error: function(response) {
-                        showAlert('danger', 'Error updating unit');
+                        showAlert('danger', 'Error updating unit', 'bx-error');
                     }
                 });
             });
@@ -617,6 +647,11 @@
                         } else if (data.content_type === 'video') {
                             $('#edit-video-content').show();
                             $('#edit-text-content').hide();
+                        } else if (data.content_type === 'youtube') {
+                            $('#edit-youtube-content').show();
+                            $('#edit-text-content').hide();
+                            $('#edit-youtube').val('https://www.youtube.com/watch?v=' + data
+                                .content);
                         }
 
                         $('#editUnitModal').modal('show');
@@ -630,6 +665,7 @@
                 <div class="d-flex align-items-center">
                     <div class="font-35 text-white">
                         <i class="bx ${icon}"></i>
+                        
                     </div>
                     <div class="ms-3">
                         <h6 class="mb-0 text-white">${type.charAt(0).toUpperCase() + type.slice(1)}</h6>

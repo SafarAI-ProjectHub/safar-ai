@@ -31,6 +31,7 @@
     <style>
         .lecture-viewer-text-wrap .active {
             display: block;
+            z-index: 0;
         }
     </style>
 @endsection
@@ -51,7 +52,7 @@
                     <div class="course-dashboard-container d-flex">
                         <div class="course-dashboard-column">
 
-                            <div class="lecture-viewer-container" style="min-height:50vh;">
+                            <div class="lecture-viewer-container" style="min-height:69vh;">
                                 @if ($course->units->count() > 0)
                                     @foreach ($course->units as $unit)
                                         @php
@@ -76,7 +77,7 @@
                                                     <a href="{{ asset($unit->content) }}" download>Download</a>
                                                 </video>
                                             </div>
-                                        @else
+                                        @elseif ($unit->content_type === 'text')
                                             <div id="{{ $contentDivId }}"
                                                 class="lecture-viewer-text-wrap {{ $loop->first ? 'active' : '' }} "
                                                 aria-labelledby="heading{{ $loop->iteration }}"
@@ -86,6 +87,16 @@
                                                         {!! $unit->content !!} <!-- Dynamically loading text content -->
                                                     </div>
                                                 </div>
+                                            </div>
+                                        @elseif ($unit->content_type === 'youtube')
+                                            <div id="{{ $contentDivId }}" class="collapse lecture-video-item"
+                                                aria-labelledby="heading{{ $loop->iteration }}"
+                                                data-parent="#accordionCourseExample">
+                                                <iframe width="100%" height="100%"
+                                                    src="https://www.youtube.com/embed/{{ $unit->content }}"
+                                                    title="YouTube video player" frameborder="0"
+                                                    allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                                                    allowfullscreen></iframe>
                                             </div>
                                         @endif
                                     @endforeach
@@ -116,8 +127,9 @@
                                             </a>
                                         </li>
                                         <li class="nav-item">
-                                            <a class="nav-link active" id="overview-tab" data-toggle="tab" href="#overview"
-                                                role="tab" aria-controls="overview" aria-selected="true">
+                                            <a class="nav-link active" id="overview-tab" data-toggle="tab"
+                                                href="#overview" role="tab" aria-controls="overview"
+                                                aria-selected="true">
                                                 Overview
                                             </a>
                                         </li>
@@ -204,9 +216,11 @@
                                                                     @foreach ($course->units as $unit)
                                                                         <li class="course-item-link   {{ $unit->content_type == 'video' ? '' : 'active-resource' }}  {{ $loop->first ? 'active' : '' }}"
                                                                             @if ($unit->content_type == 'video') onclick="updateContent('{{ $unit->content_type }}', `{{ asset($unit->content) }}`, '{{ $unit->title }}')">
-                                                                                        @else
-                                                                                            onclick="updateContent('{{ $unit->content_type }}', `{{ $unit->content }}`, '{{ $unit->title }}')"> @endif
+                                                                            @elseif ($unit->content_type == 'text') onclick="updateContent('{{ $unit->content_type }}', `{{ $unit->content }}`, '{{ $unit->title }}')">
+                                                                            @elseif ($unit->content_type == 'youtube')
+                                                                                onclick="updateContent('{{ $unit->content_type }}', `{{ $unit->content }}`, '{{ $unit->title }}')"> @endif
                                                                             <div class="course-item-content-wrap">
+
                                                                             <div class="custom-control custom-checkbox">
                                                                                 <input type="checkbox"
                                                                                     class="custom-control-input"
@@ -223,8 +237,9 @@
                                                                                 <div class="courser-item-meta-wrap">
                                                                                     <p class="course-item-meta">
                                                                                         <i
-                                                                                            class="la la-{{ $unit->content_type === 'video' ? 'play-circle' : 'file' }}"></i>
-                                                                                        {{ $unit->content_type === 'video' ? 'video' : 'text' }}
+                                                                                            class="la la-{{ $unit->content_type === 'video' ? 'play-circle' : ($unit->content_type === 'text' ? 'file' : 'youtube') }}"></i>
+
+                                                                                        {{ $unit->content_type === 'video' ? 'play-circle' : ($unit->content_type === 'text' ? 'file' : 'youtube') }}
                                                                                     </p>
                                                                                 </div>
                                                                             </div>
@@ -777,56 +792,64 @@
                                                             @if ($course->units->count() > 0)
                                                                 @foreach ($course->units as $unit)
                                                                     <li class="course-item-link  {{ $unit->content_type == 'video' ? '' : 'active-resource' }} {{ $loop->first ? 'active' : '' }}"
-                                                                        @if ($unit->content_type == 'video') onclick="updateContent('{{ $unit->content_type }}', `{{ asset($unit->content) }}`, '{{ $unit->title }}')">
-                                                                            @else
-                                                                            onclick="updateContent('{{ $unit->content_type }}', `{{ $unit->content }}`, '{{ $unit->title }}')"> @endif
+                                                                        @if ($unit->content_type == 'video') onclick="updateContent('{{ $unit->content_type }}', `{{ asset($unit->content) }}`, '{{ $unit->title }}')"
+                                                                    @elseif ($unit->content_type == 'text')
+                                                                        onclick="updateContent('{{ $unit->content_type }}', `{{ $unit->content }}`, '{{ $unit->title }}')"
+                                                                    @elseif ($unit->content_type == 'youtube')
+                                                                        onclick="updateContent('{{ $unit->content_type }}', `{{ $unit->content }}`, '{{ $unit->title }}')"
+                                                                    @else
+                                                                        onclick="updateContent('{{ $unit->content_type }}', `{{ $unit->content }}`, '{{ $unit->title }}')" @endif>
                                                                         <div class="course-item-content-wrap">
-                                                                        {{-- if hasRole('Student') show the checkbox --}}
-                                                                        @if (auth()->user()->hasRole('Student'))
-                                                                            <div class="custom-control custom-checkbox">
-                                                                                <input type="checkbox"
-                                                                                    class="custom-control-input"
-                                                                                    id="courseCheckbox{{ $unit->id }}"
-                                                                                    value="{{ $unit->id }}"
-                                                                                    {{ in_array($unit->id, $completedUnitIds) ? 'checked' : '' }}>
-                                                                                <label
-                                                                                    class="custom-control-label custom--control-label"
-                                                                                    for="courseCheckbox{{ $unit->id }}"></label>
-                                                                            </div>
-                                                                        @endif
+                                                                            {{-- if hasRole('Student') show the checkbox --}}
+                                                                            @if (auth()->user()->hasRole('Student'))
+                                                                                <div
+                                                                                    class="custom-control custom-checkbox">
+                                                                                    <input type="checkbox"
+                                                                                        class="custom-control-input"
+                                                                                        id="courseCheckbox{{ $unit->id }}"
+                                                                                        value="{{ $unit->id }}"
+                                                                                        {{ in_array($unit->id, $completedUnitIds) ? 'checked' : '' }}>
+                                                                                    <label
+                                                                                        class="custom-control-label custom--control-label"
+                                                                                        for="courseCheckbox{{ $unit->id }}"></label>
+                                                                                </div>
+                                                                            @endif
 
-                                                                        <div class="course-item-content">
-                                                                            <h4 class="fs-15">{{ $unit->title }}</h4>
-                                                                            <div class="courser-item-meta-wrap">
-                                                                                <p class="course-item-meta">
-                                                                                    <i
-                                                                                        class="la la-{{ $unit->content_type === 'video' ? 'play-circle' : 'file' }}"></i>
-                                                                                    {{ $unit->content_type === 'video' ? 'video' : 'text' }}
-                                                                                </p>
+                                                                            <div class="course-item-content">
+                                                                                <h4 class="fs-15">{{ $unit->title }}
+                                                                                </h4>
+                                                                                <div class="courser-item-meta-wrap">
+                                                                                    <p class="course-item-meta">
+                                                                                        <i
+                                                                                            class="la la-{{ $unit->content_type === 'video' ? 'play-circle' : ($unit->content_type === 'text' ? 'file' : 'youtube') }}"></i>
+
+                                                                                        {{ $unit->content_type === 'video' ? 'video' : ($unit->content_type === 'text' ? 'text' : 'youtube') }}
+                                                                                    </p>
+                                                                                </div>
                                                                             </div>
                                                                         </div>
-                                                    </div>
-                                                    </li>
-                                                    @endforeach
-                                                @else
-                                                    <li class="course-item-link">
-                                                        <div class="course-item-content-wrap">
-                                                            <div class="course-item-content">
-                                                                <h4 class="fs-15">No content available Yet</h4>
-                                                            </div>
-                                                        </div>
-                                                    </li>
-                                                    @endif
-                                                    </ul>
-                                                </div><!-- end card-body -->
-                                            </div><!-- end collapse -->
-                                        </div><!-- end card -->
-                                    </div><!-- end accordion-->
-                                </div><!-- end course-dashboard-side-content -->
-                            </div><!-- end course-dashboard-sidebar-wrap -->
-                        </div><!-- end course-dashboard-sidebar-column -->
-                    </div><!-- end course-dashboard-container -->
-                </div><!-- end course-dashboard-wrap -->
+                                                                    </li>
+                                                                @endforeach
+                                                            @else
+                                                                <li class="course-item-link">
+                                                                    <div class="course-item-content-wrap">
+                                                                        <div class="course-item-content">
+                                                                            <h4 class="fs-15">No content available Yet
+                                                                            </h4>
+                                                                        </div>
+                                                                    </div>
+                                                                </li>
+                                                            @endif
+                                                        </ul>
+                                                    </div><!-- end card-body -->
+                                                </div><!-- end collapse -->
+                                            </div><!-- end card -->
+                                        </div><!-- end accordion-->
+                                    </div><!-- end course-dashboard-side-content -->
+                                </div><!-- end course-dashboard-sidebar-wrap -->
+                            </div><!-- end course-dashboard-sidebar-column -->
+                        </div><!-- end course-dashboard-container -->
+                    </div><!-- end course-dashboard-wrap -->
             </section>
             {{-- <div id="scroll-top">
             <i class="la la-arrow-up" title="Go top"></i>
@@ -1073,34 +1096,44 @@
     @endphp
     <script>
         @if ($course->units->count() > 0 && $firstUnit != null)
-            // updateContent('{{ $firstUnit->content_type }}', `{!! $firstUnit->content !!}`, '{{ $firstUnit->title }}');
             const viewerContainer = document.querySelector('.lecture-viewer-container');
 
             // Clear existing content
             viewerContainer.innerHTML = '';
             contentType = `{{ $firstUnit->content_type }}`;
+
             // Generate and insert appropriate content based on type
             if (contentType === 'video') {
                 viewerContainer.innerHTML = `
-                    <div class="lecture-video-item">
-                    <video controls crossorigin playsinline id="player">
+            <div class="lecture-video-item">
+                <video controls crossorigin playsinline id="player">
                     <source src="/{!! $firstUnit->content !!}" type="video/mp4">
                     Your browser does not support the video tag.
-                    </video>
-                    </div>
-                    `;
+                </video>
+            </div>
+        `;
                 // Reinitialize Plyr
                 new Plyr('#player');
+            } else if (contentType === 'youtube') {
+                viewerContainer.innerHTML = `
+            <div class="lecture-video-item">
+                <iframe width="100%" height="100%"
+                        src="https://www.youtube.com/embed/{!! $firstUnit->content !!}"
+                        title="YouTube video player" frameborder="0"
+                        allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                        allowfullscreen></iframe>
+            </div>
+        `;
             } else { // Assuming 'text' type content
                 viewerContainer.innerHTML = `
-                <div class="lecture-viewer-text-wrap active">
+            <div class="lecture-viewer-text-wrap active">
                 <div class="lecture-viewer-text-content custom-scrollbar-styled">
-                <div class="lecture-viewer-text-body">
-                    {!! $firstUnit->content !!}
+                    <div class="lecture-viewer-text-body">
+                        {!! $firstUnit->content !!}
+                    </div>
                 </div>
-                </div>
-                </div>
-                `;
+            </div>
+        `;
             }
         @endif
 
@@ -1113,27 +1146,38 @@
             // Generate and insert appropriate content based on type
             if (contentType === 'video') {
                 viewerContainer.innerHTML = `
-    <div class="lecture-video-item">
-        <video controls crossorigin playsinline id="player">
-            <source src="${content}" type="video/mp4">
-            Your browser does not support the video tag.
-        </video>
-    </div>
-    `;
+            <div class="lecture-video-item">
+                <video controls crossorigin playsinline id="player">
+                    <source src="${content}" type="video/mp4">
+                    Your browser does not support the video tag.
+                </video>
+            </div>
+        `;
                 // Reinitialize Plyr
                 new Plyr('#player');
+            } else if (contentType === 'youtube') {
+                viewerContainer.innerHTML = `
+            <div class="lecture-viewer-text-wrap active">
+                <iframe width="100%"  height="100%"
+                        src="https://www.youtube.com/embed/${content}"
+                        title="YouTube video player" frameborder="0"
+                        allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                        allowfullscreen></iframe>
+            </div>
+        `;
             } else { // Assuming 'text' type content
                 viewerContainer.innerHTML = `
-    <div class="lecture-viewer-text-wrap active">
-        <div class="lecture-viewer-text-content custom-scrollbar-styled">
-            <div class="lecture-viewer-text-body">
-                ${content}
+            <div class="lecture-viewer-text-wrap active">
+                <div class="lecture-viewer-text-content custom-scrollbar-styled">
+                    <div class="lecture-viewer-text-body">
+                        ${content}
+                    </div>
+                </div>
             </div>
-        </div>
-    </div>
-    `;
+        `;
             }
         }
+
 
         $(document).ready(function() {
             $('span.la.la-times').click(function() {

@@ -15,7 +15,7 @@ return new class extends Migration {
             $table->foreignId('course_id')->constrained('courses');
             $table->string('title');
             $table->string('subtitle')->nullable();
-            $table->enum('content_type', ['video', 'text']);
+            $table->enum('content_type', ['video', 'text', 'youtube']);
             $table->longText('content')->nullable();
             $table->timestamps();
         });

@@ -82,7 +82,7 @@ class ProcessUnitAI implements ShouldQueue
         if ($unit->content_type == 'text') {
             $aiResponse = $this->scriptAi($unit->content, 'text');
             $unit->script = $aiResponse['script'] ?? 'Error: No script returned';
-        } else if ($unit->content_type == 'video') {
+        } elseif ($unit->content_type == 'video') {
             $unit->script = 'video Running...';
 
             $unit->save();
@@ -101,6 +101,8 @@ class ProcessUnitAI implements ShouldQueue
 
             $aiResponse = $this->scriptAi($transcription, 'video');
             $unit->script = $aiResponse['script'] ?? 'Error: No script returned';
+        } elseif ($unit->content_type == 'youtube') {
+            $unit->script = 'https://www.youtube.com/watch?v=' . $unit->content;
         }
 
         $unit->save();
