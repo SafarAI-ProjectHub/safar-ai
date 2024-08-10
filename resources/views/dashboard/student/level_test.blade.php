@@ -116,6 +116,12 @@
                 <div class="question-card mb-4">
                     <div class="question-header">
                         <h5 class="card-title">Question {{ $loop->iteration }} : {{ $question->question_text }}</h5>
+                        @if ($question->media_type == 'audio')
+                            <audio controls>
+                                <source src="{{ asset($question->media_url) }}" type="audio/mpeg">
+                                Your browser does not support the audio element.
+                        @endif
+
                     </div>
                     <div class="question-body">
                         @if ($question->sub_text)

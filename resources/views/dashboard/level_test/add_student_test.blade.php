@@ -48,6 +48,57 @@
         .invalid-feedback {
             display: block;
         }
+
+        /* Loader Styles */
+        .loader {
+            display: none;
+            position: fixed;
+            z-index: 999;
+            top: 50%;
+            left: 50%;
+            width: 50px;
+            height: 50px;
+            margin: -25px 0 0 -25px;
+            border: 8px solid #f3f3f3;
+            border-radius: 50%;
+            border-top: 8px solid #3498db;
+            border-right: 8px solid transparent;
+            width: 60px;
+            height: 60px;
+            -webkit-animation: spin 1s linear infinite;
+            animation: spin 1s linear infinite;
+        }
+
+        @-webkit-keyframes spin {
+            0% {
+                -webkit-transform: rotate(0deg);
+            }
+
+            100% {
+                -webkit-transform: rotate(360deg);
+            }
+        }
+
+        @keyframes spin {
+            0% {
+                transform: rotate(0deg);
+            }
+
+            100% {
+                transform: rotate(360deg);
+            }
+        }
+
+        .overlay {
+            display: none;
+            position: fixed;
+            z-index: 998;
+            width: 100%;
+            height: 100%;
+            top: 0;
+            left: 0;
+            background-color: rgba(0, 0, 0, 0.5);
+        }
     </style>
 @endsection
 
@@ -91,12 +142,12 @@
                                     <div class="mb-3">
                                         <label for="test-title" class="form-label">Test Title</label>
                                         <input type="text" class="form-control" id="test-title" name="title" required>
-                                        <div class="invalid-feedback"></div>
+                                        <div class="invalid-feedback">Please enter a test title.</div>
                                     </div>
                                     <div class="mb-3">
                                         <label for="test-description" class="form-label">Description</label>
                                         <textarea class="form-control" id="test-description" name="description"></textarea>
-                                        <div class="invalid-feedback"></div>
+                                        <div class="invalid-feedback">Please enter a test description.</div>
                                     </div>
                                     <div class="mb-3">
                                         <label for="age-group" class="form-label">Age Group</label>
@@ -106,12 +157,18 @@
                                                 <option value="{{ $ageGroup->id }}">{{ $ageGroup->age_group }}</option>
                                             @endforeach
                                         </select>
-                                        <div class="invalid-feedback"></div>
+                                        <div class="invalid-feedback">Please select an age group.</div>
                                     </div>
                                     <button type="button" class="btn btn-primary" id="next-to-step2">Next</button>
                                 </div>
                                 <div id="step2" role="tabpanel" class="bs-stepper-pane"
                                     aria-labelledby="stepper3trigger2">
+                                    <div class="card p-2">
+                                        <h3 class="mt-2">Note</h3>
+                                        <p><strong> - Audio files should be less than 5MB and no longer than 5 minutes.
+                                            </strong></p>
+                                    </div>
+
                                     <div id="questions-container">
                                         <h5>Questions</h5>
                                         <!-- Questions will be added dynamically here -->
@@ -130,12 +187,27 @@
         </div>
     </div>
 
+    <!-- Loader -->
+    <div class="loader"></div>
+    <div class="overlay"></div>
+
     <!-- Question Template -->
     <div id="question-template" style="display:none;">
         <div class="question mb-3">
             <h6>Question - <span class="question-number"></span></h6>
-            <label>Question Text</label>
-            <input type="text" class="form-control question-text" name="questions[][text]" required>
+            <div class="mb-3">
+                <label for="question-type-switch" class="form-label">Question Type</label>
+                <div class="form-check form-switch">
+                    <input class="form-check-input question-type-switch" type="checkbox" id="question-type-switch">
+                    <label class="form-check-label" for="question-type-switch">Text</label>
+                </div>
+            </div>
+            <div class="question-input">
+                <label>Question Text</label>
+                <input type="text" class="form-control question-text" name="questions[][text]" required>
+                <input type="file" class="form-control question-audio" name="questions[][audio]" accept="audio/*"
+                    style="display:none;">
+            </div>
             <div class="invalid-feedback"></div>
             <label>Notes</label>
             <input type="text" class="form-control question-sub-text" name="questions[][sub_text]">
@@ -214,17 +286,7 @@
             }
 
             $('#add-question-button').on('click', function() {
-                var questionCount = $('#questions-container .question').length;
                 addNewQuestion();
-                // if (questionCount < 10) {
-                //     addNewQuestion();
-                //     if (questionCount + 1 === 10) {
-                //         $(this).hide(); // Hide add question button if question limit is reached
-                //     }
-                // } else {
-                //     showAlert('danger', 'You cannot add more than 10 questions.',
-                //         'bx bxs-message-square-x');
-                // }
             });
 
             function addNewQuestion() {
@@ -284,9 +346,28 @@
                 }
             });
 
+            $(document).on('change', '.question-type-switch', function() {
+                var isChecked = $(this).is(':checked');
+                var questionElement = $(this).closest('.question');
+                var textInput = questionElement.find('.question-text');
+                var audioInput = questionElement.find('.question-audio');
+                var label = $(this).siblings('.form-check-label');
+
+                if (isChecked) {
+                    label.text('Audio');
+                    textInput.hide().prop('required', false);
+                    audioInput.show().prop('required', true);
+                } else {
+                    label.text('Text');
+                    textInput.show().prop('required', true);
+                    audioInput.hide().prop('required', false);
+                }
+            });
+
             $(document).on('change', '.question-type', function() {
                 var selectedType = $(this).val();
                 var questionElement = $(this).closest('.question');
+
                 if (selectedType === 'choice') {
                     questionElement.find('.multiple-choice-options').show();
                     questionElement.find('.choices-container').empty();
@@ -308,26 +389,27 @@
 
                 clearFieldErrors();
 
-                var formData = {
-                    _token: $('input[name="_token"]').val(),
-                    title: $('#test-title').val(),
-                    description: $('#test-description').val(),
-                    age_group_id: $('#age-group').val(),
-                    questions: []
-                };
+                var formData = new FormData();
+                formData.append('_token', $('input[name="_token"]').val());
+                formData.append('title', $('#test-title').val());
+                formData.append('description', $('#test-description').val());
+                formData.append('age_group_id', $('#age-group').val());
 
                 var valid = true;
                 $('#questions-container .question').each(function(index) {
+                    var questionElement = $(this);
                     var questionData = {
-                        text: $(this).find('.question-text').val(),
-                        sub_text: $(this).find('.question-sub-text').val(),
-                        question_type: $(this).find('.question-type').val(),
+                        text: questionElement.find('.question-text').val(),
+                        sub_text: questionElement.find('.question-sub-text').val(),
+                        type: questionElement.find('.question-type').val(),
+                        question_type_switch: questionElement.find('.question-type-switch').is(
+                            ':checked') ? 'audio' : 'text',
                         choices: []
                     };
 
-                    if (questionData.question_type === 'choice') {
+                    if (questionData.type === 'choice') {
                         var hasCorrectChoice = false;
-                        $(this).find('.choices-container .choice').each(function() {
+                        questionElement.find('.choices-container .choice').each(function() {
                             var choiceData = {
                                 text: $(this).find('.choice-text').val(),
                                 is_correct: $(this).find('.choice-correct').is(
@@ -341,30 +423,69 @@
 
                         if (!hasCorrectChoice) {
                             valid = false;
+                            showAlert('danger',
+                                'Each multiple-choice question must have at least one correct answer.',
+                                'bx bxs-message-square-x');
                         }
                     }
 
-                    formData.questions.push(questionData);
+                    if (questionData.question_type_switch === 'audio' && !questionElement.find(
+                            '.question-audio').val()) {
+                        valid = false;
+                        showAlert('danger', 'Please upload an audio file for the audio question.',
+                            'bx bxs-message-square-x');
+                    }
+
+                    if (questionData.question_type_switch === 'text' && !questionData.text) {
+                        valid = false;
+                        showAlert('danger', 'Please enter text for the text question.',
+                            'bx bxs-message-square-x');
+                    }
+
+                    formData.append('questions[' + index + '][text]', questionData.text);
+                    formData.append('questions[' + index + '][sub_text]', questionData.sub_text);
+                    formData.append('questions[' + index + '][type]', questionData.type);
+                    formData.append('questions[' + index + '][question_type_switch]', questionData
+                        .question_type_switch);
+
+                    if (questionData.question_type_switch === 'audio') {
+                        var audioFile = questionElement.find('.question-audio').prop('files')[0];
+                        formData.append('questions[' + index + '][audio]', audioFile);
+                    }
+
+                    $.each(questionData.choices, function(choiceIndex, choiceData) {
+                        formData.append('questions[' + index + '][choices][' + choiceIndex +
+                            '][text]', choiceData.text);
+                        formData.append('questions[' + index + '][choices][' + choiceIndex +
+                            '][is_correct]', choiceData.is_correct);
+                    });
                 });
 
                 if (!valid) {
-                    showAlert('danger', 'Each multiple-choice question must have one correct choice.',
-                        'bx bxs-message-square-x');
                     return;
                 }
+
+                $('.loader').show();
+                $('.overlay').show();
 
                 $.ajax({
                     url: '{{ route('studentTest.store') }}',
                     method: 'POST',
-                    data: JSON.stringify(formData),
-                    contentType: 'application/json',
+                    data: formData,
+                    processData: false,
+                    contentType: false,
                     success: function(response) {
+                        $('.loader').hide();
+                        $('.overlay').hide();
                         showAlert('success', 'Test and questions added successfully',
                             'bxs-check-circle');
                         window.location.href =
                             "{{ route('studentTests.index') }}"; // Redirect to the student tests page
                     },
                     error: function(response) {
+                        // Hide loader on error
+                        $('.loader').hide();
+                        $('.overlay').hide();
                         if (response.responseJSON && response.responseJSON.errors) {
                             let errors = response.responseJSON.errors;
                             let errorMessages = 'Please fix the following errors:<br><ul>';
@@ -404,19 +525,19 @@
 
             function showAlert(type, message, icon) {
                 var alertHtml = `
-                    <div class="alert alert-${type} border-0 bg-${type} alert-dismissible fade show py-2 position-fixed top-0 end-0 m-3" role="alert">
-                        <div class="d-flex align-items-center">
-                            <div class="font-35 text-white">
-                                <i class="bx ${icon}"></i>
-                            </div>
-                            <div class="ms-3">
-                                <h6 class="mb-0 text-white">${type.charAt(0).toUpperCase() + type.slice(1)}</h6>
-                                <div class="text-white">${message}</div>
-                            </div>
-                        </div>
-                        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
-                    </div>
-                `;
+    <div class="alert alert-${type} border-0 bg-${type} alert-dismissible fade show py-2 position-fixed top-0 end-0 m-3" role="alert">
+        <div class="d-flex align-items-center">
+            <div class="font-35 text-white">
+                <i class="bx ${icon}"></i>
+            </div>
+            <div class="ms-3">
+                <h6 class="mb-0 text-white">${type.charAt(0).toUpperCase() + type.slice(1)}</h6>
+                <div class="text-white">${message}</div>
+            </div>
+        </div>
+        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+    </div>
+    `;
                 $('body').append(alertHtml);
                 setTimeout(function() {
                     $('.alert').alert('close');

@@ -108,43 +108,55 @@
                     var assessmentsHtml = '';
                     data.assessments.forEach(function(assessment) {
                         var responseContent = '';
+                        // Display the user's response differently based on the type
                         if (assessment.question.question_type === 'voice') {
                             responseContent =
-                                `<audio controls><source src="/storage/${assessment.response}" type="audio/wav">Your browser does not support the audio element.</audio>`;
+                                `<audio controls><source src="/${assessment.response}" type="audio/wav">Your browser does not support the audio element.</audio>`;
                         } else {
                             responseContent = assessment.response;
                         }
 
+                        var mediaContent = '';
+                        // Check if the question has an associated audio file based on media_type
+                        if (assessment.question.media_type === 'audio') {
+                            mediaContent =
+                                `<audio controls style="margin-top:10px;"><source src="{{ asset('${assessment.question.media_url}') }}" type="audio/mpeg">Your browser does not support the audio element.</audio>`;
+                        }
+
                         assessmentsHtml += `
-                    <div class="card mb-3">
-                        <div class="card-header">
-                            <h5>Question: ${assessment.question.question_text}</h5>
+                <div class="card mb-3">
+                    <div class="card-header">
+                        <h5>Question: ${assessment.question.question_text}</h5>
+                        ${mediaContent}
+                    </div>
+                    <div class="card-body">
+                        <p><strong>Answer:</strong> ${responseContent}</p>
+                        <p><strong>Correct:</strong> ${assessment.correct ? 'Yes' : 'No'}</p>
+                        <p><strong>AI Review:</strong> ${assessment.ai_review}</p>
+                        <p><strong>Admin Review:</strong> ${assessment.admin_review || ''}</p>
+                        <div class="mb-3">
+                            <label for="correct_${assessment.id}" class="form-label">Mark as Correct</label>
+                            <input type="checkbox" class="form-check-input" id="correct_${assessment.id}" ${assessment.correct ? 'checked' : ''} data-id="${assessment.id}" data-student="${studentId}">
                         </div>
-                        <div class="card-body">
-                            <p><strong>Answer:</strong> ${responseContent}</p>
-                            <p><strong>Correct:</strong> ${assessment.correct ? 'Yes' : 'No'}</p>
-                            <p><strong>AI Review:</strong> ${assessment.ai_review}</p>
-                            <p><strong>Admin Review:</strong> ${assessment.admin_review || ''}</p>
-                            <div class="mb-3">
-                                <label for="correct_${assessment.id}" class="form-label">Mark as Correct</label>
-                                <input type="checkbox" class="form-check-input" id="correct_${assessment.id}" ${assessment.correct ? 'checked' : ''} data-id="${assessment.id}" data-student="${studentId}">
-                            </div>
-                            <div class="mb-3">
-                                <label for="admin_review_${assessment.id}" class="form-label">Admin Review</label>
-                                <textarea class="form-control" id="admin_review_${assessment.id}" rows="3">${assessment.Admin_review || ''}</textarea>
-                            </div>
+                        <div class="mb-3">
+                            <label for="admin_review_${assessment.id}" class="form-label">Admin Review</label>
+                            <textarea class="form-control" id="admin_review_${assessment.id}" rows="3">${assessment.admin_review || ''}</textarea>
                         </div>
                     </div>
-                `;
+                </div>
+            `;
                     });
 
                     // Set the current English proficiency level
                     $('#english_proficiency_level').val(data.student.english_proficiency_level);
 
+                    // Populate the modal with the assessments
                     $('#assessmentDetails').html(assessmentsHtml);
                     $('#assessmentModal').modal('show');
                 });
             });
+
+
 
             $('#saveChanges').on('click', function() {
                 var studentId = $('#assessmentDetails').find('.form-check-input').data('student');

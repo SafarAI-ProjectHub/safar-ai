@@ -214,7 +214,6 @@ class ProcessUnitAI implements ShouldQueue
             return $response['text'];
         } else {
             \Log::info("fail on line 338: ");
-            dd("Invalid audio content provided.");
         }
     }
 

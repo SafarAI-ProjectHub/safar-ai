@@ -288,29 +288,41 @@ class StudentController extends Controller
                 $assessment = new LevelTestAssessment();
                 $assessment->level_test_question_id = $questionId;
                 $assessment->user_id = $user->id;
-
+                $script = null;
                 if ($question->question_type === 'choice') {
                     $choice = LevelTestChoice::find($value);
                     $correctAnswer = $question->choices->where('is_correct', true)->first();
                     $assessment->response = $choice->choice_text;
+                    if ($question->media_type === 'audio') {
+                        $script = $question->script;
+                    }
                     $openAiRequests[] = [
                         'question' => $question->question_text,
+                        'sub_text' => $question->sub_text,
                         'choices' => $question->choices->pluck('choice_text')->toArray(),
                         'correct_answer' => $correctAnswer ? $correctAnswer->choice_text : null,
                         'user_answer' => $choice->choice_text,
                         'question_id' => $question->id,
-                        'question_type' => 'choice'
+                        'question_type' => 'choice',
+                        'script' => $script ?? null
                     ];
                 } elseif ($question->question_type === 'text') {
                     $assessment->response = $value;
+                    if ($question->media_type === 'audio') {
+                        $script = $question->script;
+                    }
                     $openAiRequests[] = [
                         'question' => $question->question_text,
                         'sub_text' => $question->sub_text,
                         'user_answer' => $value,
                         'question_id' => $question->id,
-                        'question_type' => 'text'
+                        'question_type' => 'text',
+                        'script' => $script ?? null
                     ];
                 } elseif ($question->question_type === 'voice') {
+                    if ($question->media_type === 'audio') {
+                        $script = $question->script;
+                    }
                     $customFileName = sha1($value->getClientOriginalName()) . '.wav';
                     $path = $value->storeAs('audio_responses', $customFileName);
                     $transcription = $this->transcribeAudio(storage_path('app/public/' . $path));
@@ -320,7 +332,9 @@ class StudentController extends Controller
                         'question' => $question->question_text,
                         'transcription' => $transcription,
                         'question_id' => $question->id,
-                        'question_type' => 'voice'
+                        'question_type' => 'voice',
+                        'sub_text' => $question->sub_text,
+                        'script' => $script ?? null
                     ];
                 }
 
@@ -407,13 +421,13 @@ class StudentController extends Controller
         $age = Carbon::parse($user->date_of_birth)->age;
 
         $prompt = $this->generatePrompt($requests, $age);
-
+        \Log::info("prompt: " . $prompt);
         $response = OpenAI::chat()->create([
             'model' => 'gpt-4o',
             'messages' => [
                 [
                     'role' => 'system',
-                    'content' => 'You are an AI assistant helping to evaluate student assessments for an educational platform. Your task is to review each question and the corresponding answer provided by the students. For each answer, determine if it is correct, and provide detailed feedback. Include suggestions for improvement, focusing on areas such as understanding of the subject matter, clarity of communication, and accuracy. Additionally, consider the overall quality of the answers in terms of their completeness and relevance. Also, provide an overall English proficiency level from 1 to 6 based on the students answers.'
+                    'content' => 'You are an AI assistant helping to evaluate student assessments for an educational platform. Your task is to review each question and the corresponding answer provided by the students. For each answer, determine if it is correct, and provide detailed feedback. Include suggestions for improvement, focusing on areas such as understanding of the subject matter, clarity of communication, and accuracy. Additionally, consider the overall quality of the answers in terms of their completeness and relevance. Also, provide an overall English proficiency level from 1 to 6 based on the students answers. note any quastion has script in his data, that mean this was an audio and we turn it into text fro you  to be able to review it. so the answers from the student based on teh script if hte scrept is null or empty that mean there is no audio'
                 ],
                 ['role' => 'user', 'content' => $prompt]
             ],
@@ -489,7 +503,12 @@ class StudentController extends Controller
         foreach ($requests as $request) {
             $prompt .= "Question ID: {$request['question_id']}\n";
             $prompt .= "Question: {$request['question']}\n";
-
+            if (isset($request['sub_text'])) {
+                $prompt .= "Additional Information: {$request['sub_text']}\n";
+            }
+            if (isset($request['script'])) {
+                $prompt .= "Audio Script: {$request['script']}\n";
+            }
             if (isset($request['choices'])) {
                 $prompt .= "Choices: " . implode(', ', $request['choices']) . "\n";
                 $prompt .= "Correct Answer: {$request['correct_answer']}\n";

@@ -17,6 +17,7 @@ class LevelTestQuestion extends Model
         'mark',
         'media_url',
         'media_type',
+        'script',
     ];
 
     public function levelTest()
