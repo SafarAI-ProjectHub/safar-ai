@@ -314,6 +314,64 @@
                 });
             });
 
+            $(document).on('click', '.assign-teacher-btn', function() {
+                var courseId = $(this).data('course-id');
+                $('#assignCourseId').val(courseId);
+
+                $.ajax({
+                    url: '{{ route('admin.getTeachersForAssignment') }}',
+                    method: 'GET',
+                    success: function(response) {
+                        var teacherSelect = $('#teacher_id');
+                        teacherSelect.empty();
+                        teacherSelect.append(
+                            '<option value="" disabled selected>Select Teacher</option>');
+                        $.each(response, function(index, teacher) {
+                            teacherSelect.append('<option value="' + teacher.id + '">' +
+                                teacher.user.first_name + ' ' + teacher.user
+                                .last_name + ' - ' + teacher.user.email +
+                                '</option>');
+                        });
+                        $('#teacher_id').select2({
+                            theme: 'bootstrap4',
+                            dropdownParent: $('#assignTeacherModal'),
+                            placeholder: 'Search for a teacher',
+                            allowClear: true
+                        });
+
+                        // Pre-select the assigned teacher if available
+                        var selectedTeacherId = $('#assignCourseId').data('teacher-id');
+                        if (selectedTeacherId) {
+                            $('#teacher_id').val(selectedTeacherId).trigger('change');
+                        }
+
+                        $('#assignTeacherModal').modal('show');
+                    },
+                    error: function(response) {
+                        showAlert('danger', 'Error fetching teachers', 'bxs-message-square-x');
+                    }
+                });
+            });
+
+            $('#assignTeacherForm').on('submit', function(e) {
+                e.preventDefault();
+                var formData = $(this).serialize();
+
+                $.ajax({
+                    url: '{{ route('admin.assignTeacherToCourse') }}',
+                    method: 'POST',
+                    data: formData,
+                    success: function(response) {
+                        $('#assignTeacherModal').modal('hide');
+                        table.ajax.reload();
+                        showAlert('success', 'Teacher assigned successfully!',
+                            'bxs-check-circle');
+                    },
+                    error: function(response) {
+                        showAlert('danger', 'Error assigning teacher', 'bxs-message-square-x');
+                    }
+                });
+            });
 
             $('#addCourseModal').on('hidden.bs.modal', function() {
                 // Clear input fields

@@ -50,6 +50,7 @@ class ZoomMeetingController extends Controller
             'agenda' => 'nullable|string',
         ]);
 
+
         try {
             // Create Zoom meeting
             $meeting = Zoom::createMeeting([
@@ -57,18 +58,20 @@ class ZoomMeetingController extends Controller
                 'topic' => $request->input('topic'),
                 'type' => 2, // Scheduled meeting
                 'duration' => $request->input('duration'),
-                'timezone' => config('app.timezone'), // Set your timezone
+                'timezone' => config('app.timezone'),
                 'password' => '123456',
                 'start_time' => $request->input('start_time'),
+                // "schedule_for" => Auth::user()->email,
                 'settings' => [
-                    'join_before_host' => false,
-                    'host_video' => false,
-                    'participant_video' => false,
-                    'mute_upon_entry' => false,
+                    'join_before_host' => true,
+                    'host_video' => true,
+                    'participant_video' => true,
+                    'mute_upon_entry' => true,
                     'waiting_room' => false,
                     'audio' => 'both',
                     'auto_recording' => 'none',
-                    'approval_type' => 0, // Automatically Approve
+                    'approval_type' => 0,
+
                 ],
             ]);
 

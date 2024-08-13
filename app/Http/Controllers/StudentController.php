@@ -219,9 +219,14 @@ class StudentController extends Controller
     {
         try {
             $user = Auth::user();
-            $userMeetings = UserMeeting::where('user_id', $user->id)->with(['meeting', 'meeting.user'])->whereHas('meeting', function ($query) {
-                $query->where('start_time', '>=', now());
-            })->get();
+            $userMeetings = UserMeeting::select('meeting_id', \DB::raw('MAX(id) as id')) // Example using MAX for id
+                ->where('user_id', $user->id)
+                ->with(['meeting', 'meeting.user'])
+                ->whereHas('meeting', function ($query) {
+                    $query->where('start_time', '>=', now());
+                })
+                ->groupBy('meeting_id')
+                ->get();
 
             $dataTable = DataTables::of($userMeetings)
                 ->editColumn('meeting.start_time', function ($row) {
