@@ -67,8 +67,8 @@
                                     <div class="step-trigger" role="tab" id="stepper3trigger1" aria-controls="step1">
                                         <div class="bs-stepper-circle"><i class='bx bx-book fs-4'></i></div>
                                         <div class="">
-                                            <h5 class="mb-0 steper-title">Select Course and Unit</h5>
-                                            <p class="mb-0 steper-sub-title">Choose the course and unit</p>
+                                            <h5 class="mb-0 steper-title">Select Unit and Lesson</h5>
+                                            <p class="mb-0 steper-sub-title">Choose the unit and Lesson</p>
                                         </div>
                                     </div>
                                 </div>
@@ -101,9 +101,9 @@
                                 <div id="step1" role="tabpanel" class="bs-stepper-pane"
                                     aria-labelledby="stepper3trigger1">
                                     <div class="mb-3">
-                                        <label for="course-select" class="form-label">Select Course</label>
+                                        <label for="course-select" class="form-label">Select Unit</label>
                                         <select class="form-select" id="course-select" disabled>
-                                            <option value="" disabled>Select a course</option>
+                                            <option value="" disabled>Select a unit</option>
                                             @foreach ($courses as $course)
                                                 <option value="{{ $course->id }}"
                                                     {{ $course->id == $quiz->unit->course->id ? 'selected' : '' }}>
@@ -113,9 +113,9 @@
                                         </select>
                                     </div>
                                     <div class="mb-3" id="units-container">
-                                        <label for="unit-select" class="form-label">Select Unit</label>
+                                        <label for="unit-select" class="form-label">Select Lesson</label>
                                         <select class="form-select" id="unit-select" disabled>
-                                            <option value="" disabled>Select a unit</option>
+                                            <option value="" disabled>Select a lesson</option>
                                             @foreach ($quiz->unit->course->units as $unit)
                                                 <option value="{{ $unit->id }}"
                                                     {{ $unit->id == $quiz->unit->id ? 'selected' : '' }}>
@@ -123,8 +123,8 @@
                                                 </option>
                                             @endforeach
                                         </select>
-                                        <div id="no-units-message" class="mt-2 text-danger" style="display:none;">No units
-                                            available or all units have been assigned quizzes.</div>
+                                        <div id="no-units-message" class="mt-2 text-danger" style="display:none;">No Lessons
+                                            available or all Lessons have been assigned quizzes.</div>
                                     </div>
                                     <button type="button" class="btn btn-primary" id="next-to-step2">Next</button>
                                 </div>

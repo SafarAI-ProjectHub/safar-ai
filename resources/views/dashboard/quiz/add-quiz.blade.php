@@ -66,8 +66,8 @@
                                     <div class="step-trigger" role="tab" id="stepper3trigger1" aria-controls="step1">
                                         <div class="bs-stepper-circle"><i class='bx bx-book fs-4'></i></div>
                                         <div class="">
-                                            <h5 class="mb-0 steper-title">Select Course and Unit</h5>
-                                            <p class="mb-0 steper-sub-title">Choose the course and unit</p>
+                                            <h5 class="mb-0 steper-title">Select Unit and Lesson</h5>
+                                            <p class="mb-0 steper-sub-title">Choose the unit and lesson</p>
                                         </div>
                                     </div>
                                 </div>
@@ -100,12 +100,12 @@
                                 <div id="step1" role="tabpanel" class="bs-stepper-pane"
                                     aria-labelledby="stepper3trigger1">
                                     <div class="mb-3">
-                                        <label for="course-select" class="form-label">Select Course</label>
+                                        <label for="course-select" class="form-label">Select Unit</label>
                                         <select class="form-select" id="course-select">
                                             @if ($courses->isEmpty())
-                                                <option value="" disabled>No courses available</option>
+                                                <option value="" disabled>No units available</option>
                                             @else
-                                                <option value="" disabled selected>Select a course</option>
+                                                <option value="" disabled selected>Select a unit</option>
 
                                                 @foreach ($courses as $course)
                                                     <option value="{{ $course->id }}">{{ $course->title }}</option>
@@ -114,7 +114,7 @@
                                         </select>
                                     </div>
                                     <div id="no-units-message" class="p-3" style="display: none;">
-                                        All units in this course have been assigned quizzes or there are no units available.
+                                        All Lessons in this unit have been assigned quizzes or there are no Lessons available.
                                     </div>
                                     <div class="mb-3" id="units-container" style="display:none;">
                                         <label for="unit-select" class="form-label">Select Unit</label>
@@ -122,8 +122,8 @@
                                             <option value="" disabled selected>Select a unit</option>
                                             <!-- Units will be populated via AJAX -->
                                         </select>
-                                        <div id="no-units-message" class="mt-2 text-danger" style="display:none;">No units
-                                            available or all units have been assigned quizzes.</div>
+                                        <div id="no-units-message" class="mt-2 text-danger" style="display:none;">No Lessons
+                                            available or all Lessons have been assigned quizzes.</div>
                                     </div>
                                     <button type="button" class="btn btn-primary" id="next-to-step2"
                                         style="display:none;">Next</button>
@@ -266,8 +266,8 @@
             $('#next-to-step3').on('click', function() {
                 if ($('#quiz-title').val() && $('#quiz-pass-mark').val()) {
                     stepper3.next();
-                    $('button[type="submit"]').show(); // Show submit button after opening the last step
-                    addInitialQuestion(); // Add initial question when opening the last step
+                    $('button[type="submit"]').show();
+                    addInitialQuestion();
                 } else {
                     if (!$('#quiz-title').val()) {
                         showFieldError($('#quiz-title'), 'Please enter a quiz title.');
@@ -286,7 +286,7 @@
                     var questionElement = $(questionTemplate).clone();
                     questionElement.find('.question-number').text(1);
                     questionElement.find('.remove-question-button')
-                        .remove(); // Remove the remove button for the first question
+                        .remove();
                     $('#questions-container').append(questionElement);
                     addDefaultChoices(questionElement);
                 }
@@ -297,7 +297,7 @@
                 if (questionCount < 10) {
                     addNewQuestion();
                     if (questionCount + 1 === 10) {
-                        $(this).hide(); // Hide add question button if question limit is reached
+                        $(this).hide();
                     }
                 } else {
                     showAlert('danger', 'You cannot add more than 10 questions.',
@@ -316,7 +316,7 @@
 
             $(document).on('click', '.remove-question-button', function() {
                 $(this).closest('.question').remove();
-                $('#add-question-button').show(); // Show add question button if question is removed
+                $('#add-question-button').show();
                 updateQuestionNumbers();
             });
 
@@ -328,16 +328,16 @@
 
             function addDefaultChoices(questionElement) {
                 for (let i = 0; i < 2; i++) {
-                    addNewChoice(questionElement, false); // Add default choices without remove buttons
+                    addNewChoice(questionElement, false);
                 }
             }
 
             $(document).on('click', '.add-choice-button', function() {
                 var choicesContainer = $(this).siblings('.choices-container');
                 if (choicesContainer.children('.choice').length < 4) {
-                    addNewChoice($(this).closest('.question'), true); // Add new choice with remove button
+                    addNewChoice($(this).closest('.question'), true);
                     if (choicesContainer.children('.choice').length === 4) {
-                        $(this).hide(); // Hide add choice button if choice limit is reached
+                        $(this).hide();
                     }
                 } else {
                     showAlert('danger', 'You cannot add more than 4 choices.', 'bx bxs-message-square-x');
@@ -349,7 +349,7 @@
                 var choiceElement = $(choiceTemplate).clone();
                 if (!withRemoveButton) {
                     choiceElement.find('.remove-choice-button')
-                        .remove(); // Remove the remove button for default choices
+                        .remove();
                 }
                 questionElement.find('.choices-container').append(choiceElement);
             }
@@ -369,7 +369,7 @@
                     questionElement.find('.multiple-choice-options').show();
                     questionElement.find('.choices-container').empty();
                     addDefaultChoices(
-                        questionElement); // Add default choices when selecting multiple choice
+                        questionElement); 
                 } else {
                     questionElement.find('.multiple-choice-options').hide();
                     questionElement.find('.choices-container').empty();
@@ -442,7 +442,7 @@
                         showAlert('success', 'Quiz and questions added successfully',
                             'bxs-check-circle');
                         window.location.href =
-                            "{{ route('quizzes.index') }}"; // Redirect to the quizzes page
+                            "{{ route('quizzes.index') }}";
                     },
                     error: function(response) {
                         if (response.responseJSON && response.responseJSON.errors) {

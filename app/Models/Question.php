@@ -30,4 +30,8 @@ class Question extends Model
     {
         return $this->hasMany(Choice::class);
     }
+    public function userResponses()
+    {
+        return $this->hasMany(UserResponse::class, 'question_id');
+    }
 }

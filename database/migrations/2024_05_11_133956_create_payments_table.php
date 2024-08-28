@@ -15,7 +15,7 @@ return new class extends Migration {
             $table->foreignId('subscription_id');
             $table->string('paypal_subscription_id')->nullable();
             $table->foreignId('user_subscription_id');
-            $table->foreignId('user_id')->constrained('users');
+            $table->foreignId('user_id');
             $table->decimal('amount', 8, 2);
             $table->enum('payment_status', [
                 'pending',

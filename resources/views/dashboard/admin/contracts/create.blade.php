@@ -126,7 +126,27 @@
                         window.location.href = '{{ route('contracts.index') }}';
                     },
                     error: function(response) {
-                        alert('Error creating contract.');
+                        // alert('Error creating contract.');
+                        if(response.responseJSON.errors) {
+                            var errors = response.responseJSON.errors;
+                            var errorMessage = '';
+                            for(var key in errors) {
+                                errorMessage += errors[key][0] + '<br>';
+                            }
+                            swal.fire({
+                                title: 'Error',
+                                html: errorMessage,
+                                icon: 'error',
+                                confirmButtonText: 'OK'
+                            });
+                        }else {
+                            swal.fire({
+                                title: 'Error',
+                                text: 'Error creating contract.',
+                                icon: 'error',
+                                confirmButtonText: 'OK'
+                            });
+                        }
                     }
                 });
             });

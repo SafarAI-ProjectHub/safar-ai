@@ -191,8 +191,15 @@
                         Swal.fire('Success!', response.message, 'success');
                     },
                     error: function(response) {
-                        Swal.fire('Error!', 'There was an error updating the student.',
-                            'error');
+                        console.log(response);
+                        if (response.responseJSON.errors) {
+                            Swal.fire('Error!', Object.values(response.responseJSON.errors)
+                                .join(' '), 'error');
+                        } else {
+                            Swal.fire('Error!', 'There was an error updating the student.',
+                                'error');
+                        }
+
                     }
                 });
             });

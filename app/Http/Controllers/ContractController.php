@@ -64,6 +64,22 @@ class ContractController extends Controller
 
     public function store(Request $request)
     {
+        request()->validate([
+            'teacher_id' => 'required|exists:users,id',
+            'other_party_name' => 'required|string|max:255',
+            'salary' => [
+                'required',
+                'numeric',
+                'regex:/^\d{1,18}(\.\d{1,2})?$/'
+            ],
+            'salary_period' => 'required|string|max:255',
+            'contract_agreement' => 'required|string|max:255',
+            'employee_duties' => 'required|string|max:255',
+            'responsibilities' => 'required|string|max:255',
+            'employment_period' => 'required|string|max:255',
+            'compensation' => 'required|string|max:255',
+            'legal_terms' => 'required|string|max:255',
+        ]);
         $contract = Contract::create($request->all());
         return response()->json(['message' => 'Contract created successfully.']);
     }
@@ -93,6 +109,21 @@ class ContractController extends Controller
 
     public function update(Request $request, $contractId)
     {
+        request()->validate([
+            'other_party_name' => 'required|string|max:255',
+            'salary' => [
+                'required',
+                'numeric',
+                'regex:/^\d{1,18}(\.\d{1,2})?$/'
+            ],
+            'salary_period' => 'required|string|max:255',
+            'contract_agreement' => 'required|string|max:255',
+            'employee_duties' => 'required|string|max:255',
+            'responsibilities' => 'required|string|max:255',
+            'employment_period' => 'required|string|max:255',
+            'compensation' => 'required|string|max:255',
+            'legal_terms' => 'required|string|max:255',
+        ]);
         $contract = Contract::findOrFail($contractId);
         $contract->update($request->all());
         return response()->json(['message' => 'Contract updated successfully.']);

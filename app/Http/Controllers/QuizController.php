@@ -265,9 +265,12 @@ class QuizController extends Controller
             'title' => $request->title,
             'pass_mark' => $request->pass_mark,
         ]);
-
+        
         // Delete existing questions and choices
         foreach ($quiz->questions as $question) {
+            if ($question->userResponses()->exists()) {
+                $question->userResponses()->delete();
+            }
             $question->choices()->delete();
             $question->delete();
         }

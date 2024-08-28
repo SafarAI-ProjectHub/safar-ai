@@ -24,7 +24,7 @@
 @section('content')
     <div class="card">
         <div class="card-body">
-            <h5>Units for Course: <a href="{{ route('admin.courses') }}">{{ $course->title }}</a></h5>
+            <h5>Lessons for Unit: <a href="{{ route('admin.courses') }}">{{ $course->title }}</a></h5>
             <div class="alert alert-info index-0" role="alert">
                 {{-- note to check the script to make sure that the ai wote corect script about the video or the text becuze the corectines of the ai when checking the student answers on thr quizes will be based on the script corectness --}}
                 <strong>Note:</strong> The script is used by the AI to check the correctness of student answers in quizzes.
@@ -32,12 +32,12 @@
             </div>
             @if ($course->completed)
                 <div class="alert alert-success index-0" role="alert">
-                    This course is marked as completed. You can no longer add units to it.
+                    This Unit is marked as completed. You can no longer add Lessons to it.
                 </div>
             @else
                 <div class="d-flex justify-content-end mb-3">
                     <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#addUnitModal">Add New
-                        Unit</button>
+                        Lesson</button>
                 </div>
             @endif
             <div class="table-responsive">
@@ -64,12 +64,12 @@
                     @csrf
                     <input type="hidden" name="course_id" value="{{ $course->id }}">
                     <div class="modal-header">
-                        <h5 class="modal-title" id="addUnitModalLabel">Add New Unit</h5>
+                        <h5 class="modal-title" id="addUnitModalLabel">Add New Lesson</h5>
                         <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                     </div>
                     <div class="modal-body">
                         <div class="mb-3">
-                            <label for="title" class="form-label">Unit Title</label>
+                            <label for="title" class="form-label">Lesson Title</label>
                             <input type="text" class="form-control" id="title" name="title" required>
                         </div>
                         <div class="mb-3">
@@ -102,7 +102,7 @@
                     </div>
                     <div class="modal-footer">
                         <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
-                        <button type="submit" class="btn btn-primary">Add Unit</button>
+                        <button type="submit" class="btn btn-primary">Add Lesson</button>
                     </div>
                 </form>
             </div>
@@ -141,12 +141,12 @@
                     <input type="hidden" name="_method" value="PUT">
                     <input type="hidden" name="unit_id" id="edit-unit-id">
                     <div class="modal-header">
-                        <h5 class="modal-title" id="editUnitModalLabel">Edit Unit</h5>
+                        <h5 class="modal-title" id="editUnitModalLabel">Edit Lesson</h5>
                         <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                     </div>
                     <div class="modal-body">
                         <div class="mb-3">
-                            <label for="edit-title" class="form-label">Unit Title</label>
+                            <label for="edit-title" class="form-label">Lesson Title</label>
                             <input type="text" class="form-control" id="edit-title" name="title" required>
                         </div>
                         <div class="mb-3">
@@ -179,7 +179,7 @@
                     </div>
                     <div class="modal-footer">
                         <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
-                        <button type="submit" class="btn btn-primary">Update Unit</button>
+                        <button type="submit" class="btn btn-primary">Update Lesson</button>
                     </div>
                 </form>
             </div>
@@ -203,6 +203,8 @@
     <script src="https://unpkg.com/filepond-plugin-file-validate-type/dist/filepond-plugin-file-validate-type.js"></script>
     <!-- Image Resize Module JS -->
     <script src="https://cdn.jsdelivr.net/npm/quill-image-resize-module@3.0.0/image-resize.min.js"></script>
+    <!-- swal JS -->
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@10"></script>
     <script>
         $(document).ready(function() {
             var table = $('#units-table').DataTable({
@@ -273,7 +275,9 @@
 
             $('#units-table').on('click', '.delete-unit', function() {
                 var unitId = $(this).data('id');
-                if (confirm('Are you sure you want to delete this unit?')) {
+                if (confirm(
+                        'Are you sure you want to delete this Lesson? By deleting this Lesson, all associated quizzes And student assessment data will be deleted as well.'
+                    )) {
                     $.ajax({
                         url: '/courses/units/delete/' + unitId,
                         type: 'DELETE',
@@ -283,11 +287,11 @@
                         },
                         success: function(response) {
                             table.ajax.reload(null,
-                                false); // Reload DataTable without resetting paging
-                            alert('Unit deleted successfully');
+                                false);
+                            swal("Success", "Lesson deleted successfully", "success");
                         },
                         error: function(xhr) {
-                            alert('Error deleting unit: ' + xhr.responseText);
+                            swal("Error", "Error deleting Lesson: " + xhr.responseText, "error");
                         }
                     });
                 }
@@ -362,7 +366,7 @@
                         }, {
                             'background': []
                         }],
-                        ['link', 'image'], // Added 'image' button
+                        ['link', 'image'],
                         ['clean']
                     ],
                     imageResize: {
@@ -376,7 +380,6 @@
                 }
             });
 
-            // Initialize Quill Editor for Edit Unit
             var quillEdit = new Quill('#edit-editor', {
                 theme: 'snow',
                 modules: {
@@ -409,7 +412,7 @@
                         }, {
                             'background': []
                         }],
-                        ['link', 'image'], // Added 'image' button
+                        ['link', 'image'],
                         ['clean']
                     ],
                     imageResize: {
@@ -438,7 +441,6 @@
                     }
                 };
             }
-            // Handle content type selection for Add Unit
             $('#content_type').on('change', function() {
                 var selectedType = $(this).val();
                 if (selectedType === 'text') {
@@ -460,7 +462,6 @@
                 }
             });
 
-            // Handle content type selection for Edit Unit
             $('#edit-content_type').on('change', function() {
                 var selectedType = $(this).val();
                 if (selectedType === 'text') {
@@ -499,9 +500,7 @@
                     }
                 });
 
-            const acceptedVideoTypes = ['video/*']; // Accepts all video types
-
-            // Register FilePond plugins
+            const acceptedVideoTypes = ['video/*'];
             FilePond.registerPlugin(
                 FilePondPluginImagePreview,
                 FilePondPluginImageExifOrientation,
@@ -567,7 +566,6 @@
 
                 newFormData.append('content', quillAdd.root.innerHTML);
 
-                // AJAX request to server
                 $.ajax({
                     url: '{{ route('admin.storeUnit') }}',
                     method: 'POST',
@@ -576,7 +574,7 @@
                     contentType: false,
                     success: function(response) {
                         $('#addUnitModal').modal('hide');
-                        showAlert('success', 'Unit added successfully!', 'bx-check');
+                        showAlert('success', 'Lesson added successfully!', 'bx-check');
                         clearModal('#addUnitModal');
                         table.ajax.reload();
                     },
@@ -584,7 +582,7 @@
                         if (response.responseJSON.error) {
                             showAlert('danger', response.responseJSON.error, 'bx-error');
                         } else {
-                            showAlert('danger', 'Error adding unit', 'bx-error');
+                            showAlert('danger', 'Error adding Lesson', 'bx-error');
                         }
                     }
                 });
@@ -620,11 +618,11 @@
                     contentType: false,
                     success: function(response) {
                         $('#editUnitModal').modal('hide');
-                        showAlert('success', 'Unit updated successfully!', 'bx-check');
+                        showAlert('success', 'Lesson updated successfully!', 'bx-check');
                         clearModal('#editUnitModal');
                     },
                     error: function(response) {
-                        showAlert('danger', 'Error updating unit', 'bx-error');
+                        showAlert('danger', 'Error updating Lesson', 'bx-error');
                     }
                 });
             });

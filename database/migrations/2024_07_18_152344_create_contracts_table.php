@@ -13,7 +13,7 @@ class CreateContractsTable extends Migration
             $table->unsignedBigInteger('teacher_id');
             $table->string('other_party_name');
             $table->date('contract_date')->nullable();
-            $table->decimal('salary', 10, 2);
+            $table->decimal('salary', 20, 2);
             $table->enum('salary_period', ['hour', 'week', 'month']);
             $table->longText('contract_agreement');
             $table->longText('employee_duties');

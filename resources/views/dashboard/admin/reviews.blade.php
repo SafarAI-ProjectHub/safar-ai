@@ -18,7 +18,7 @@
             <div class="row mb-3">
                 <div class="col-md-4">
                     <select id="course-filter" class="form-control">
-                        <option value="">Select Course</option>
+                        <option value="">Select Unit</option>
                         @foreach ($courses as $course)
                             <option value="{{ $course->id }}">{{ $course->title }}</option>
                         @endforeach
@@ -41,7 +41,7 @@
                         <tr>
                             <th>ID</th>
                             <th>Username</th>
-                            <th>Course Title</th>
+                            <th>unit Title</th>
                             <th>Rating</th>
                             <th>Comment</th>
                             <th>Created At</th>

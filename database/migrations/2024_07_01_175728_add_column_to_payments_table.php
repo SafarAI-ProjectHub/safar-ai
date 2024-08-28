@@ -15,7 +15,7 @@ return new class extends Migration {
             $table->text('rejection_reason')->nullable()->after('payment_image');
 
         });
-    }
+    } 
 
     /**
      * Reverse the migrations.

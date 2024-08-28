@@ -149,6 +149,12 @@ class AdminController extends Controller
     {
 
         $user = User::findOrFail($id);
+        if ($user) {
+            if ($user->timeLogs()->exists()) {
+                $user->timeLogs()->delete();
+            }
+        }
+         
         $user->delete();
 
         return response()->json(['message' => 'Admin deleted successfully']);
@@ -315,6 +321,13 @@ class AdminController extends Controller
     {
         try {
             $teacher = Teacher::findOrFail($id);
+            $user = $teacher->user;
+
+        if ($user) {
+            if ($user->timeLogs()->exists()) {
+                $user->timeLogs()->delete();
+            }
+        }
             $teacher->user()->delete();
             $teacher->delete();
 
@@ -375,14 +388,14 @@ class AdminController extends Controller
 
                     if (Auth::user()->hasAnyRole(['Super Admin', 'Admin'])) {
                         $assignButton = '<a href="#" class="btn btn-primary btn-sm assign-teacher-btn" data-course-id="' . $row->id . '"><i class="bx bx-user-plus"></i> ' . ($row->teacher ? 'Change Teacher' : 'Assign Teacher') . '</a>';
-                        $showUnitsButton = '<a href="' . url('courses') . '/' . $row->id . '/units" class="btn btn-primary btn-sm"><i class="bx bx-show-alt"></i> Show Units</a>';
-                        $viewCourseButton = '<a href="' . url('courses') . '/' . $row->id . '/show" class="btn btn-primary btn-sm"><i class="bx bx-detail"></i> View Course</a>';
+                        $showUnitsButton = '<a href="' . url('courses') . '/' . $row->id . '/units" class="btn btn-primary btn-sm"><i class="bx bx-show-alt"></i> Show Lessons</a>';
+                        $viewCourseButton = '<a href="' . url('courses') . '/' . $row->id . '/show" class="btn btn-primary btn-sm"><i class="bx bx-detail"></i> View Unit</a>';
                         $actions = '<div class="d-flex justify-content-around gap-2">' . $assignButton . $showUnitsButton . $viewCourseButton . '</div>';
                     }
 
                     if (Auth::user()->hasRole('Teacher')) {
-                        $viewCourseButton = '<a href="' . url('/courses') . '/' . $row->id . '/show" class="btn btn-primary btn-sm"><i class="bx bx-detail"></i> View Course</a>';
-                        $showUnitsButton = '<a href="' . url('courses') . '/' . $row->id . '/units" class="btn btn-primary btn-sm"><i class="bx bx-show-alt"></i> Show Units</a>';
+                        $viewCourseButton = '<a href="' . url('/courses') . '/' . $row->id . '/show" class="btn btn-primary btn-sm"><i class="bx bx-detail"></i> View Unit</a>';
+                        $showUnitsButton = '<a href="' . url('courses') . '/' . $row->id . '/units" class="btn btn-primary btn-sm"><i class="bx bx-show-alt"></i> Show Lessons</a>';
                         $actions = '<div class="d-flex justify-content-around gap-2">' . $viewCourseButton . $showUnitsButton . '</div>';
                     }
 
@@ -435,7 +448,7 @@ class AdminController extends Controller
         }
         $course->save();
 
-        return response()->json(['success' => 'Course added successfully']);
+        return response()->json(['success' => 'Unit added successfully']);
     }
 
     public function getTeachersForAssignment()
@@ -531,7 +544,7 @@ class AdminController extends Controller
 
         ProcessUnitAI::dispatch($unit->id, $this->videoToAudioService);
 
-        return response()->json(['success' => 'Unit added successfully']);
+        return response()->json(['success' => 'Lesson added successfully']);
     }
 
     private function extractVideoId($url)
@@ -605,18 +618,32 @@ class AdminController extends Controller
         }
         $unit->save();
         ProcessUnitAI::dispatch($unit->id, $this->videoToAudioService);
-        return response()->json(['success' => 'Unit updated successfully']);
+        return response()->json(['success' => 'Lesson updated successfully']);
     }
 
     public function destroyUnit(Request $request, $id)
     {
         try {
-            $unit = Unit::findOrFail($id);
-            $unit->delete(); // Deletes the unit
+            $unit = Unit::with(['quizzes.assessments'])->findOrFail($id);
+            $unitsIds = [$unit->id];
+            foreach ($unit->quizzes as $quiz) {
+                foreach ($quiz->assessments as $assessment) {
+                    foreach ($assessment->userResponses as $response) {
+                        $response->delete();
+                    }
+                    $assessment->delete();
+                }
+                $quiz->delete();
+            }
+            DB::table('student_units')
+                ->whereIn('unit_id', $unitsIds)
+                ->delete();
 
-            return response()->json(['success' => 'Unit deleted successfully']);
+            $unit->delete();
+
+            return response()->json(['success' => 'Lesson and all related quizzes and assessments deleted successfully']);
         } catch (\Exception $e) {
-            return response()->json(['error' => 'Error deleting unit', 'message' => $e->getMessage()], 422);
+            return response()->json(['error' => 'Error deleting Lesson', 'message' => $e->getMessage()], 422);
         }
     }
 
@@ -703,10 +730,16 @@ class AdminController extends Controller
 
     public function updateStudent(Request $request, $id)
     {
+        $student = Student::findOrFail($id);
+
         $validator = Validator::make($request->all(), [
             'first_name' => 'required|string|max:255',
             'last_name' => 'required|string|max:255',
-            'email' => 'required|string|email|max:255',
+            'email' => [
+                'required',
+                'regex:/^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/',
+                'unique:users,email,' . $student->user->id
+            ],
             'phone_number' => 'required|string|max:15',
             'country_location' => 'required|string|max:255',
             'country_code' => 'required|string|max:5',
@@ -719,7 +752,7 @@ class AdminController extends Controller
             return response()->json(['errors' => $validator->errors()], 422);
         }
 
-        $student = Student::findOrFail($id);
+
 
         $student->update([
             'english_proficiency_level' => $request->english_proficiency_level,
@@ -742,7 +775,18 @@ class AdminController extends Controller
     public function deleteStudent($id)
     {
         $student = Student::findOrFail($id);
-        $student->user()->delete();
+        $user = $student->user;
+
+        if ($user) {
+            if ($user->timeLogs()->exists()) {
+                $user->timeLogs()->delete();
+            }
+            if($user->userSubscriptions()->exists()){
+                $user->userSubscriptions()->delete();
+            }
+
+            $user->delete();
+        }
         $student->delete();
 
         return response()->json(['message' => 'Student deleted successfully']);
@@ -860,7 +904,7 @@ class AdminController extends Controller
 
         return response()->json([
             'assessments' => $student->levelTestAssessments,
-            'student' => $student->student // Include student data in the response
+            'student' => $student->student
         ]);
     }
 
@@ -898,7 +942,7 @@ class AdminController extends Controller
             'messages' => [
                 [
                     'role' => 'system',
-                    'content' => $text
+                    'content' => $text 
                 ],
                 ['role' => 'user', 'content' => $prompt]
             ],

@@ -16,11 +16,11 @@
 @section('content')
     <div class="card">
         <div class="card-body">
-            <h5>Courses List</h5>
+            <h5>Units List</h5>
             @can('create courses')
                 <div class="d-flex justify-content-end mb-3">
                     <button class="btn btn-sm btn-primary" data-bs-toggle="modal" data-bs-target="#addCourseModal">Add New
-                        Course</button>
+                        Unit</button>
                 </div>
             @endcan
             <div class="table-responsive">
@@ -51,12 +51,12 @@
                     <form id="addCourseForm" enctype="multipart/form-data">
                         @csrf
                         <div class="modal-header">
-                            <h5 class="modal-title" id="addCourseModalLabel">Add New Course</h5>
+                            <h5 class="modal-title" id="addCourseModalLabel">Add New Unit</h5>
                             <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                         </div>
                         <div class="modal-body">
                             <div class="mb-3">
-                                <label for="title" class="form-label">Course Title</label>
+                                <label for="title" class="form-label">Unit Title</label>
                                 <input type="text" class="form-control" id="title" name="title" required>
                             </div>
                             <div class="mb-3">
@@ -97,7 +97,7 @@
                         </div>
                         <div class="modal-footer">
                             <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
-                            <button type="submit" class="btn btn-primary">Add Course</button>
+                            <button type="submit" class="btn btn-primary">Add Unit</button>
                         </div>
                     </form>
                 </div>
@@ -113,7 +113,7 @@
                     <form id="assignTeacherForm">
                         @csrf
                         <div class="modal-header">
-                            <h5 class="modal-title" id="assignTeacherModalLabel">Assign Teacher to Course</h5>
+                            <h5 class="modal-title" id="assignTeacherModalLabel">Assign Teacher to Unit</h5>
                             <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                         </div>
                         <div class="modal-body">
@@ -242,15 +242,15 @@
                         if (response.success) {
                             table.ajax.reload(null, false);
                             showAlert('success',
-                                'Course completion status updated successfully!',
+                                'Unit completion status updated successfully!',
                                 'bxs-check-circle');
                         } else {
-                            showAlert('danger', 'Error updating course completion status',
+                            showAlert('danger', 'Error updating Unit completion status',
                                 'bxs-message-square-x');
                         }
                     },
                     error: function() {
-                        showAlert('danger', 'Error updating course completion status',
+                        showAlert('danger', 'Error updating Unit completion status',
                             'bxs-message-square-x');
                     }
                 });
@@ -296,7 +296,7 @@
                     success: function(response) {
                         $('#addCourseModal').modal('hide');
                         table.ajax.reload();
-                        showAlert('success', 'Course added successfully!', 'bxs-check-circle');
+                        showAlert('success', 'Unit added successfully!', 'bxs-check-circle');
 
                         // Clear input fields
                         $('#title').val('');
@@ -309,7 +309,7 @@
                         pond.removeFiles();
                     },
                     error: function(response) {
-                        showAlert('danger', 'Error adding course', 'bxs-message-square-x');
+                        showAlert('danger', 'Error adding Unit', 'bxs-message-square-x');
                     }
                 });
             });

@@ -180,7 +180,6 @@ class TeacherController extends Controller
         $audioTranscriptions = [];
         \Log::info("before foreach data" . json_encode($data));
 
-        // Map question keys to question IDs
         $questions = LevelTestQuestion::with('choices')->get()->keyBy('id');
 
         foreach ($data as $key => $value) {
@@ -189,7 +188,7 @@ class TeacherController extends Controller
                 $question = $questions->get($questionId);
 
                 if (!$question) {
-                    continue; // Skip if question does not exist
+                    continue;
                 }
 
                 $assessment = new LevelTestAssessment();
@@ -237,12 +236,8 @@ class TeacherController extends Controller
             }
         }
 
-        // Send data to OpenAI for review
         $aiResponse = $this->reviewWithAI($openAiRequests);
 
-        \Log::info("AI response: " . json_encode($aiResponse));
-
-        // Update assessments with AI response
         foreach ($aiResponse['questions'] as $review) {
             $assessment = LevelTestAssessment::where('level_test_question_id', $review['question_id'])
                 ->where('user_id', $user->id)
@@ -260,12 +255,10 @@ class TeacherController extends Controller
 
     private function transcribeAudio($audioPath)
     {
-        \Log::info("inside transcribeAudio");
-        \Log::info("Transcribing audio file at path: " . $audioPath);
+
         $extension = pathinfo($audioPath, PATHINFO_EXTENSION);
 
         if ($extension === 'webm' && is_string($audioPath) && file_exists($audioPath)) {
-            // Convert the webm file to wav format using laravel-ffmpeg
             $wavPath = str_replace('.webm', '.wav', $audioPath);
             FFMpeg::fromDisk('local')
                 ->open($audioPath)
@@ -282,24 +275,20 @@ class TeacherController extends Controller
             $audioContent = new UploadedFile($audioPath, basename($audioPath));
         }
 
-        // Ensure $audioContent is an instance of UploadedFile
         if ($audioContent instanceof UploadedFile) {
-            \Log::info("File details - MimeType: " . $audioContent->getMimeType() . ", Size: " . $audioContent->getSize() . ", Original Name: " . $audioContent->getClientOriginalName() . ", Extension: " . $audioContent->getClientOriginalExtension());
 
-            // Check if the file type is supported by the transcription service
 
             $response = OpenAI::audio()->translate([
                 'model' => 'whisper-1',
                 'file' => fopen($audioContent->getRealPath(), 'r'),
                 'language' => 'en',
-                'temperature' => 0, // Set temperature to 0 for deterministic output
+                'temperature' => 0, 
             ]);
 
             \Log::info("Transcription response: " . json_encode($response));
             return $response['text'];
         } else {
-            \Log::info("fail on line 338: ");
-            dd("Invalid audio content provided.");
+            return null;
         }
     }
 
@@ -320,8 +309,6 @@ class TeacherController extends Controller
         ]);
 
         \Log::info("response: " . json_encode($response));
-
-        // Extract and clean the JSON part of the response
         $responseContent = $response->choices[0]->message->content;
         $jsonString = $this->extractJsonString($responseContent);
 
@@ -337,7 +324,6 @@ class TeacherController extends Controller
         $jsonEnd = strrpos($responseContent, '}') + 1;
         $jsonString = substr($responseContent, $jsonStart, $jsonEnd - $jsonStart);
 
-        // Further clean-up if necessary
         $jsonString = trim($jsonString, " \t\n\r\0\x0B");
 
         return $jsonString;
@@ -377,7 +363,7 @@ class TeacherController extends Controller
         ]
     }
 
-    Evaluate the following questions:\n\n";
+    Here are the questions and answers provided by the teachers That needs Evasluation: \n\n";
 
         foreach ($requests as $request) {
             $prompt .= "Question ID: {$request['question_id']}\n";
@@ -394,7 +380,7 @@ class TeacherController extends Controller
                 $prompt .= "Transcription: {$request['transcription']}\n\n";
             }
         }
-
+        \Log::info("Generated prompt: " . $prompt);
         return $prompt;
     }
 

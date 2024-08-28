@@ -42,7 +42,7 @@
     <div class="card g-3 mt-5">
         <div class="card-body row g-3">
             <h4 class="pt-3 mb-0">
-                <span class="text-muted fw-light">Courses /</span> {{ $course->title }} <span
+                <span class="text-muted fw-light">Units /</span> {{ $course->title }} <span
                     class="{{ $course->completed ? 'badge bg-success' : 'badge bg-warning text-dark' }} rounded-pill">{{ $course->completed ? 'Completed' : 'In Progress' }}</span>
 
             </h4>
@@ -123,7 +123,7 @@
                                             <a class="nav-link" id="course-content-tab" data-toggle="tab"
                                                 href="#course-content" role="tab" aria-controls="course-content"
                                                 aria-selected="false">
-                                                Course Content
+                                                Units Content
                                             </a>
                                         </li>
                                         <li class="nav-item">
@@ -259,7 +259,7 @@
                                         aria-labelledby="overview-tab">
                                         <div class="lecture-overview-wrap">
                                             <div class="lecture-overview-item">
-                                                <h3 class="fs-24 font-weight-semi-bold pb-2">About this course</h3>
+                                                <h3 class="fs-24 font-weight-semi-bold pb-2">About this unit</h3>
                                                 <p>{{ $course->description }}</p>
                                             </div><!-- end lecture-overview-item -->
                                             <div class="section-block"></div>
@@ -294,8 +294,8 @@
                                                     </div><!-- end lecture-overview-stats-item -->
                                                     <div
                                                         class="lecture-overview-stats-item lecture-overview-stats-wide-item">
-                                                        <p class="pb-3">Get Safar AI certificate by completing entire
-                                                            course
+                                                        <p class="pb-3">Get Safar AI certificate by completing the entire
+                                                            unit
                                                         </p>
                                                         <a class="btn theme-btn theme-btn-small theme-btn-transparent bg-primary text-white"
                                                             id="certificate-button">Safar
@@ -761,7 +761,7 @@
                             </div><!-- end course-dashboard-column -->
 
                             <div class="course-dashboard-sidebar-column">
-                                <button class="sidebar-open" type="button"><i class="la la-angle-left"></i> Course
+                                <button class="sidebar-open" type="button"><i class="la la-angle-left"></i> Unit
                                     Content</button>
                                 <div class="course-dashboard-sidebar-wrap custom-scrollbar-styled">
                                     <div
@@ -864,7 +864,7 @@
                         <div class="modal-header border-bottom-gray">
                             <div class="pr-2">
                                 <h5 class="modal-title fs-19 font-weight-semi-bold lh-24" id="ratingModalTitle">
-                                    How would you rate this course?
+                                    How would you rate this unit?
                                 </h5>
                             </div>
                             <button type="button" class="close" data-dismiss="modal" aria-label="Close">
@@ -904,7 +904,7 @@
                 <div class="modal-dialog modal-dialog-centered" role="document">
                     <div class="modal-content">
                         <div class="modal-header border-bottom-gray">
-                            <h5 class="modal-title fs-19 font-weight-semi-bold" id="shareModalTitle">Share this course
+                            <h5 class="modal-title fs-19 font-weight-semi-bold" id="shareModalTitle">Share this unit
                             </h5>
                             <button type="button" class="close" data-dismiss="modal" aria-label="Close">
                                 <span aria-hidden="true" class="la la-times"></span>
@@ -964,7 +964,7 @@
                                         <div class="select-container w-auto">
                                             <select class="select-container-select">
                                                 <option value>-- Select One --</option>
-                                                <option value="1">Inappropriate Course Content</option>
+                                                <option value="1">Inappropriate unit Content</option>
                                                 <option value="2">Inappropriate Behavior</option>
                                                 <option value="3">Safar AI Policy Violation</option>
                                                 <option value="4">Spammy Content</option>
@@ -1219,7 +1219,7 @@
                     },
                     success: function(response) {
                         if (response.success) {
-                            console.log('Unit completion status updated.');
+                            console.log('Lesson completion status updated.');
                         }
                     }
                 });
@@ -1245,14 +1245,14 @@
                                     Swal.fire({
                                         icon: 'warning',
                                         title: 'Oops...',
-                                        text: 'You have to complete the course first!',
+                                        text: 'You have to complete the unit first!',
                                         confirmButtonText: 'OK',
                                     });
                                 } else {
                                     Swal.fire({
                                         icon: 'warning',
                                         title: 'Oops...',
-                                        text: 'The course is not yet completed! ,the course still has more lessons will be available soon',
+                                        text: 'The unit is not yet completed! ,the unit still has more lessons will be available soon',
                                         confirmButtonText: 'OK'
                                     });
                                 }
@@ -1282,7 +1282,7 @@
                     Swal.fire({
                         icon: 'warning',
                         title: 'Oops...',
-                        text: 'You have to be a student to rate the course!',
+                        text: 'You have to be a student to rate the unit!',
                         confirmButtonText: 'OK',
                     });
                     return;

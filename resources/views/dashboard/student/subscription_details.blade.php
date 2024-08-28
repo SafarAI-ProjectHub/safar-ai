@@ -158,7 +158,8 @@
                 <div class="row mb-4">
                     <div class="col-lg-6 col-md-8 col-7 mb-2 mb-lg-0">
                         <span class="d-block">
-                            <span class="h4">{{ $payment->payment_type == 'cliq' ? 'one time payment' : 'Monthly' }}
+                            <span
+                                class="h4">{{ $subscriptionStatus == 'active' ? ($payment->payment_type == 'cliq' ? 'one time payment' : 'Monthly') : 'N/A' }}
                             </span>
                             <span
                                 class="badge {{ $subscriptionStatus == 'active' ? 'bg-success' : ($subscriptionStatus == 'suspended' ? 'bg-warning' : 'bg-danger') }} ms-2">
@@ -166,7 +167,7 @@
                             </span>
                         </span>
                         <p class="mb-0 fs-6">Subscription ID:
-                            #{{ $subscription ? '100010' . $subscription->subscription_id : 'N/A' }}</p>
+                            {{ $subscription ? '#100010' . $subscription->subscription_id : 'N/A' }}</p>
                     </div>
                 </div>
                 <div class="row">

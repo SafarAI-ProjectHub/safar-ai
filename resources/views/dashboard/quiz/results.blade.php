@@ -9,8 +9,8 @@
         <div class="card">
             <div class="card-header bg-primary text-white">
                 <h2>Results for Quiz: {{ $quiz->title }}</h2>
-                <p>Course: {{ $quiz->unit->course->title }}</p>
-                <p>Unit: {{ $quiz->unit->title }}</p>
+                <p>Unit: {{ $quiz->unit->course->title }}</p>
+                <p>Lesson: {{ $quiz->unit->title }}</p>
             </div>
             <div class="card-body">
                 <table id="results-table" class="table table-striped table-bordered">

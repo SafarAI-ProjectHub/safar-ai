@@ -192,11 +192,37 @@
                     method: 'PUT',
                     data: $(this).serialize(),
                     success: function(response) {
-                        alert('Contract updated successfully.');
+                        // alert('Contract updated successfully.');
+                        swal.fire({
+                            title: 'Success!',
+                            text: 'Contract updated successfully.',
+                            icon: 'success',
+                            confirmButtonText: 'OK'
+                        });
                         window.location.href = '{{ route('contracts.index') }}';
                     },
                     error: function(response) {
-                        alert('Error updating contract.');
+                        // alert('Error updating contract.');
+                        if (response.responseJSON.errors) {
+                            var errors = response.responseJSON.errors;
+                            var errorMessage = '';
+                            for (var key in errors) {
+                                errorMessage += errors[key][0] + '\n';
+                            }
+                            swal.fire({
+                                title: 'Error!',
+                                text: errorMessage,
+                                icon: 'error',
+                                confirmButtonText: 'OK'
+                            });
+                        } else {
+                            swal.fire({
+                                title: 'Error!',
+                                text: 'Error updating contract.',
+                                icon: 'error',
+                                confirmButtonText: 'OK'
+                            });
+                        }
                     }
                 });
             });

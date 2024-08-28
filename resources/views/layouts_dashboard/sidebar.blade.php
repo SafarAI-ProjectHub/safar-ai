@@ -44,13 +44,13 @@
                 <li>
                     <a href="javascript:;" class="has-arrow">
                         <div class="parent-icon"><i class='bx bx-book-open'></i></div>
-                        <div class="menu-title">Courses</div>
+                        <div class="menu-title">Units</div>
                     </a>
                     <ul>
                         <li>
                             <a href="{{ route('student.myCourses') }}">
                                 <div class="parent-icon"><i class='bx bx-book'></i></div>
-                                <div class="menu-title">My Courses</div>
+                                <div class="menu-title">My Units</div>
                             </a>
                         </li>
                         <li>
@@ -159,7 +159,7 @@
                 <li>
                     <a href="javascript:;" class="has-arrow">
                         <div class="parent-icon"><i class='bx bx-book-open'></i></div>
-                        <div class="menu-title">Courses</div>
+                        <div class="menu-title">Units</div>
                     </a>
                     <ul>
                         <li>
@@ -167,9 +167,9 @@
                                 <div class="parent-icon"><i class="bx bx-book"></i></div>
                                 <div class="menu-title">
                                     @hasanyrole('Super Admin|Admin')
-                                        Courses
+                                        Units
                                     @else
-                                        My Courses
+                                        My Units
                                     @endhasanyrole
                                 </div>
                             </a>
@@ -178,7 +178,7 @@
                             <li>
                                 <a href="{{ route('manage.permissions') }}">
                                     <div class="parent-icon"><i class="bx bx-lock"></i></div>
-                                    <div class="menu-title">Create Course Permissions</div>
+                                    <div class="menu-title">Create Unit Permissions</div>
                                 </a>
                             </li>
                         @endhasanyrole

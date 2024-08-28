@@ -109,7 +109,8 @@
                     data.assessments.forEach(function(assessment) {
                         var responseContent = '';
                         // Display the user's response differently based on the type
-                        if (assessment.question.question_type === 'voice') {
+                        if (assessment.question && assessment.question.question_type ===
+                            'voice') {
                             responseContent =
                                 `<audio controls><source src="/${assessment.response}" type="audio/wav">Your browser does not support the audio element.</audio>`;
                         } else {
@@ -118,7 +119,8 @@
 
                         var mediaContent = '';
                         // Check if the question has an associated audio file based on media_type
-                        if (assessment.question.media_type === 'audio') {
+                        if (assessment.question && assessment.question.media_type ===
+                            'audio') {
                             mediaContent =
                                 `<audio controls style="margin-top:10px;"><source src="{{ asset('${assessment.question.media_url}') }}" type="audio/mpeg">Your browser does not support the audio element.</audio>`;
                         }
@@ -126,7 +128,7 @@
                         assessmentsHtml += `
                 <div class="card mb-3">
                     <div class="card-header">
-                        <h5>Question: ${assessment.question.question_text}</h5>
+                        <h5>Question: ${assessment.question ?assessment.question.question_text :'N/A'}</h5>
                         ${mediaContent}
                     </div>
                     <div class="card-body">

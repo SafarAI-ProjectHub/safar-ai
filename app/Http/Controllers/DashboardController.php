@@ -223,7 +223,6 @@ class DashboardController extends Controller
                 ->get();
         });
 
-
         // Fetch country data for students and teachers
         $countryData = Cache::remember('country_data', 60, function () {
             $students = Student::with('user')->get()->groupBy('user.country_location');

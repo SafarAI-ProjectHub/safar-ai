@@ -303,7 +303,7 @@
                             <div class="d-flex align-items-center">
                                 <div>
                                     <p class="mb-0 text-secondary">
-                                        Total Courses
+                                        Total Units
                                     </p>
                                     <h4 class="my-1">
                                         {{ $data['total_courses'] }}
@@ -325,7 +325,7 @@
                             <div class="d-flex align-items-center">
                                 <div>
                                     <p class="mb-0 text-secondary">
-                                        Total Units
+                                        Total Lessons
                                     </p>
                                     <h4 class="my-1">
                                         {{ $data['total_units'] }}
