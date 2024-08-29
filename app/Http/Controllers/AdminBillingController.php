@@ -48,7 +48,7 @@ class AdminBillingController extends Controller
 
             return DataTables::of($query)
                 ->addColumn('user_name', function ($row) {
-                    return $row->user->full_name;
+                    return $row->user && $row->user->full_name !== null ? $row->user->full_name : 'N/A';
                 })
                 ->addColumn('subscription_name', function ($row) {
                     return $row->subscription->product_name ?? 'N/A';

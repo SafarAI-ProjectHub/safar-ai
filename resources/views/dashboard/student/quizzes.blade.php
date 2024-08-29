@@ -16,8 +16,8 @@
                     <thead>
                         <tr>
                             <th>Quiz Title</th>
+                            <th>Lesson</th>
                             <th>Unit</th>
-                            <th>Course</th>
                             <th>Action</th>
                         </tr>
                     </thead>

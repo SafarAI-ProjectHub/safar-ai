@@ -115,11 +115,11 @@
         <div class="container my-5">
             <div class="row">
                 <div class="col-md-12 text-center mb-4">
-                    <h1>All Courses</h1>
+                    <h1>All units</h1>
                 </div>
                 @if ($courses->isEmpty())
                     <div class="col-md-12 text-center">
-                        <h3>No courses available</h3>
+                        <h3>No units available</h3>
                     </div>
                 @else
                     @foreach ($courses as $course)
@@ -166,9 +166,9 @@
                                     </p>
                                     <p class="card-text">
                                         @if ($course->type == 'weekly')
-                                            <i class="bi bi-calendar-week"></i> Weekly Course
+                                            <i class="bi bi-calendar-week"></i> Weekly Unit
                                         @else
-                                            <i class="bi bi-lightning"></i> Intensive Course
+                                            <i class="bi bi-lightning"></i> Intensive Unit
                                         @endif
                                     </p>
                                     <div class="rating-wrap d-flex align-items-center justify-content-between  mb-3">
@@ -196,10 +196,10 @@
                                     <div class="mt-auto">
                                         @if (in_array($course->id, $enrolledCourseIds))
                                             <a href="{{ route('admin.showcourse', $course->id) }}"
-                                                class="btn btn-secondary w-100">View Course</a>
+                                                class="btn btn-secondary w-100">View Unit</a>
                                         @else
                                             <button class="btn btn-primary w-100 enroll-btn"
-                                                data-course-id="{{ $course->id }}">Enroll in Course</button>
+                                                data-course-id="{{ $course->id }}">Enroll in Unit</button>
                                         @endif
                                     </div>
                                 </div>
@@ -285,13 +285,13 @@
                         </div>
                         <div class="modal-body">
                             <h5 class="modal-title">Unlock Premium Features</h5>
-                            <p>Get exclusive access to advanced courses and resources. Enhance your learning with our
+                            <p>Get exclusive access to advanced units and resources. Enhance your learning with our
                                 Premium Plan!</p>
                             <button class="btn btn-detail btn-primary"
                                 onclick="location.href='{{ route('subscription.details') }}'">See Details</button>
                             <p class="mt-4"><strong>Note:</strong> if you have subscribed and still see this message,
                                 please wait for up to one minute. The page will reload, and you will gain access to the
-                                courses. The delay is due to payment processing by PayPal. Thank you for your patience!</p>
+                                units. The delay is due to payment processing by PayPal. Thank you for your patience!</p>
                         </div>
                     </div>
                 </div>
@@ -313,7 +313,7 @@
                         <p><strong>Teacher Name:</strong> <span id="teacherName"></span></p>
                         <p><strong>Years of Experience:</strong> <span id="teacherExperience"></span></p>
                     </div>
-                    <button id="enrollButton" class="btn btn-primary w-100 mt-3">Enroll in Course</button>
+                    <button id="enrollButton" class="btn btn-primary w-100 mt-3">Enroll in Unit</button>
                 </div>
             </div>
         </div>
@@ -414,7 +414,7 @@
                         $('#courseModal').modal('hide');
                         Swal.fire({
                             title: 'Enrolled Successfully!',
-                            text: 'You have been enrolled in the course.',
+                            text: 'You have been enrolled in the Unit.',
                             icon: 'success',
                             confirmButtonText: 'OK'
                         }).then(() => {

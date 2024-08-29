@@ -26,7 +26,7 @@ class PermissionController extends Controller
                 })
                 ->addColumn('permissions', function ($user) {
                     $permission = Permission::findByName('create courses');
-                    return $user->hasPermissionTo($permission->name) ? '<span class="badge bg-success">create courses</span>' : '<span class="badge bg-secondary">None</span>';
+                    return $user->hasPermissionTo($permission->name) ? '<span class="badge bg-success">create Unit</span>' : '<span class="badge bg-secondary">None</span>';
                 })
                 ->addColumn('actions', function ($user) {
                     $permission = Permission::findByName('create courses');

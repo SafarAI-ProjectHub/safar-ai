@@ -29,6 +29,87 @@
         .skillbar-box {
             width: 100%;
         }
+        .card.card-item {
+            height: 100%;
+        }
+
+        .card-text.description {
+            height: 80px;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        .bg-primary {
+            background-color: #be09cd !important;
+        }
+
+        .skillbar-box {
+            width: 100%;
+        }
+
+        .modal-dialog {
+            max-width: 600px;
+            margin: 30px auto;
+        }
+
+        .modal-content {
+            padding: 20px;
+        }
+
+        .modal-header {
+            border-bottom: none;
+        }
+
+        .btn-close {
+            float: right;
+        }
+
+        .btn-detail {
+            background-color: #007BFF;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 5px;
+            font-size: 16px;
+            text-decoration: none;
+            margin-top: 15px;
+        }
+
+        .btn-detail:hover {
+            background-color: #0056b3;
+        }
+
+        .course-details {
+            max-height: 400px;
+            overflow-y: auto;
+        }
+
+        .course-title {
+            font-size: 1.5rem;
+            margin-bottom: 1rem;
+        }
+
+        .course-description {
+            white-space: pre-wrap;
+            margin-bottom: 1rem;
+        }
+
+        .modal-body {
+            padding: 2rem;
+        }
+
+        .card.card-item.youtube {
+            height: 315px;
+        }
+
+        .card-body.d-flex.flex-column.youtube {
+            padding: 10px 20px 0;
+        }
+        img.card-img-top.lazy {
+            width: 100%;
+            min-height: 212px;
+            object-fit: cover;
+        }
     </style>
 @endsection
 
@@ -36,11 +117,11 @@
     <div class="container my-5">
         <div class="row">
             <div class="col-md-12 text-center mb-4">
-                <h1>My Enrolled Courses</h1>
+                <h1>My Enrolled Unit</h1>
             </div>
             @if ($courses->isEmpty())
                 <div class="col-md-12 text-center">
-                    <h3>You have not enrolled in any courses yet.</h3>
+                    <h3>You have not enrolled in any units yet.</h3>
                 </div>
             @else
                 @foreach ($courses as $course)
@@ -128,7 +209,7 @@
                                 </dev>
 
                                 <a href="{{ route('admin.showcourse', $course->id) }}"
-                                    class="btn btn-primary mt-3 d-block">View Course</a>
+                                    class="btn btn-primary mt-auto d-block">View Unit</a>
                             </div>
                             <!-- end card-body -->
                         </div>
@@ -152,4 +233,27 @@
     <script src="{{ asset('js/tooltipster.bundle.min.js') }}"></script>
     <script src="{{ asset('js/jquery.lazy.min.js') }}"></script>
     <script src="{{ asset('js/main.js') }}"></script>
+    <script>
+        function adjustCardHeights() {
+                    var maxHeight = 0;
+                    var maximgHeight = 0;
+                    $('.card.card-item.youtube').each(function() {
+                        var thisHeight = $(this).height();
+                        if (thisHeight > maxHeight) {
+                            maxHeight = thisHeight;
+                        }
+                    });
+                    $('.card-img-top img').each(function() {
+                        var imgHeight = $(this).height();
+                        if (imgHeight > maximgHeight) {
+                            maximgHeight = imgHeight;
+                        }
+                    });
+                    $('.card.card-item.youtube').height(maxHeight);
+                }
+
+                $(window).on('load', function() {
+                    adjustCardHeights();
+                });
+    </script>
 @endsection

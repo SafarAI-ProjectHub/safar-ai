@@ -183,7 +183,7 @@
                     <div class="col-lg-3 col-md-3 col-6 mb-2 mb-lg-0">
                         <span class="fs-6">Access</span>
                         <h6 class="mb-0">
-                            Access All Courses</h6>
+                            Access All units</h6>
                     </div>
                     <div class="col-lg-3 col-md-3 col-6 mb-2 mb-lg-0">
                         <span

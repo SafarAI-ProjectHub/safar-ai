@@ -71,49 +71,6 @@
             </div>
         </div>
     </div>
-
-    <!-- Modal for Edit Subscription -->
-    <div class="modal fade" id="editSubscriptionModal" tabindex="-1" aria-labelledby="editSubscriptionModalLabel"
-        aria-hidden="true">
-        <div class="modal-dialog">
-            <div class="modal-content">
-                <div class="modal-header">
-                    <h5 class="modal-title" id="editSubscriptionModalLabel">Edit Subscription</h5>
-                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-                </div>
-                <div class="modal-body">
-                    <form id="editSubscriptionForm">
-                        @csrf
-                        <input type="hidden" id="edit_subscription_id" name="subscription_id">
-                        <div class="mb-3">
-                            <label for="edit_name" class="form-label">Product Name</label>
-                            <input type="text" class="form-control" id="edit_name" name="name" disabled required>
-                        </div>
-                        <div class="mb-3">
-                            <label for="edit_description" class="form-label">Description</label>
-                            <textarea class="form-control" id="edit_description" name="description" required></textarea>
-                        </div>
-                        <div class="mb-3">
-                            <label for="edit_price" class="form-label">Price</label>
-                            <input type="number" class="form-control" id="edit_price" name="price" required>
-                        </div>
-                        <div class="mb-3">
-                            <label for="edit_subscription_type" class="form-label">Subscription Type</label>
-                            <select class="form-control" id="edit_subscription_type" name="subscription_type" required>
-                                <option value="monthly">Monthly</option>
-                                <option value="yearly">Yearly</option>
-                            </select>
-                        </div>
-                        <div class="mb-3">
-                            <label for="edit_features" class="form-label">Features</label>
-                            <textarea class="form-control" id="edit_features" name="features"></textarea>
-                        </div>
-                        <button type="submit" class="btn btn-primary">Update Subscription</button>
-                    </form>
-                </div>
-            </div>
-        </div>
-    </div>
 @endsection
 
 @section('scripts')
@@ -124,9 +81,11 @@
                 processing: true,
                 serverSide: true,
                 ajax: '{{ route('admin.subscriptions.index') }}',
-                columns: [{
+                columns: [ {
                         data: 'adminName',
-                        name: 'adminName'
+                        name: 'adminName',
+                        defaultContent: 'N/A' ,
+                        
                     },
                     {
                         data: 'product_name',

@@ -25,7 +25,7 @@ class AdminSubscriptionController extends Controller
             $subscriptions = Subscription::with('user')->get();
             return DataTables::of($subscriptions)
                 ->addColumn('adminName', function ($subscription) {
-                    return $subscription->user->full_name;
+                    return $subscription->user && $subscription->user->full_name != null ? $subscription->user->full_name : 'N/A';
                 })
                 ->editColumn('is_active', function ($subscription) {
                     return '<div class="form-check form-switch d-flex justify-content-center">
