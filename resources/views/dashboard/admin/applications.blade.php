@@ -233,17 +233,19 @@
                     var assessmentsHtml = '';
                     data.assessments.forEach(function(assessment) {
                         var responseContent = '';
-                        if (assessment.question.question_type === 'voice') {
+                        if (assessment?.question?.question_type === 'voice') {
                             responseContent =
                                 `<audio controls><source src="/storage/${assessment.response}" type="audio/wav">Your browser does not support the audio element.</audio>`;
                         } else {
-                            responseContent = assessment.response;
+                            responseContent = assessment?.response || '';
                         }
+
 
                         assessmentsHtml += `
                 <div class="card mb-3">
                     <div class="card-header">
-                        <h5>Question: ${assessment.question.question_text}</h5>
+                        <h5>Question: ${assessment?.question?.question_text || 'No question text available'}</h5>
+
                     </div>
                     <div class="card-body">
                         <p><strong>Answer:</strong> ${responseContent}</p>

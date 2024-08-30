@@ -195,6 +195,7 @@ class AdminController extends Controller
             })
             ->addColumn('exam_result', function ($teacher) {
                 if ($teacher->user->levelTestAssessments()->exists()) {
+                    
                     return '<button class="btn btn-primary btn-sm view-assessment" data-id="' . $teacher->user->id . '">View Result</button>';
                 } else {
                     return 'No attempt yet';
