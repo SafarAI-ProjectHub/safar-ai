@@ -257,7 +257,9 @@
                 questionTypeSelect.append('<option value="choice">Multiple Choice</option>');
                 if (contentType === 'video') {
                     questionTypeSelect.append('<option value="voice">Voice Recorded</option>');
+                    questionTypeSelect.append('<option value="text">Writing</option>');
                 } else if (contentType === 'text') {
+                    questionTypeSelect.append('<option value="voice">Voice Recorded</option>');
                     questionTypeSelect.append('<option value="text">Writing</option>');
                 }
             }

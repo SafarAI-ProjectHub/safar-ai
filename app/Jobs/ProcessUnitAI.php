@@ -144,28 +144,42 @@ class ProcessUnitAI implements ShouldQueue
     }
     private function extractJsonString($responseContent)
     {
-        // Use regular expression to find JSON within backticks
-        if (preg_match('/```json\s*(\{[\s\S]*?\})\s*```/s', $responseContent, $matches)) {
-            $jsonString = $matches[1];
-            $jsonString = trim($jsonString); // Ensure the JSON string is trimmed of any leading/trailing spaces
-            \Log::info("Extracted JSON string: " . $jsonString);
-            // Remove any extraneous quotation marks or unwanted characters
-            $jsonString = str_replace(['“', '”', '“”', '""', '""""', '"""', '““', '””'], '', $jsonString);
-            \Log::info("Cleaned JSON string: " . $jsonString);
-            // Validate the JSON string
-            // dd($jsonString);
-            if ($this->isValidJson($jsonString)) {
-                \Log::info("Valid JSON string extracted: Paaaaaaaaasssssssssssss");
+        // Try decoding JSON directly
+        $decodedJson = json_decode($responseContent, true);
+        if (json_last_error() === JSON_ERROR_NONE) {
+            \Log::info("Direct JSON decoding successful.");
+            return $responseContent;
+        }
+    
+        // Step 2: Extract JSON enclosed in backticks or braces
+        if (
+            preg_match('/```json\s*(\{[\s\S]*?\})\s*```/s', $responseContent, $matches) ||
+            preg_match('/(\{[\s\S]*\})/', $responseContent, $matches)
+        ) {
+            // Clean the JSON string
+            $jsonString = trim($matches[1]);
+            $jsonString = str_replace(['“', '”', '‘', '’'], '"', $jsonString); // Replace non-standard quotes
+            $jsonString = preg_replace('/[\r\n]+/', ' ', $jsonString); // Remove line breaks
+    
+            \Log::info("Extracted JSON string before validation: " . $jsonString);
+    
+            // Validate cleaned JSON
+            $decodedJson = json_decode($jsonString, true);
+            if (json_last_error() === JSON_ERROR_NONE) {
+                \Log::info("JSON extraction and validation successful.");
                 return $jsonString;
             } else {
-                \Log::error("Invalid JSON string extracted:faillllllllllllllllllll");
-                return null;
+                \Log::error("Invalid JSON after extraction. Error: " . json_last_error_msg());
             }
         } else {
-            \Log::error("Failed to extract JSON string from response content: " . $responseContent);
-            return null;
+            \Log::error("Failed to locate JSON pattern in response content.");
         }
+    
+        // If all attempts fail, log the issue and return null
+        \Log::error("Final JSON extraction failure from response: " . $responseContent);
+        return null;
     }
+    
 
     private function isValidJson($string)
     {

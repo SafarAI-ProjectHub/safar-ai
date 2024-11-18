@@ -21,6 +21,7 @@ use App\Services\VideoToAudioService;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Artisan;
 use Carbon\Carbon;
+use DB;
 use Illuminate\Support\Facades\Hash;
 
 class AdminController extends Controller
@@ -154,7 +155,7 @@ class AdminController extends Controller
                 $user->timeLogs()->delete();
             }
         }
-         
+
         $user->delete();
 
         return response()->json(['message' => 'Admin deleted successfully']);
@@ -195,7 +196,7 @@ class AdminController extends Controller
             })
             ->addColumn('exam_result', function ($teacher) {
                 if ($teacher->user->levelTestAssessments()->exists()) {
-                    
+
                     return '<button class="btn btn-primary btn-sm view-assessment" data-id="' . $teacher->user->id . '">View Result</button>';
                 } else {
                     return 'No attempt yet';
@@ -324,11 +325,11 @@ class AdminController extends Controller
             $teacher = Teacher::findOrFail($id);
             $user = $teacher->user;
 
-        if ($user) {
-            if ($user->timeLogs()->exists()) {
-                $user->timeLogs()->delete();
+            if ($user) {
+                if ($user->timeLogs()->exists()) {
+                    $user->timeLogs()->delete();
+                }
             }
-        }
             $teacher->user()->delete();
             $teacher->delete();
 
@@ -337,8 +338,6 @@ class AdminController extends Controller
             return response()->json(['error' => 'Error deleting teacher', 'message' => $e->getMessage()], 422);
         }
     }
-
-
 
     /* 
      *
@@ -391,7 +390,8 @@ class AdminController extends Controller
                         $assignButton = '<a href="#" class="btn btn-primary btn-sm assign-teacher-btn" data-course-id="' . $row->id . '"><i class="bx bx-user-plus"></i> ' . ($row->teacher ? 'Change Teacher' : 'Assign Teacher') . '</a>';
                         $showUnitsButton = '<a href="' . url('courses') . '/' . $row->id . '/units" class="btn btn-primary btn-sm"><i class="bx bx-show-alt"></i> Show Lessons</a>';
                         $viewCourseButton = '<a href="' . url('courses') . '/' . $row->id . '/show" class="btn btn-primary btn-sm"><i class="bx bx-detail"></i> View Unit</a>';
-                        $actions = '<div class="d-flex justify-content-around gap-2">' . $assignButton . $showUnitsButton . $viewCourseButton . '</div>';
+                        $deleteCouresButton = ' <a class="btn btn-sm btn-outline-dark btn-danger delete-btn p-2" data-id="' . $row->id . '"><i class="bx bx-trash"></i>Delete</a>';
+                        $actions = '<div class="d-flex justify-content-around gap-2">' . $assignButton . $showUnitsButton . $viewCourseButton . $deleteCouresButton .'</div>';
                     }
 
                     if (Auth::user()->hasRole('Teacher')) {
@@ -425,7 +425,7 @@ class AdminController extends Controller
             'category_id' => 'required|exists:course_categories,id',
             'level' => 'required|integer|min:1|max:6',
             'type' => 'required|in:weekly,intensive',
-            'image' => 'required|image|mimes:jpeg,png,jpg,gif|max:5120',
+            'image' => 'required|image|mimes:jpeg,png,jpg,gif,svg|max:5120',
         ]);
 
         // Store the image
@@ -472,7 +472,40 @@ class AdminController extends Controller
         return response()->json(['success' => 'Teacher assigned successfully!']);
     }
 
-
+    public function deleteCourse($courseId)
+    {
+        try {
+            $course = Course::findOrFail($courseId);
+    
+            // Delete related certificates
+            $course->certificates()->delete();
+    
+            $course->students()->detach();
+            $course->units()->each(function ($unit) {
+                $unit->quizzes()->each(function ($quiz) {
+                    $quiz->assessments()->each(function ($assessment) {
+                        $assessment->userResponses()->delete();
+                        $assessment->delete();
+                    });
+                    $quiz->questions()->each(function ($question) {
+                        $question->choices()->delete();
+                        $question->delete();
+                    });
+                    $quiz->delete(); 
+                });
+                $unit->delete();
+            });
+    
+            $course->rates()->delete();
+            $course->courseStudents()->delete();
+            $course->delete();
+    
+            return response()->json(['success' => true, 'message' => 'Course deleted successfully']);
+        } catch (\Exception $e) {
+            return response()->json(['success' => false, 'message' => 'Error deleting course: ' . $e->getMessage()], 500);
+        }
+    }
+    
     /* 
      *
      *
@@ -782,7 +815,7 @@ class AdminController extends Controller
             if ($user->timeLogs()->exists()) {
                 $user->timeLogs()->delete();
             }
-            if($user->userSubscriptions()->exists()){
+            if ($user->userSubscriptions()->exists()) {
                 $user->userSubscriptions()->delete();
             }
 
@@ -928,13 +961,13 @@ class AdminController extends Controller
     }
 
 
-    private function scriptAi($prompt, $type = 'text')
+    private function scriptAi($prompt, $type = 'text',$transcription = null)
     {
         if ($type == 'text') {
             $text = 'You are an AI assistant tasked with turning the content of a course unit into a detailed script. This script will be used when the user takes a quiz for this unit. Please generate a script based strictly on the provided content. Ensure that the script explains the content thoroughly and comprehensively without adding any new details or elements. The script should clearly describe the original  content. Return the response in JSON format with the key "script". note: the script will not be for the Student it will be for the ai so just explain in a way the ai will understand the subject that the quastions and answerss revlove around but also insure that the content will be at the end of the script so the ai will be able to answer the questions and know what answers are wrong and what are corect fro example if there names or place could the quastio by about them and return in teh json script as a keyand even if the contetn is short and simple as hello  and do not need explanation then just removeing the html tags and return it as it is   and the value should not be multi line keep it on the same line to not get wrong json .';
         } elseif ($type == 'video') {
             // unit type is vedio and we need to tell that to the ai that the text is taken from the vedio audio
-            $text = 'You are an AI assistant tasked with turning the audio content of a course unit video into a detailed script. This script will be used when the user takes a quiz for this unit. Please generate a script based strictly on the provided audio content. Ensure that the script explains the content thoroughly and comprehensively without adding any new details or elements. The script should clearly describe the original content. Return the response in JSON format with the key "script". Note that the script will not be for the student, but for the AI, so explain the subject in a way that the AI will understand the questions and answers. Ensure the content is at the end of the script so the AI can answer the questions correctly. If there are names or places, the questions could be about them. The JSON should have the "script" key, and the value should be a single line to avoid incorrect JSON formatting. If the content is short and simple like "hello", return it as it is. Additionally, note that the text has been extracted from the video, so if some words do not make sense, correct them in the best way based on the context of the video.';
+            $text = 'You are an AI assistant tasked with turning the audio content of a course unit video into a detailed script. This script will be used when the user takes a quiz for this unit. Please generate a script based strictly on the provided audio content. Ensure that the script explains the content thoroughly and comprehensively without adding any new details or elements. The script should clearly describe the original content. Return the response in JSON format with the key "script". Note that the script will not be for the student, but for the AI, so explain the subject in a way that the AI will understand the questions and answers. Ensure the content is at the end of the script so the AI can answer the questions correctly. If there are names or places, the questions could be about them. The JSON should have the "script" key, and the value should be a single line to avoid incorrect JSON formatting. If the content is short and simple like "hello", return it as it is. Additionally, note that the text has been extracted from the video, so if some words do not make sense, correct them in the best way based on the context of the video.Please respond with a single JSON object containing only the script key and its value, without any extra characters, backticks, or formatting. The response should start with { and end with }. Do not include any explanations or additional text outside of the JSON object.';
 
         }
         // dd('test');
@@ -943,7 +976,7 @@ class AdminController extends Controller
             'messages' => [
                 [
                     'role' => 'system',
-                    'content' => $text 
+                    'content' => $text
                 ],
                 ['role' => 'user', 'content' => $prompt]
             ],
@@ -957,34 +990,48 @@ class AdminController extends Controller
         $jsonString = $this->extractJsonString($responseContent);
 
         $aiResponse = json_decode($jsonString, true);
+        if ($aiResponse === null && $type === 'video' && $transcription) {
+            // Fallback to using the transcription text if JSON parsing fails
+            \Log::warning("Falling back to transcription due to JSON extraction failure");
+            $aiResponse = ['script' => $transcription];
+        }
         \Log::info("aiResponse: " . json_encode($aiResponse));
 
         return $aiResponse;
     }
     private function extractJsonString($responseContent)
     {
-        // Use regular expression to find JSON within backticks
-        if (preg_match('/```json\s*(\{[\s\S]*?\})\s*```/s', $responseContent, $matches)) {
-            $jsonString = $matches[1];
-            $jsonString = trim($jsonString); // Ensure the JSON string is trimmed of any leading/trailing spaces
-            \Log::info("Extracted JSON string: " . $jsonString);
-            // Remove any extraneous quotation marks or unwanted characters
-            $jsonString = str_replace(['“', '”', '“”', '""', '""""', '"""', '““', '””'], '', $jsonString);
-            \Log::info("Cleaned JSON string: " . $jsonString);
-            // Validate the JSON string
-            // dd($jsonString);
-            if ($this->isValidJson($jsonString)) {
-                \Log::info("Valid JSON string extracted: Paaaaaaaaasssssssssssss");
-                return $jsonString;
-            } else {
-                \Log::error("Invalid JSON string extracted:faillllllllllllllllllll");
-                return null;
-            }
-        } else {
-            \Log::error("Failed to extract JSON string from response content: " . $responseContent);
-            return null;
+        // Step 1: Attempt direct JSON decoding
+        $decodedJson = json_decode($responseContent, true);
+        if (json_last_error() === JSON_ERROR_NONE) {
+            \Log::info("Successfully decoded JSON response directly");
+            return $decodedJson;  // Return decoded JSON if valid
         }
+
+        // Step 2: Fallback to extracting JSON pattern within backticks or curly braces
+        if (
+            preg_match('/```json\s*(\{[\s\S]*?\})\s*```/s', $responseContent, $matches) ||
+            preg_match('/(\{[\s\S]*\})/', $responseContent, $matches)
+        ) {
+
+            $jsonString = trim($matches[1]);
+            $jsonString = str_replace(['“', '”', '‘', '’'], '"', $jsonString);  // Replace non-standard quotes
+
+            // Try decoding extracted JSON string
+            $decodedJson = json_decode($jsonString, true);
+            if (json_last_error() === JSON_ERROR_NONE) {
+                \Log::info("Successfully decoded JSON from extracted pattern");
+                return $decodedJson;
+            }
+        }
+
+        // Step 3: Log error if JSON extraction fails
+        \Log::error("Failed to extract or decode JSON string from response content: " . $responseContent);
+        return null;
     }
+
+
+
 
     private function isValidJson($string)
     {

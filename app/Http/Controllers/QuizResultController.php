@@ -40,6 +40,9 @@ class QuizResultController extends Controller
             }
 
             return DataTables::of($quizzes)
+            ->addColumn('username', function ($assessment) {
+                    return $assessment->user->full_name;
+                })
                 ->addColumn('course_title', function ($assessment) {
                     return $assessment->quiz->unit->course->title;
                 })

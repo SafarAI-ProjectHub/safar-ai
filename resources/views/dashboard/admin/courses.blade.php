@@ -134,6 +134,7 @@
             </div>
         </div>
     @endhasanyrole
+    <input type="hidden" id="delete_source" value="{{ route('admin.courses.delete') }}">
 @endsection
 
 @section('scripts')
@@ -143,6 +144,8 @@
     <script src="https://unpkg.com/filepond-plugin-image-preview/dist/filepond-plugin-image-preview.js"></script>
     <script src="https://unpkg.com/filepond-plugin-file-validate-type/dist/filepond-plugin-file-validate-type.js"></script>
     <script src="{{ asset('assets/plugins/select2/js/select2.min.js') }}"></script>
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+
     <script>
         $(document).ready(function() {
             var table = $('#courses-table').DataTable({
@@ -405,6 +408,62 @@
                     $('.alert').alert('close');
                 }, 5000);
             }
+
+            $(document).on('click', '.delete-btn', function() {
+                let id = $(this).data('id');
+                let url = $('#delete_source').val() + '/' + id;
+
+
+                Swal.fire({
+                    title: 'Are you sure?',
+                    text: "You won't be able to revert this!",
+                    icon: "warning",
+                    showCancelButton: true,
+                    confirmButtonColor: "#3085d6",
+                    cancelButtonColor: "#d33",
+                    confirmButtonText: "Yes, delete it!",
+                    cancelButtonText: "Cancel"
+                }).then((result) => {
+                    if (result.isConfirmed) {
+                        $.ajaxSetup({
+                            headers: {
+                                'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
+                            }
+                        });
+                        $.ajax({
+                            url: url,
+                            method: 'DELETE',
+                            dataType: 'json',
+                            success: function(response) {
+                                if (response.success) {
+                                    Swal.fire({
+                                        title: "Deleted!",
+                                        text: response.message,
+                                        icon: "success"
+                                    }).then(() => {
+                                        $('#courses-table').DataTable().ajax.reload(); 
+                                    });
+                                } else {
+                                    Swal.fire({
+                                        title: "Error",
+                                        text: response.message,
+                                        icon: "error"
+                                    });
+                                }
+                            },
+                            error: function(xhr) {
+                                Swal.fire({
+                                    title: "Error",
+                                    text: xhr.responseJSON?.message ||
+                                        "An unknown error occurred",
+                                    icon: "error"
+                                });
+                            }
+                        });
+                    }
+                });
+            });
+
         });
     </script>
 @endsection

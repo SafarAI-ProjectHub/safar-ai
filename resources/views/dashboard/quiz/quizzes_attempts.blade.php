@@ -15,7 +15,7 @@
                 <div class="row mb-3">
                     <div class="col-md-4">
                         <select id="course-filter" class="form-control">
-                            <option value="">Select Course</option>
+                            <option value="">Select Unit</option>
                             @foreach ($courses as $course)
                                 <option value="{{ $course->id }}">{{ $course->title }}</option>
                             @endforeach
@@ -23,15 +23,16 @@
                     </div>
                     <div class="col-md-4">
                         <select id="unit-filter" class="form-control">
-                            <option value="">Select Unit</option>
+                            <option value="">Select Lesson</option>
                         </select>
                     </div>
                 </div>
                 <table id="quiz-results-table" class="table table-striped table-bordered">
                     <thead>
                         <tr>
-                            <th>Course Title</th>
+                            <th>Student Name</th>
                             <th>Unit Title</th>
+                            <th>Lesson Title</th>
                             <th>AI Mark</th>
                             <th>Score</th>
                             <th>Action</th>
@@ -69,6 +70,10 @@
                     }
                 },
                 columns: [{
+                        data: 'username',
+                        name: 'username'
+                    },
+                    {
                         data: 'course_title',
                         name: 'course_title'
                     },

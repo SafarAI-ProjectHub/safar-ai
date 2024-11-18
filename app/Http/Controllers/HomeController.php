@@ -53,10 +53,12 @@ class HomeController extends Controller
                     $wordCount = str_word_count(strip_tags($unit->content));
                     $totalMinutes += $wordCount / 200;
                 } elseif ($unit->content_type === 'video') {
-                    $path = public_path($unit->content);
-                    $video = $ffmpeg->open($path);
-                    $durationInSeconds = $video->getFormat()->get('duration');
-                    $totalMinutes += $durationInSeconds / 60;
+                    if ($unit->content !== null) {
+                        $path = public_path($unit->content);
+                        $video = $ffmpeg->open($path);
+                        $durationInSeconds = $video->getFormat()->get('duration');
+                        $totalMinutes += $durationInSeconds / 60;
+                    }
                 }
             }
 

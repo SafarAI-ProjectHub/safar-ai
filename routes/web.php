@@ -217,6 +217,8 @@ Route::middleware(['auth', 'role:Super Admin|Admin|Teacher'])->group(function ()
     Route::get('courses/data', [AdminController::class, 'getCourses'])->name('admin.getCourses');
     Route::post('/courses/{course}/toggle-complete', [AdminController::class, 'toggleComplete'])->name('courses.toggleComplete');
     Route::post('courses/store', [AdminController::class, 'storeCourse'])->name('admin.storeCourse');
+    Route::delete('courses/delete/{id?}', [AdminController::class, 'deleteCourse'])->name('admin.courses.delete');
+
 
     // Units
     Route::get('courses/{courseId}/units', [AdminController::class, 'showUnits'])->name('admin.showUnits');

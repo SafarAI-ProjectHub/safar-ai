@@ -306,17 +306,25 @@ class QuizController extends Controller
      * @return \Illuminate\Http\Response
      */
     public function deleteQuiz($quizId)
-    {
-        $quiz = Quiz::findOrFail($quizId);
+{
+    $quiz = Quiz::findOrFail($quizId);
 
-        // Delete questions and choices
-        foreach ($quiz->questions as $question) {
+    // Delete related assessments and their user responses
+    $quiz->assessments()->each(function ($assessment) {
+        $assessment->userResponses()->delete();
+        
+        $assessment->delete();
+    });
+
+    foreach ($quiz->questions as $question) {
+        if ($question->choices()->exists()) {
             $question->choices()->delete();
-            $question->delete();
         }
-
-        $quiz->delete();
-
-        return response()->json(['message' => 'Quiz deleted successfully']);
+        $question->delete();
     }
+    $quiz->delete();
+
+    return response()->json(['message' => 'Quiz deleted successfully']);
+}
+
 }
