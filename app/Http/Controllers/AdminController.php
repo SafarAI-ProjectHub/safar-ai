@@ -620,7 +620,7 @@ class AdminController extends Controller
             'subtitle' => 'nullable|string|max:255',
             'content_type' => 'required|in:video,text,youtube',
             'content' => 'required_if:content_type,text,youtube',
-            'video' => 'required_if:content_type,video|file|mimes:mp4,mov,ogg,qt|max:20000'
+            'video' => 'nullable|file|mimes:mp4,mov,ogg,qt|max:20000'
         ]);
 
         $unit = Unit::findOrFail($id);

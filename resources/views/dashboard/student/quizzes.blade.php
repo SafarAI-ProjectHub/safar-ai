@@ -9,13 +9,13 @@
 @section('content')
     <div class="card">
         <div class="card-body">
-            <h5>Available Quizzes</h5>
+            <h5>Available Activities</h5>
 
             <div class="table-responsive">
                 <table id="quizzes-table" class="table table-striped table-bordered">
                     <thead>
                         <tr>
-                            <th>Quiz Title</th>
+                            <th>Activity Title</th>
                             <th>Lesson</th>
                             <th>Unit</th>
                             <th>Action</th>

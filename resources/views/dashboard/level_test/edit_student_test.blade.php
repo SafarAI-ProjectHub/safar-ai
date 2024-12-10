@@ -203,7 +203,7 @@
                 </div>
             </div>
             <div class="question-input">
-                <label>Question Text</label>
+                <label>Question</label>
                 <input type="text" class="form-control question-text" name="questions[][text]" required>
                 <input type="file" class="form-control question-audio" name="questions[][audio]" accept="audio/*"
                     style="display:none;">
@@ -212,7 +212,7 @@
             <label>Notes</label>
             <input type="text" class="form-control question-sub-text" name="questions[][sub_text]">
             <div class="invalid-feedback"></div>
-            <label>Question Type</label>
+            <label>Response Type</label>
             <select class="form-select question-type" name="questions[][type]" required>
                 <option value="" disabled selected>Select Type</option>
                 <option value="choice">Multiple Choice</option>

@@ -79,7 +79,7 @@ class QuizController extends Controller
             ->get();
 
         if ($units->isEmpty()) {
-            return response()->json(['message' => 'All units have been assigned quizzes or there are no units available.'], 404);
+            return response()->json(['message' => 'All units have been assigned activities or there are no units available.'], 404);
         }
 
         return response()->json($units);
@@ -296,7 +296,7 @@ class QuizController extends Controller
             }
         }
 
-        return response()->json(['message' => 'Quiz and questions updated successfully', 'quiz' => $quiz]);
+        return response()->json(['message' => 'Activity and questions updated successfully', 'quiz' => $quiz]);
     }
 
     /**
@@ -324,7 +324,7 @@ class QuizController extends Controller
     }
     $quiz->delete();
 
-    return response()->json(['message' => 'Quiz deleted successfully']);
+    return response()->json(['message' => 'Activity deleted successfully']);
 }
 
 }

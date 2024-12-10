@@ -54,7 +54,7 @@
 @section('content')
     <div class="card">
         <div class="card-body">
-            <h5>Edit Quiz</h5>
+            <h5>Edit Activity</h5>
             <form id="editQuizForm">
                 @csrf
                 @method('PUT')
@@ -78,8 +78,8 @@
                                         disabled>
                                         <div class="bs-stepper-circle"><i class='bx bx-edit-alt fs-4'></i></div>
                                         <div class="">
-                                            <h5 class="mb-0 steper-title">Quiz Title</h5>
-                                            <p class="mb-0 steper-sub-title">Enter the quiz title</p>
+                                            <h5 class="mb-0 steper-title">Activity Title</h5>
+                                            <p class="mb-0 steper-sub-title">Enter the activity title</p>
                                         </div>
                                     </div>
                                 </div>
@@ -90,7 +90,7 @@
                                         <div class="bs-stepper-circle"><i class='bx bx-question-mark fs-4'></i></div>
                                         <div class="">
                                             <h5 class="mb-0 steper-title">Edit Questions</h5>
-                                            <p class="mb-0 steper-sub-title">Edit quiz questions</p>
+                                            <p class="mb-0 steper-sub-title">Edit activity questions</p>
                                         </div>
                                     </div>
                                 </div>
@@ -124,14 +124,14 @@
                                             @endforeach
                                         </select>
                                         <div id="no-units-message" class="mt-2 text-danger" style="display:none;">No Lessons
-                                            available or all Lessons have been assigned quizzes.</div>
+                                            available or all Lessons have been assigned activities.</div>
                                     </div>
                                     <button type="button" class="btn btn-primary" id="next-to-step2">Next</button>
                                 </div>
                                 <div id="step2" role="tabpanel" class="bs-stepper-pane"
                                     aria-labelledby="stepper3trigger2">
                                     <div class="mb-3">
-                                        <label for="quiz-title" class="form-label">Quiz Title</label>
+                                        <label for="quiz-title" class="form-label">Activity Title</label>
                                         <input type="text" class="form-control" id="quiz-title" name="title"
                                             value="{{ $quiz->title }}" required>
                                         <div class="invalid-feedback"></div>
@@ -158,7 +158,7 @@
                     </div>
                 </div>
                 <div class="d-flex justify-content-end mt-3">
-                    <button type="submit" class="btn btn-primary">Update Quiz</button>
+                    <button type="submit" class="btn btn-primary">Update Activity</button>
                 </div>
             </form>
         </div>
@@ -174,7 +174,7 @@
             <label>Notes</label>
             <input type="text" class="form-control question-sub-text" name="questions[][sub_text]">
             <div class="invalid-feedback"></div>
-            <label>Question Type</label>
+            <label>Response Type</label>
             <select class="form-select question-type" name="questions[][type]" required>
                 <option value="" disabled>Select Type</option>
                 <option value="choice">Multiple Choice</option>
@@ -227,7 +227,7 @@
                     method: 'GET',
                     success: function(units) {
                         $('#unit-select').empty().append(
-                            '<option value="" disabled selected>Select a unit</option>');
+                            '<option value="" disabled selected>Select a lesson</option>');
                         units.forEach(function(unit) {
                             $('#unit-select').append(
                                 `<option value="${unit.id}">${unit.title} - ${unit.content_type}</option>`
@@ -275,7 +275,7 @@
                     addInitialQuestion();
                 } else {
                     if (!$('#quiz-title').val()) {
-                        showFieldError($('#quiz-title'), 'Please enter a quiz title.');
+                        showFieldError($('#quiz-title'), 'Please enter a activity title.');
                     }
                     if (!$('#quiz-pass-mark').val()) {
                         showFieldError($('#quiz-pass-mark'), 'Please enter a pass mark.');
@@ -439,7 +439,7 @@
                     data: JSON.stringify(formData),
                     contentType: 'application/json',
                     success: function(response) {
-                        showAlert('success', 'Quiz and questions updated successfully',
+                        showAlert('success', 'Activity and questions updated successfully',
                             'bxs-check-circle');
                         window.location.href = "{{ route('quizzes.index') }}";
                     },
@@ -463,7 +463,7 @@
                             errorMessages += '</ul>';
                             showAlert('danger', errorMessages, 'bxs-message-square-x');
                         } else {
-                            showAlert('danger', 'Error updating quiz', 'bxs-message-square-x');
+                            showAlert('danger', 'Error updating activity', 'bxs-message-square-x');
                         }
                     }
                 });

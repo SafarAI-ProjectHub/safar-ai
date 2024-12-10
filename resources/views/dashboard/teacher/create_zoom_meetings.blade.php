@@ -43,12 +43,12 @@
                         @endhasrole
                         <option value="course_specific"
                             {{ isset($zoomMeeting) && $zoomMeeting->invite_option == 'course_specific' ? 'selected' : '' }}>
-                            Specific Course</option>
+                            Specific Unit</option>
                     </select>
                 </div>
                 <div class="mb-3" id="course_select_div"
                     style="display: {{ isset($zoomMeeting) && $zoomMeeting->invite_option == 'course_specific' ? 'block' : 'none' }};">
-                    <label for="course_id" class="form-label">Course</label>
+                    <label for="course_id" class="form-label">Unit</label>
                     <select class="form-select" id="course_id" name="course_id">
                         @foreach ($courses as $course)
                             <option value="{{ $course->id }}"

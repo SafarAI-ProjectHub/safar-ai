@@ -26,7 +26,6 @@
         <div class="card-body">
             <h5>Lessons for Unit: <a href="{{ route('admin.courses') }}">{{ $course->title }}</a></h5>
             <div class="alert alert-info index-0" role="alert">
-                {{-- note to check the script to make sure that the ai wote corect script about the video or the text becuze the corectines of the ai when checking the student answers on thr quizes will be based on the script corectness --}}
                 <strong>Note:</strong> The script is used by the AI to check the correctness of student answers in quizzes.
                 please make sure the script is accurate.
             </div>

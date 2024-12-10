@@ -148,7 +148,7 @@
         </div>
         <div class="card mb-4 table-responsive">
             <div class="card-header bg-primary text-white">
-                <h2>Quiz Result: {{ $assessment->quiz->title }}</h2>
+                <h2>Activity Result: {{ $assessment->quiz->title }}</h2>
                 <p>{{ $assessment->quiz->unit->title }} - {{ $assessment->quiz->unit->course->title }}</p>
                 <p><strong>Student Name:</strong> {{ $assessment->user->full_name }}</p>
             </div>

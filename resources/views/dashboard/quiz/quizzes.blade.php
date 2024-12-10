@@ -3,15 +3,15 @@
 @section('content')
     <div class="card">
         <div class="card-body">
-            <h5>Manage Quizzes and Questions</h5>
+            <h5>Manage Activities and Questions</h5>
             <div class="d-flex justify-content-end mb-3">
-                <a href="{{ route('quiz.addPage') }}" class="btn btn-sm btn-primary">Add New Quiz</a>
+                <a href="{{ route('quiz.addPage') }}" class="btn btn-sm btn-primary">Add New Activity</a>
             </div>
             <div class="table-responsive">
                 <table id="quizzes-table" class="table table-striped table-bordered">
                     <thead>
                         <tr>
-                            <th>Quiz Title</th>
+                            <th>Activity Title</th>
                             <th>Lesson</th>
                             <th>Unit</th>
                             <th>Actions</th>
@@ -103,7 +103,7 @@
                             success: function(response) {
                                 Swal.fire(
                                     'Deleted!',
-                                    'Your quiz has been deleted.',
+                                    'Your activity has been deleted.',
                                     'success'
                                 );
                                 table.ajax.reload();
@@ -111,7 +111,7 @@
                             error: function(response) {
                                 Swal.fire(
                                     'Error!',
-                                    'There was an error deleting the quiz.',
+                                    'There was an error deleting the activity.',
                                     'error'
                                 );
                             }

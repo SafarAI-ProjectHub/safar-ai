@@ -64,13 +64,13 @@
                 <li>
                     <a href="javascript:;" class="has-arrow">
                         <div class="parent-icon"><i class='bx bx-task'></i></div>
-                        <div class="menu-title">Quizzes</div>
+                        <div class="menu-title">Activities</div>
                     </a>
                     <ul>
                         <li>
                             <a href="{{ route('student.quizzes.list') }}">
                                 <div class="parent-icon"><i class="bx bx-list-ul"></i></div>
-                                <div class="menu-title">Available Quizzes</div>
+                                <div class="menu-title">Available Activities</div>
                             </a>
                         </li>
                     </ul>
@@ -186,19 +186,19 @@
                         <li>
                             <a href="{{ route('quizzes.index') }}">
                                 <div class="parent-icon"><i class="bx bx-brain"></i></div>
-                                <div class="menu-title">Quizzes</div>
+                                <div class="menu-title">Activities</div>
                             </a>
                         </li>
                         <li>
                             <a href="{{ route('quiz.addPage') }}">
                                 <div class="parent-icon"><i class="bx bx-plus-circle"></i></div>
-                                <div class="menu-title">Add Quiz</div>
+                                <div class="menu-title">Add Activity</div>
                             </a>
                         </li>
                         <li>
                             <a href="{{ route('quizResults.index') }}">
                                 <div class="parent-icon"><i class="bx bx-clipboard"></i></div>
-                                <div class="menu-title">Quiz Results</div>
+                                <div class="menu-title">Activity Results</div>
                             </a>
                         </li>
                         @hasanyrole('Super Admin|Admin')

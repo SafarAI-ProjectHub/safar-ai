@@ -163,7 +163,7 @@
                     <h2>Title: {{ $quiz->title }}</h2>
                     <p>{{ $quiz->unit->title }} - {{ $quiz->unit->course->title }}</p>
                 @else
-                    <h2>No Quiz Available</h2>
+                    <h2>No Activity Available</h2>
                 @endif
             </div>
         </div>
@@ -215,7 +215,7 @@
                 @endforeach
 
                 <div class="text-center">
-                    <button type="submit" class="btn btn-success">Submit Quiz</button>
+                    <button type="submit" class="btn btn-success">Submit Activity</button>
                 </div>
             </form>
         @endif
@@ -317,7 +317,7 @@
                     Swal.fire({
                         icon: 'error',
                         title: 'Incomplete Recordings',
-                        text: 'Please complete all required audio recordings before submitting the quiz.',
+                        text: 'Please complete all required audio recordings before submitting the activity.',
                     });
                     return;
                 }
@@ -346,7 +346,7 @@
                             Swal.fire({
                                 icon: 'error',
                                 title: 'Submission Error',
-                                text: 'An error occurred while submitting your quiz. Please try again.',
+                                text: 'An error occurred while submitting your activity. Please try again.',
                             });
                         }
                     },
@@ -355,7 +355,7 @@
                         Swal.fire({
                             icon: 'error',
                             title: 'Submission Error',
-                            text: 'An error occurred while submitting your quiz. Please try again.',
+                            text: 'An error occurred while submitting your activity. Please try again.',
                         });
                         console.error('Error:', error);
                     }

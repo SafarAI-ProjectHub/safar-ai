@@ -9,7 +9,7 @@
     <div class="container mt-5">
         <div class="card">
             <div class="card-header  text-white">
-                <h2>Quiz Results</h2>
+                <h2>Activity Results</h2>
             </div>
             <div class="card-body table-responsive">
                 <div class="row mb-3">

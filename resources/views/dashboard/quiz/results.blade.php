@@ -8,7 +8,7 @@
     <div class="container mt-5">
         <div class="card">
             <div class="card-header bg-primary text-white">
-                <h2>Results for Quiz: {{ $quiz->title }}</h2>
+                <h2>Results for Activity: {{ $quiz->title }}</h2>
                 <p>Unit: {{ $quiz->unit->course->title }}</p>
                 <p>Lesson: {{ $quiz->unit->title }}</p>
             </div>
