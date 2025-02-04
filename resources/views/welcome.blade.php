@@ -280,7 +280,7 @@
 
                 <div class="row gy-4">
 
-                    <div class="col-lg-3 col-md-6">
+                    <div class="col-lg-4 col-md-6">
                         <div class="count-box">
                             <i class="bi bi-emoji-smile"></i>
                             <div>
@@ -291,7 +291,7 @@
                         </div>
                     </div>
 
-                    <div class="col-lg-3 col-md-6">
+                    <div class="col-lg-4 col-md-6">
                         <div class="count-box">
                             <i class="bi bi-journal-richtext" style="color: #ee6c20;"></i>
                             <div>
@@ -302,7 +302,7 @@
                         </div>
                     </div>
 
-                    <div class="col-lg-3 col-md-6">
+                    {{-- <div class="col-lg-3 col-md-6">
                         <div class="count-box">
                             <i class="bi bi-headset" style="color: #15be56;"></i>
                             <div>
@@ -311,9 +311,9 @@
                                 <p>Learning Hours</p>
                             </div>
                         </div>
-                    </div>
+                    </div> --}}
 
-                    <div class="col-lg-3 col-md-6">
+                    <div class="col-lg-4 col-md-6">
                         <div class="count-box">
                             <i class="bi bi-people" style="color: #bb0852;"></i>
                             <div>

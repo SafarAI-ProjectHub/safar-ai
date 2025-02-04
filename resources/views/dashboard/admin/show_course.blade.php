@@ -243,7 +243,6 @@
                                                                                     </p>
                                                                                 </div>
                                                                             </div>
-
                                                             </div>
                                                             </li>
                                                             @endforeach

@@ -17,6 +17,7 @@ class HomeController extends Controller
 {
     public function index()
     {
+
         $teachers = Cache::remember('Home_teachers', 60, function () {
             return Teacher::with('user')->where('approval_status', 'approved')->get();
         });
@@ -42,28 +43,27 @@ class HomeController extends Controller
         });
 
         // Calculate learning hours
-        $learningHours = Cache::remember('Home_learningHours', 60, function () {
-            $units = Unit::all();
-            $totalMinutes = 0;
-            $ffmpeg = FFMpeg::create();
+        // $learningHours = Cache::remember('Home_learningHourss', 60, function () {
+        //     $units = Unit::all();
+        //     $totalMinutes = 0;
+        //     // $ffmpeg = FFMpeg::create();
 
-            foreach ($units as $unit) {
-                if ($unit->content_type === 'text') {
+        //     foreach ($units as $unit) {
+        //         if ($unit->content_type === 'text') {
 
-                    $wordCount = str_word_count(strip_tags($unit->content));
-                    $totalMinutes += $wordCount / 200;
-                } elseif ($unit->content_type === 'video') {
-                    if ($unit->content !== null) {
-                        $path = public_path($unit->content);
-                        $video = $ffmpeg->open($path);
-                        $durationInSeconds = $video->getFormat()->get('duration');
-                        $totalMinutes += $durationInSeconds / 60;
-                    }
-                }
-            }
+        //             $totalMinutes +=  10;
+        //         } elseif ($unit->content_type === 'video') {
+        //             // if ($unit->content !== null) {
+        //             //     // $path = public_path($unit->content);
+        //             //     // $video = $ffmpeg->open($path);
+        //             //     // $durationInSeconds = $video->getFormat()->get('duration');
+        //             // }
+        //                 $totalMinutes += 15;
+        //         }
+        //     }
 
-            return $totalMinutes / 60;
-        });
+        //     return $totalMinutes / 60;
+        // });
 
         $totalStudents = Cache::remember('Home_totalStudents', 60, function () {
             return Student::count();
@@ -76,8 +76,10 @@ class HomeController extends Controller
         $totalTeachers = Cache::remember('Home_totalTeachers', 60, function () {
             return Teacher::where('approval_status', 'approved')->count();
         });
+        // return view('welcome' , compact('teachers', 'offers', 'reviews', 'learningHours', 'totalStudents', 'totalCourses', 'totalTeachers'));
+        return view('welcome' , compact('teachers', 'offers', 'reviews',  'totalStudents', 'totalCourses', 'totalTeachers'));
 
-        return view('welcome', compact('teachers', 'offers', 'reviews', 'learningHours', 'totalStudents', 'totalCourses', 'totalTeachers'));
+        
     }
     public function terms()
     {

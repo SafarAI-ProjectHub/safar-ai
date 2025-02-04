@@ -205,7 +205,7 @@ class QuizController extends Controller
             }
         }
 
-        return response()->json(['message' => 'Quiz and questions added successfully', 'quiz' => $quiz]);
+        return response()->json(['message' => 'units and questions added successfully', 'quiz' => $quiz]);
     }
 
     /**

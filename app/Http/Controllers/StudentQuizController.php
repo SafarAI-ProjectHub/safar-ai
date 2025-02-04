@@ -42,9 +42,9 @@ class StudentQuizController extends Controller
 
                     if ($assessment) {
                         $actionButtons .= '<a href="' . route('student.quiz.result', $quiz->id) . '" class="btn btn-primary btn-sm">Show Result</a> ';
-                        $actionButtons .= '<a href="' . route('student.quiz.show', $quiz->id) . '" class="btn btn-warning btn-sm">Retake Quiz</a>';
+                        $actionButtons .= '<a href="' . route('student.quiz.show', $quiz->id) . '" class="btn btn-warning btn-sm">Retake Activity</a>';
                     } else {
-                        $actionButtons .= '<a href="' . route('student.quiz.show', $quiz->id) . '" class="btn btn-primary btn-sm">Take Quiz</a>';
+                        $actionButtons .= '<a href="' . route('student.quiz.show', $quiz->id) . '" class="btn btn-primary btn-sm">Take Activity</a>';
                     }
 
                     return $actionButtons;
