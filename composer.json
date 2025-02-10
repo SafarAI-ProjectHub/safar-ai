@@ -17,7 +17,6 @@
         "laravel/tinker": "^2.8",
         "munafio/chatify": "^1.6",
         "openai-php/laravel": "^0.10.1",
-        "paypal/paypal-checkout-sdk": "^1.0",
         "pbmedia/laravel-ffmpeg": "^8.5",
         "php-ffmpeg/php-ffmpeg": "^1.2",
         "pusher/pusher-php-server": "^7.2",

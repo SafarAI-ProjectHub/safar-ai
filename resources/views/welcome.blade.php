@@ -30,7 +30,7 @@
             border-radius: 50% !important;
         }
 
-        .navbar-mobile ul {
+        /* .navbar-mobile ul {
             display: block;
             position: absolute;
             top: 55px;
@@ -42,7 +42,27 @@
             background-color: #fff;
             overflow-y: auto;
             transition: 0.3s;
-        }
+        } */
+
+        .navbar-mobile {
+    position: fixed;
+    top: 0;
+    right: 0;
+    left: 0;
+    bottom: 0;
+    background: rgba(255, 255, 255, 0.1); 
+    backdrop-filter: blur(15px); 
+    -webkit-backdrop-filter: blur(15px); 
+    box-shadow: 0px 4px 10px rgba(0, 0, 0, 0.3); 
+    border: 1px solid rgba(255, 255, 255, 0.2);  
+    z-index: 9999;
+}
+.navbar-mobile ul {
+    transition: opacity 0.3s ease-in-out, transform 0.3s ease-in-out;
+}
+
+
+
 
         .hero-slider-item {
             position: relative;
@@ -1173,28 +1193,37 @@
                                 <div class="info-box">
                                     <i class="bi bi-geo-alt"></i>
                                     <h3>Address</h3>
-                                    <p>A108 Adam Street,<br>New York, NY 535022</p>
+                                    
+                                    <p>Mecca Street,<br>Amman, Jordan 11185</p>
+
                                 </div>
                             </div>
                             <div class="col-md-6">
                                 <div class="info-box">
                                     <i class="bi bi-telephone"></i>
                                     <h3>Call Us</h3>
-                                    <p>+1 5589 55488 55<br>+1 6678 254445 41</p>
+                                    <p>{{ env('phone_number') }}
                                 </div>
                             </div>
                             <div class="col-md-6">
                                 <div class="info-box">
                                     <i class="bi bi-envelope"></i>
                                     <h3>Email Us</h3>
-                                    <p>info@example.com<br>contact@example.com</p>
+                                    <p>
+                                        <a href="mailto:{{ env('Email_Adrees') }}" style="color: black; text-decoration: none;" 
+                                        onmouseover="this.style.color='purple'" 
+                                        onmouseout="this.style.color='black'">
+                                            {{ env('Email_Adrees') }}
+                                        </a>
+                                    </p>
+
                                 </div>
                             </div>
                             <div class="col-md-6">
                                 <div class="info-box">
                                     <i class="bi bi-clock"></i>
                                     <h3>Open Hours</h3>
-                                    <p>Monday - Friday<br>9:00AM - 05:00PM</p>
+                                    <p>Saturday - Thursday<br>8:00AM - 08:00PM</p>
                                 </div>
                             </div>
                         </div>

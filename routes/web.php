@@ -222,7 +222,10 @@ Route::middleware(['auth', 'role:Super Admin|Admin|Teacher'])->group(function ()
 
     // Units
     Route::get('courses/{courseId}/units', [AdminController::class, 'showUnits'])->name('admin.showUnits');
-    Route::get('courses/{courseId}/units/data', [AdminController::class, 'getUnits'])->name('admin.getUnits');
+    // Route::get('courses/{courseId}/units/data', [AdminController::class, 'getUnits'])->name('admin.getUnits');
+    Route::get('/admin/courses/{courseId}/units/data', [AdminController::class, 'getUnits'])
+     ->name('admin.getUnits');
+     
     Route::post('units/store', [AdminController::class, 'storeUnit'])->name('admin.storeUnit');
     Route::get('units/{id}/edit', [AdminController::class, 'editUnit'])->name('admin.units.edit');
     Route::put('units/{id}', [AdminController::class, 'updateUnit'])->name('admin.units.update');

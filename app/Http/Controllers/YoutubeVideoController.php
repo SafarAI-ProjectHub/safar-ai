@@ -108,10 +108,18 @@ class YoutubeVideoController extends Controller
     }
 
     private function extractVideoId($url)
-    {
-        parse_str(parse_url($url, PHP_URL_QUERY), $queryParams);
-        return $queryParams['v'] ?? null;
+{
+    $parsedUrl = parse_url($url);
+
+    if (isset($parsedUrl['host']) && (strpos($parsedUrl['host'], 'youtu.be') !== false)) {
+        $path = trim($parsedUrl['path'], '/'); 
+        return $path; 
     }
+
+    parse_str($parsedUrl['query'] ?? '', $queryParams);
+    return $queryParams['v'] ?? null;
+}
+
 
     private function fetchVideoDetails($videoId)
     {

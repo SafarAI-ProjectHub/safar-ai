@@ -23,7 +23,8 @@ use App\Models\Teacher;
 use Spatie\Permission\Models\Role;
 use App\Models\LevelTestChoice;
 use App\Models\YoutubeVideo;
-
+// استدعي موديل Block
+use App\Models\Block;
 
 class StudentController extends Controller
 {
@@ -41,7 +42,6 @@ class StudentController extends Controller
                 $completedLevelTest = LevelTestAssessment::where('user_id', Auth::id())->exists();
 
                 if (!$completedLevelTest) {
-                    // Find an active level test for the user's age group
                     $levelTestQuestions = LevelTestQuestion::with('levelTest')
                         ->whereHas('levelTest', function ($query) use ($ageGroup) {
                             $query->where('exam_type', 'student')
@@ -52,7 +52,6 @@ class StudentController extends Controller
                         })
                         ->get();
 
-                    // If no level test found, update user status and proficiency level
                     if ($levelTestQuestions->isEmpty()) {
                         $user->status = 'active';
                         $user->save();
@@ -64,14 +63,10 @@ class StudentController extends Controller
             }
         }
 
-
         $user = Auth::user();
-
-        // Calculate the user's age
         $dateOfBirth = $user->date_of_birth;
         $age = Carbon::parse($dateOfBirth)->age;
 
-        // Determine the age group
         if ($age >= 6 && $age < 10) {
             $ageGroup = '6-10';
         } elseif ($age >= 10 && $age < 14) {
@@ -90,12 +85,14 @@ class StudentController extends Controller
             $courses = Course::where('level', $user->student->english_proficiency_level)
                 ->where('category_id', $category->id)
                 ->get();
+
             foreach ($courses as $course) {
                 $course->number_of_students = CourseStudent::where('course_id', $course->id)->count();
             }
         } else {
             $courses = collect();
         }
+
         $videoAgeGroup = $user->getAgeGroup();
         $videos = YoutubeVideo::where('age_group', $videoAgeGroup)->paginate(12);
 
@@ -104,7 +101,6 @@ class StudentController extends Controller
                 $video = YoutubeVideo::findOrFail($request->video_id);
                 return response()->json($video);
             }
-
             $videos = YoutubeVideo::where('age_group', $videoAgeGroup)->paginate(12);
             return response()->json($videos);
         }
@@ -112,17 +108,19 @@ class StudentController extends Controller
         $subscription = UserSubscription::where('user_id', Auth::id())->first();
         $enrolledCourseIds = Auth::user()->courses ? Auth::user()->courses->pluck('id')->toArray() : [];
         $planDetails = \App\Models\Subscription::where('is_active', 1)->first();
+
         return view('dashboard.student.dashboard', compact('courses', 'planDetails', 'subscription', 'enrolledCourseIds', 'videos'));
     }
 
     public function levelTest()
     {
         $completedLevelTest = LevelTestAssessment::where('user_id', Auth::id())->exists();
-
         if (!$completedLevelTest) {
-            $levelTestQuestions = LevelTestQuestion::with('levelTest')->whereHas('levelTest', function ($query) {
-                $query->where('exam_type', 'student')->where('active', true);
-            })->get();
+            $levelTestQuestions = LevelTestQuestion::with('levelTest')
+                ->whereHas('levelTest', function ($query) {
+                    $query->where('exam_type', 'student')->where('active', true);
+                })
+                ->get();
             return view('dashboard.student.level_test', compact('levelTestQuestions'));
         }
     }
@@ -153,14 +151,12 @@ class StudentController extends Controller
         $courseId = $request->input('course_id');
         $userId = Auth::id();
 
-        // Check if the user is already enrolled
         if (CourseStudent::where('course_id', $courseId)->where('student_id', $userId)->exists()) {
             return response()->json([
                 'error' => 'You are already enrolled in this course.'
             ], 400);
         }
 
-        // Enroll the user in the course
         CourseStudent::create([
             'course_id' => $courseId,
             'student_id' => $userId,
@@ -173,42 +169,190 @@ class StudentController extends Controller
         ]);
     }
 
+    /*
+        الدالة القديمة لإظهار الدورات المسجّل بها الطالب (معلّقة للاحتفاظ بها مستقبلاً)
 
+        public function myCourses()
+        {
+            $courses = Auth::user()->courses;
+            $student = Auth::user()->student;
+            if (!$courses) {
+                $courses = collect();
+            }
+            foreach ($courses as $course) {
+                $totalUnits = $course->units()->count();
+                $completedUnits = DB::table('student_units')
+                    ->where('student_id', $student->id)
+                    ->whereIn('unit_id', $course->units->pluck('id'))
+                    ->where('completed', true)
+                    ->count();
+                $course->progress = $totalUnits > 0 ? number_format(($completedUnits / $totalUnits) * 100, 2) : 0;
+            }
+            return view('dashboard.student.myCourses', compact('courses'));
+        }
+    */
 
-    public function myCourses()
+    /**
+     * دالة myCourses الجديدة التي تعرض كل البلوكات (وبداخلها الكورسات)
+     * مع الإبقاء على منطق الإظهار السابق معلّقًا (كومنت)
+     */
+    public function myCourses(Request $request)
     {
-        $courses = Auth::user()->courses;
-        $student = Auth::user()->student;
-        if (!$courses) {
-            $courses = collect();
+        // ***1) بدلاً من إحضار الدورات المسجّل بها فقط, نجلب جميع البلوكات من قاعدة البيانات***
+        // (يفترض أن لديك علاقة Block -> hasMany -> Course)
+        $blocksAll = Block::with('courses')->get(); 
+
+        // --------- الكود السابق الذي يعتمد على ما سجّل به الطالب (معلّق) -----------
+        /*
+        $user = Auth::user();
+        $student = $user->student;
+        $courses = $user->courses ?? collect();
+        $blockId = $request->get('block_id');
+        $unitId = $request->get('unit_id');
+        if (!$blockId && !$unitId) {
+            $blocks = $courses->filter(function($course){
+                    return $course->block_id != null;
+                })->groupBy('block_id'); 
+            $blockModels = [];
+            foreach ($blocks as $block_id => $coursesInBlock) {
+                if ($block_id) {
+                    $block = \App\Models\Block::find($block_id);
+                    if ($block) {
+                        $block->courses_count = $coursesInBlock->count();
+                        $blockModels[] = $block;
+                    }
+                }
+            }
+            return view('dashboard.student.myCourses', [
+                'stage' => 'blocks',
+                'blocks' => $blockModels,
+                'courses' => collect(),
+                'units' => collect(),
+                'lessons' => collect(),
+            ]);
         }
-        foreach ($courses as $course) {
-            // Total units in the course
-            $totalUnits = $course->units()->count();
+        if ($blockId && !$unitId) {
+            $filteredCourses = $courses->where('block_id', $blockId);
+            foreach ($filteredCourses as $course) {
+                $totalUnits = $course->units()->count();
+                $completedUnits = DB::table('student_units')
+                    ->where('student_id', $student->id)
+                    ->whereIn('unit_id', $course->units->pluck('id'))
+                    ->where('completed', true)
+                    ->count();
+                $course->progress = $totalUnits > 0 ? number_format(($completedUnits / $totalUnits) * 100, 2) : 0;
+            }
+            return view('dashboard.student.myCourses', [
+                'stage' => 'units',
+                'blocks' => collect(),
+                'courses' => $filteredCourses,
+                'units' => collect(),
+                'lessons' => collect(),
+            ]);
+        }
+        if ($unitId) {
+            $course = $courses->where('id', $unitId)->first();
+            if (!$course) {
+                return redirect()->route('student.myCourses')->with('error', 'Course not found!');
+            }
+            $lessons = $course->units;
+            return view('dashboard.student.myCourses', [
+                'stage' => 'lessons',
+                'blocks' => collect(),
+                'courses' => collect(),
+                'units' => collect(),
+                'lessons' => $lessons,
+            ]);
+        }
+        */
 
-            // Completed units by the student in the course
-            $completedUnits = DB::table('student_units')
-                ->where('student_id', $student->id)
-                ->whereIn('unit_id', $course->units->pluck('id'))
-                ->where('completed', true)
-                ->count();
-
-            // Calculate progress percentage fixed to 2 decimal places
-            $course->progress = $totalUnits > 0 ? number_format(($completedUnits / $totalUnits) * 100, 2) : 0;
-
+        // ***2) المنطق الجديد: عرض جميع البلوكات (وما بداخلها من كورسات)***
+        $blockId = $request->get('block_id');
+        $unitId  = $request->get('unit_id');
+        $lessonId = $request->get('lesson_id'); 
+        if ($lessonId) {
+            // ابحث عن الدرس في جدول units (إن كنت تستخدم جدول units للدروس)
+            // أو في جدول lessons (استخدم Lesson::find($lessonId)) لو عندك جدول مستقل للدروس
+            $lesson = \App\Models\Unit::find($lessonId);
+            if (!$lesson) {
+                return redirect()->route('student.myCourses')->with('error', 'Lesson not found!');
+            }
+            // انتقل لمرحلة lesson_details
+        return view('dashboard.student.myCourses', [
+            'stage'   => 'lesson_details',
+            'lesson'  => $lesson,
+            'blocks'  => collect(),
+            'courses' => collect(),
+            'units'   => collect(),
+            'lessons' => collect(),
+        ]);
+    }
+                    // لو لم يصل block_id ولا unit_id → نعرض جميع البلوكات
+        if (!$blockId && !$unitId) {
+            return view('dashboard.student.myCourses', [
+                'stage'   => 'blocks',
+                'blocks'  => $blocksAll,      // جميع البلوكات
+                'courses' => collect(), 
+                'units'   => collect(),
+                'lessons' => collect(),
+            ]);
         }
 
-        return view('dashboard.student.myCourses', compact('courses'));
+        // لو وصل block_id فقط → نعرض الكورسات التابعة لهذا البلوك
+        if ($blockId && !$unitId) {
+            // ابحث عن البلوك المطلوب
+            $selectedBlock = $blocksAll->where('id', $blockId)->first();
+            if (!$selectedBlock) {
+                return redirect()->route('student.myCourses')->with('error', 'Block not found!');
+            }
+
+            // الكورسات الموجودة في هذا البلوك
+            $filteredCourses = $selectedBlock->courses;
+
+            // (اختياري) لو أردت حساب progress أو غيره؛ تفعله هنا
+            // foreach ($filteredCourses as $course) { ... }
+
+            return view('dashboard.student.myCourses', [
+                'stage'   => 'units',
+                'blocks'  => collect(),
+                'courses' => $filteredCourses, 
+                'units'   => collect(),
+                'lessons' => collect(),
+            ]);
+        }
+
+        // لو وصلنا unit_id → نعرض الدروس (أو الوحدات الداخلية) إن وجدت
+        if ($unitId) {
+            // ابحث في جميع الـBlocks => جميع الـCourses, عن الكورس المطلوب
+            $foundCourse = null;
+            foreach ($blocksAll as $block) {
+                $courseInBlock = $block->courses->where('id', $unitId)->first();
+                if ($courseInBlock) {
+                    $foundCourse = $courseInBlock;
+                    break;
+                }
+            }
+
+            if (!$foundCourse) {
+                return redirect()->route('student.myCourses')->with('error', 'Course not found!');
+            }
+
+            // نفترض $foundCourse->units هو الدروس
+            $lessons = $foundCourse->units ?? collect();
+
+            return view('dashboard.student.myCourses', [
+                'stage'   => 'lessons',
+                'blocks'  => collect(),
+                'courses' => collect(),
+                'units'   => collect(),
+                'lessons' => $lessons,
+            ]);
+        }
     }
 
     /*
-     *
-     *
-     *   meeting section    
-     *
-     *
+     *  Meetings + Level Test sections as is...
      */
-
 
     public function myMeetings()
     {
@@ -219,7 +363,7 @@ class StudentController extends Controller
     {
         try {
             $user = Auth::user();
-            $userMeetings = UserMeeting::select('meeting_id', \DB::raw('MAX(id) as id')) // Example using MAX for id
+            $userMeetings = UserMeeting::select('meeting_id', \DB::raw('MAX(id) as id'))
                 ->where('user_id', $user->id)
                 ->with(['meeting', 'meeting.user'])
                 ->whereHas('meeting', function ($query) {
@@ -259,16 +403,9 @@ class StudentController extends Controller
     public function showMeeting($id)
     {
         $userMeeting = UserMeeting::where('user_id', Auth::id())->where('meeting_id', $id)->with(['meeting', 'meeting.user'])->firstOrFail();
-
         return view('dashboard.student.meeting-details', compact('userMeeting'));
     }
 
-
-    /*
-     *
-     *   level test section   
-     *
-     */
     public function submit(Request $request)
     {
         $user = Auth::user();
@@ -278,22 +415,21 @@ class StudentController extends Controller
         $audioTranscriptions = [];
         \Log::info("before foreach data" . json_encode($data));
 
-        // Map question keys to question IDs
         $questions = LevelTestQuestion::with('choices')->get()->keyBy('id');
 
         foreach ($data as $key => $value) {
             if (strpos($key, 'question_') !== false) {
                 $questionId = explode('_', $key)[1];
                 $question = $questions->get($questionId);
-
                 if (!$question) {
-                    continue; // Skip if question does not exist
+                    continue;
                 }
 
                 $assessment = new LevelTestAssessment();
                 $assessment->level_test_question_id = $questionId;
                 $assessment->user_id = $user->id;
                 $script = null;
+
                 if ($question->question_type === 'choice') {
                     $choice = LevelTestChoice::find($value);
                     $correctAnswer = $question->choices->where('is_correct', true)->first();
@@ -343,33 +479,28 @@ class StudentController extends Controller
                     ];
                 }
 
-                $assessment->correct = false; // Needs manual or AI review later
+                $assessment->correct = false; 
                 $assessment->save();
                 $assessments[] = $assessment;
             }
         }
 
-        // Send data to OpenAI for review
         $aiResponse = $this->reviewWithAI($openAiRequests);
-
         \Log::info("AI response: " . json_encode($aiResponse));
 
-        // Update assessments with AI response
         foreach ($aiResponse['questions'] as $review) {
             $assessment = LevelTestAssessment::where('level_test_question_id', $review['question_id'])
                 ->where('user_id', $user->id)
                 ->first();
-
             if ($assessment) {
                 $assessment->ai_review = $review['ai_review'];
-                $assessment->correct = $review['is_correct'];
+                $assessment->correct   = $review['is_correct'];
                 $assessment->save();
             }
         }
 
         $user->status = 'active';
         $user->save();
-        // Update the user's English proficiency level
         $user->student->updateProficiencyLevel($aiResponse['english_proficiency_level']);
 
         return response()->json(['success' => true]);
@@ -382,7 +513,6 @@ class StudentController extends Controller
         $extension = pathinfo($audioPath, PATHINFO_EXTENSION);
 
         if ($extension === 'webm' && is_string($audioPath) && file_exists($audioPath)) {
-            // Convert the webm file to wav format using laravel-ffmpeg
             $wavPath = str_replace('.webm', '.wav', $audioPath);
             FFMpeg::fromDisk('local')
                 ->open($audioPath)
@@ -392,26 +522,19 @@ class StudentController extends Controller
                 ->save($wavPath);
 
             \Log::info("Converted audio file path: " . $wavPath);
-
-            // Use the wav file for transcription
             $audioContent = new UploadedFile($wavPath, basename($wavPath));
         } else {
             $audioContent = new UploadedFile($audioPath, basename($audioPath));
         }
 
-        // Ensure $audioContent is an instance of UploadedFile
         if ($audioContent instanceof UploadedFile) {
             \Log::info("File details - MimeType: " . $audioContent->getMimeType() . ", Size: " . $audioContent->getSize() . ", Original Name: " . $audioContent->getClientOriginalName() . ", Extension: " . $audioContent->getClientOriginalExtension());
-
-            // Check if the file type is supported by the transcription service
-
             $response = OpenAI::audio()->translate([
                 'model' => 'whisper-1',
                 'file' => fopen($audioContent->getRealPath(), 'r'),
                 'language' => 'en',
-                'temperature' => 0, // Set temperature to 0 for deterministic output
+                'temperature' => 0,
             ]);
-
             \Log::info("Transcription response: " . json_encode($response));
             return $response['text'];
         } else {
@@ -432,7 +555,7 @@ class StudentController extends Controller
             'messages' => [
                 [
                     'role' => 'system',
-                    'content' => 'You are an AI assistant helping to evaluate student assessments for an educational platform. Your task is to review each question and the corresponding answer provided by the students. For each answer, determine if it is correct, and provide detailed feedback. Include suggestions for improvement, focusing on areas such as understanding of the subject matter, clarity of communication, and accuracy. Additionally, consider the overall quality of the answers in terms of their completeness and relevance. Also, provide an overall English proficiency level from 1 to 6 based on the students answers. note any quastion has script in his data, that mean this was an audio and we turn it into text fro you  to be able to review it. so the answers from the student based on teh script if hte scrept is null or empty that mean there is no audio'
+                    'content' => 'You are an AI assistant helping to evaluate student assessments for an educational platform...'
                 ],
                 ['role' => 'user', 'content' => $prompt]
             ],
@@ -441,7 +564,6 @@ class StudentController extends Controller
 
         \Log::info("response: " . json_encode($response));
 
-        // Extract and clean the JSON part of the response
         $responseContent = $response->choices[0]->message->content;
         $jsonString = $this->extractJsonString($responseContent);
 
@@ -454,12 +576,9 @@ class StudentController extends Controller
     private function extractJsonString($responseContent)
     {
         $jsonStart = strpos($responseContent, '{');
-        $jsonEnd = strrpos($responseContent, '}') + 1;
+        $jsonEnd   = strrpos($responseContent, '}') + 1;
         $jsonString = substr($responseContent, $jsonStart, $jsonEnd - $jsonStart);
-
-        // Further clean-up if necessary
         $jsonString = trim($jsonString, " \t\n\r\0\x0B");
-
         return $jsonString;
     }
 
@@ -474,30 +593,12 @@ class StudentController extends Controller
         Additionally, provide the overall English proficiency level from 1 to 6 based on the student's answers.
         
         Here is the JSON structure you will receive:
-        - question_id: the ID of the question
-        - question: the text of the question
-        - answer: the user's answer
-        - question_type: the type of question ('text', 'choice', 'voice')
-        - sub_text: additional information related to the question (optional)
-        - correct_answer: the correct answer for the question (only for 'choice' type questions)
-        - transcription: the text transcription of the voice response (only for 'voice' type questions) + any words that were not transcribed correctly that mainly would be from wrong spillings so that the Student can correct them.
-        - choices: array of possible choices (only for 'choice' type questions)
-        - is_correct: whether the user's answer is correct (only for 'choice' type questions)
-        - ai_review: a review of the user's answer. If the answer is incorrect, include a brief comment on what the student should work on to improve (syntax, grammar, misunderstanding the question, etc.)
-        
-        Evaluate the user's responses and return the results in the following JSON structure:
-        
         {
           \"questions\": [
             {
               \"question_id\": 1,
               \"is_correct\": true,
               \"ai_review\": \"The answer is correct.\"
-            },
-            {
-              \"question_id\": 2,
-              \"is_correct\": false,
-              \"ai_review\": \"The answer is incorrect. The student misunderstood the question.\"
             }
           ],
           \"english_proficiency_level\": 3
@@ -527,5 +628,4 @@ class StudentController extends Controller
 
         return $prompt;
     }
-
 }

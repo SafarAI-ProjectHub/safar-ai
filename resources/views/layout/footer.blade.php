@@ -29,9 +29,9 @@
                           valies darta donna mare fermentum iaculis eu non diam phasellus.</p>
                       <div class="social-links mt-3">
                           <a href="#" class="twitter"><i class="bi bi-twitter"></i></a>
-                          <a href="#" class="facebook"><i class="bi bi-facebook"></i></a>
+                          <a href="https://www.facebook.com/people/Safar-AI/61570366034528/" class="facebook"><i class="bi bi-facebook"></i></a>
                           <a href="#" class="instagram"><i class="bi bi-instagram"></i></a>
-                          <a href="#" class="linkedin"><i class="bi bi-linkedin"></i></a>
+                          <a href="https://www.linkedin.com/in/safarai/" class="linkedin"><i class="bi bi-linkedin"></i></a>
                       </div>
                   </div>
 
@@ -68,9 +68,11 @@
                   <div class="col-lg-3 col-md-12 footer-contact text-center text-md-start">
                       <h4>Contact Us</h4>
                       <p>
-                          A108 Adam Street <br>
-                          New York, NY 535022<br>
-                          United States <br><br>
+                            Mecca Street <br>
+                            Amman, Jordan 11185<br> 
+                            Jordan <br><br>
+
+
                           <strong>Phone:</strong> {{ env('phone_number') }}<br>
                           <strong>Email:</strong> {{ env('Email_Adrees') }}<br>
                       </p>

@@ -6,10 +6,12 @@ use Illuminate\Http\Request;
 use App\Models\Teacher;
 use App\Models\Student;
 use App\Jobs\ProcessUnitAI;
+// use App\Models\Block;
 use App\Models\Course;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\Auth;
 use App\Models\Unit;
+
 use Illuminate\Support\Facades\Storage;
 use App\Models\CourseCategory;
 use Yajra\DataTables\DataTables;
@@ -351,14 +353,15 @@ class AdminController extends Controller
     {
         $categories = CourseCategory::all();
         $teachers = Teacher::with('user')->get();
+        $blocks = \App\Models\Block::all(); 
 
-        return view('dashboard.admin.courses', compact('categories', 'teachers'));
+        return view('dashboard.admin.courses', compact('categories', 'teachers','blocks'));
     }
 
     public function getCourses(Request $request)
     {
         if ($request->ajax()) {
-            $query = Course::with(['category', 'teacher.user']);
+            $query = Course::with(['category', 'teacher.user', 'block']); 
 
             if (Auth::user()->hasRole('Teacher')) {
                 $techerid = Teacher::where('teacher_id', Auth::id())->first()->id;
@@ -370,6 +373,9 @@ class AdminController extends Controller
             return DataTables::of($data)
                 ->addColumn('category', function ($row) {
                     return 'Age Range: ' . $row->category->age_group;
+                })
+                ->addColumn('block_name', function ($row) {
+                    return optional($row->block)->name ?? 'No Block';
                 })
                 ->addColumn('level', function ($row) {
                     return $row->level;
@@ -417,40 +423,77 @@ class AdminController extends Controller
         return response()->json(['success' => true]);
     }
 
+    // public function storeCourse(Request $request)
+    // {
+    //     $request->validate([
+    //         'title' => 'required|string|max:255',
+    //         'description' => 'required|string',
+    //         'category_id' => 'required|exists:course_categories,id',
+    //         'level' => 'required|integer|min:1|max:6',
+    //         'type' => 'required|in:weekly,intensive',
+    //         'image' => 'required|image|mimes:jpeg,png,jpg,gif,svg|max:5120',
+    //     ]);
+
+    //     // Store the image
+    //     if ($request->hasFile('image')) {
+    //         $file = $request->file('image');
+    //         $filename = uniqid() . '.' . $file->getClientOriginalExtension();
+    //         $path = $file->storeAs('uploads', $filename, 'public');
+    //         $imagePath = 'storage/' . $path;
+    //     }
+
+    //     // Create the course
+    //     $course = new Course();
+    //     $course->title = $request->title;
+    //     $course->description = $request->description;
+    //     $course->category_id = $request->category_id;
+    //     $course->level = $request->level;
+    //     $course->type = $request->type;
+    //     $course->image = $imagePath;
+    //     if (Auth::user()->hasRole('Teacher')) {
+    //         $course->teacher_id = Auth::user()->teacher->id;
+    //     }
+    //     $course->save();
+
+    //     return response()->json(['success' => 'Unit added successfully']);
+    // }
     public function storeCourse(Request $request)
-    {
-        $request->validate([
-            'title' => 'required|string|max:255',
-            'description' => 'required|string',
-            'category_id' => 'required|exists:course_categories,id',
-            'level' => 'required|integer|min:1|max:6',
-            'type' => 'required|in:weekly,intensive',
-            'image' => 'required|image|mimes:jpeg,png,jpg,gif,svg|max:5120',
-        ]);
+{
+    $request->validate([
+        'block_id'     => 'required|exists:blocks,id',
+        'title'        => 'required|string|max:255',
+        'description'  => 'required|string',
+        'category_id'  => 'required|exists:course_categories,id',
+        'level'        => 'required|integer|min:1|max:6',
+        'type'         => 'required|in:weekly,intensive',
+        'image'        => 'required|image|mimes:jpeg,png,jpg,gif,svg|max:5120',
+    ]);
 
-        // Store the image
-        if ($request->hasFile('image')) {
-            $file = $request->file('image');
-            $filename = uniqid() . '.' . $file->getClientOriginalExtension();
-            $path = $file->storeAs('uploads', $filename, 'public');
-            $imagePath = 'storage/' . $path;
-        }
-
-        // Create the course
-        $course = new Course();
-        $course->title = $request->title;
-        $course->description = $request->description;
-        $course->category_id = $request->category_id;
-        $course->level = $request->level;
-        $course->type = $request->type;
-        $course->image = $imagePath;
-        if (Auth::user()->hasRole('Teacher')) {
-            $course->teacher_id = Auth::user()->teacher->id;
-        }
-        $course->save();
-
-        return response()->json(['success' => 'Unit added successfully']);
+    if ($request->hasFile('image')) {
+        $file = $request->file('image');
+        $filename = uniqid() . '.' . $file->getClientOriginalExtension();
+        $path = $file->storeAs('uploads', $filename, 'public');
+        $imagePath = 'storage/' . $path;
     }
+
+    $course = new Course();
+    $course->block_id    = $request->block_id;     
+    $course->title       = $request->title;
+    $course->description = $request->description;
+    $course->category_id = $request->category_id;
+    $course->level       = $request->level;
+    $course->type        = $request->type;
+    $course->image       = $imagePath ?? null;
+
+    if (Auth::user()->hasRole('Teacher')) {
+        $course->teacher_id = Auth::user()->teacher->id;
+    }
+
+    $course->save();
+
+    return response()->json(['success' => 'Course added successfully']);
+}
+
 
     public function getTeachersForAssignment()
     {
@@ -514,72 +557,63 @@ class AdminController extends Controller
      *
      */
 
+   
     public function showUnits($courseId)
     {
-
-        $course = Course::with('units')->findOrFail($courseId);
+        $course = Course::with('units')->findOrFail($courseId); 
+    
         if (Auth::user()->hasAnyRole(['Teacher'])) {
             if (Auth::id() != $course->teacher->teacher_id) {
                 abort(403, 'Unauthorized action.');
             }
         }
-
+    
         return view('dashboard.admin.units', compact('course'));
     }
+    
 
-    public function getUnits($courseId)
-    {
-        $units = Unit::where('course_id', $courseId)->get();
 
-        return DataTables::of($units)
-            // ->addColumn('actions', function ($row) {
-            //     return '<button class="btn btn-warning btn-sm edit-unit" data-id="' . $row->id . '">Edit</button>' .
-            //         '<button class="btn btn-primary btn-sm update-status" data-id="' . $row->id . '" data-status="' . $row->approval_status . '">Update Status</button> ' .
-            //         '<button class="btn btn-danger btn-sm delete-unit" data-id="' . $row->id . '">Delete</button>';
-            // })
-            ->rawColumns(['actions'])
-            ->make(true);
-    }
+    
+        public function storeUnit(Request $request)
+        {
+            \Log::info('Store Unit Request:', $request->all()); 
 
-    public function storeUnit(Request $request)
-    {
-        $request->validate([
-            'title' => 'required|string|max:255',
-            'subtitle' => 'nullable|string|max:255',
-            'content_type' => 'required|in:video,text,youtube',
-            'content' => 'required_if:content_type,text',
-            // 'video' => 'required_if:content_type,video|file|mimes:mp4,mov,ogg,qt,avi|max:20000'
-        ]);
+            $request->validate([
+                'title' => 'required|string|max:255',
+                'subtitle' => 'nullable|string|max:255',
+                'content_type' => 'required|in:video,text,youtube',
+                'content' => 'required_if:content_type,text',
+            ]);
 
-        $unit = new Unit();
-        $unit->course_id = $request->course_id;
-        $unit->title = $request->title;
-        $unit->subtitle = $request->subtitle;
-        $unit->content_type = $request->content_type;
+            $unit = new Unit();
+            $unit->course_id = $request->course_id;
+            $unit->title = $request->title;
+            $unit->subtitle = $request->subtitle;
+            $unit->content_type = $request->content_type;
+            $unit->save();
 
-        if ($request->content_type == 'text') {
-            $unit->content = $request->content;
-        } else if ($request->content_type == 'video' && $request->hasFile('video')) {
-            $file = $request->file('video');
-            $filename = uniqid() . '.' . $file->getClientOriginalExtension();
-            $path = $file->storeAs('uploads', $filename, 'public');
-            $unit->content = 'storage/' . $path;
-        } else if ($request->content_type == 'youtube') {
-            $videoId = $this->extractVideoId($request->youtube);
-            $checkUrl = $this->checkUrl($videoId);
-            if ($checkUrl['status'] == 'error') {
-                return response()->json(['error' => $checkUrl['error']], 422);
-            }
-            $unit->content = $videoId;
-            $unit->script = $request->youtube;
+            return response()->json(['success' => 'Lesson added successfully']);
         }
 
-        $unit->save();
+        public function getUnits($courseId)
+        {
+            $units = Unit::where('course_id', $courseId)
+                        ->select('id', 'title', 'subtitle', 'content_type') 
+                        ->get();
 
-        ProcessUnitAI::dispatch($unit->id, $this->videoToAudioService);
+            return DataTables::of($units)
+                ->addColumn('actions', function($row){
+                    return '
+                        <div class="d-flex justify-content-around gap-2">
+                            <button class="btn btn-primary btn-sm edit-unit" data-id="'.$row->id.'">Edit</button>
+                            <button class="btn btn-info btn-sm show-script" data-id="'.$row->id.'">Show Script</button>
+                            <button class="btn btn-danger btn-sm delete-unit" data-id="'.$row->id.'">Delete</button>
+                        </div>';
+                })
+                ->make(true);
+        }
 
-        return response()->json(['success' => 'Lesson added successfully']);
-    }
+
 
     private function extractVideoId($url)
     {

@@ -24,4 +24,9 @@ class Unit extends Model
     {
         return $this->belongsToMany(Student::class, 'student_units')->withPivot('completed')->withTimestamps();
     }
+    // public function block()
+    // {
+    //     return $this->belongsTo(Block::class, 'block_id', 'id');
+    // }
+    
 }

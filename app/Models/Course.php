@@ -64,4 +64,10 @@ class Course extends Model
     {
         return $this->hasMany(Certificate::class, 'course_id');
     }
+
+    public function block()
+{
+    return $this->belongsTo(Block::class, 'block_id');
+}
+
 }
