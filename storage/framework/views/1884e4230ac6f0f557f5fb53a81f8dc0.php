@@ -1,0 +1,696 @@
+<?php $__env->startSection('styles'); ?>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.0.1/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons/font/bootstrap-icons.css" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@10"></script>
+    <link href="https://unpkg.com/filepond/dist/filepond.css" rel="stylesheet">
+    <style>
+        .feature-list {
+            list-style: none;
+            padding-left: 0;
+        }
+
+        .feature-list li {
+            padding: 10px 0;
+            border-bottom: 1px solid #ddd;
+        }
+
+        .feature-list li:last-child {
+            border-bottom: none;
+        }
+
+        .loader-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(255, 255, 255, 0.7);
+            z-index: 9999;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .loader-message {
+            margin-top: 15px;
+            font-size: 1.2rem;
+            color: #007bff;
+        }
+
+        #cliqUserName .bi-clipboard {
+            font-size: 1.5rem;
+            cursor: pointer;
+        }
+    </style>
+<?php $__env->stopSection(); ?>
+
+<?php $__env->startSection('content'); ?>
+    <?php
+        $subscriptionStatus = $subscription ? $subscription->status : 'free';
+        $subscriptionDate =
+            $subscription && $subscription->start_date ? $subscription->start_date->format('M d, Y') : 'N/A';
+        $nextBillingDate =
+            $subscription && $subscription->next_billing_time
+                ? $subscription->next_billing_time->format('M d, Y')
+                : 'N/A';
+        $features = $planDetails ? json_decode($planDetails->features, true) : [];
+        $Otherfeatures = $otherPlan ? json_decode($otherPlan->features, true) : [];
+        $payment = $payment ?? null;
+    ?>
+
+    <div class="card mb-4">
+        <div class="card-body">
+            <?php if($subscriptionStatus == 'active'): ?>
+                <h2 class="fw-bold mb-0">
+                    $<?php echo e($planDetails->price); ?>/<?php echo e($subscriptionStatus == 'active' ? ($payment->payment_type == 'paypal' ? 'Monthly ' : 'one time payment') : 'Monthly'); ?>
+
+                </h2>
+                <?php if($subscriptionStatus == 'active' && $payment->payment_type != 'paypal'): ?>
+                    <p class="mb-0">
+                        Your subscription will expire on
+                        <span class="text-success"><?php echo e($nextBillingDate); ?></span>.
+                    </p>
+                <?php else: ?>
+                    <p class="mb-0">
+                        Your next monthly charge of
+                        <span class="text-success">$<?php echo e($planDetails->price); ?></span>
+                        will be applied on
+                        <span class="text-success"><?php echo e($nextBillingDate); ?></span>.
+                    </p>
+                <?php endif; ?>
+            <?php else: ?>
+                <h2 class="fw-bold mb-0">Free Plan</h2>
+                <p class="mb-0">
+                    Your next monthly charge of
+                    <span class="text-success">$0</span>
+                    will be applied
+                    <span class="text-success">N/A</span>.
+                </p>
+            <?php endif; ?>
+        </div>
+    </div>
+
+    <div class="card border-0">
+        <div class="card-header d-lg-flex justify-content-between align-items-center">
+            <div class="mb-3 mb-lg-0">
+                <h3 class="mb-0">My Subscriptions</h3>
+                <p class="mb-0">Here is a list of packages/products that you have subscribed to.</p>
+            </div>
+            <div class="d-flex gap-2 ">
+                <?php if($subscriptionStatus == 'active'): ?>
+                    <?php if($payment !== null && $payment->payment_type == 'cliq'): ?>
+                        <?php if($payment->payment_status == 'pending'): ?>
+                            <span class="badge bg-warning">Pending Approval</span>
+                        <?php else: ?>
+                            <button id="extend-subscription" class="btn btn-primary btn-sm">Add +1 Month via Cliq</button>
+                            <button id="extend-subscription-yearly" class="btn btn-primary btn-sm">Add +1 Year via
+                                Cliq</button>
+                        <?php endif; ?>
+                    <?php else: ?>
+                        <button id="cancel-subscription" class="btn btn-danger btn-sm">Cancel Subscription</button>
+                    <?php endif; ?>
+                <?php elseif($subscriptionStatus == 'inactive'): ?>
+                    <?php if($payment !== null && $payment->payment_type == 'cliq' && $payment->payment_status == 'pending'): ?>
+                        <span class="badge bg-warning">Pending Approval</span>
+                    <?php elseif($payment !== null && $payment->payment_type == 'cliq' && $payment->payment_status == 'rejected'): ?>
+                        <button id="reupload-payment" class="btn btn-danger btn-sm">Reupload Payment Proof</button>
+                    <?php else: ?>
+                        <button id="upgrade" class="btn btn-success btn-sm">Upgrade Now — Go Pro
+                            $<?php echo e($activePlan->price); ?></button>
+
+                        <button id="upgrade-yearly" class="btn btn-success btn-sm">Upgrade Now — Go Pro Yearly
+                            $<?php echo e($yearlyActivePlan->price); ?></button>
+                        <?php if(auth()->user()->country_location == 'Jordan'): ?>
+                            <button id="pay-with-cliq" class="btn btn-primary btn-sm">Pay with Cliq</button>
+                            <button id="pay-with-cliq-yearly" class="btn btn-primary btn-sm">Pay with Cliq For A
+                                Year</button>
+                        <?php endif; ?>
+                    <?php endif; ?>
+                <?php elseif($subscriptionStatus == 'suspended'): ?>
+                    <button id="reactivate-subscription" class="btn btn-success btn-sm">Reactivate
+                        Subscription</button>
+                    <button id="upgrade" class="btn btn-success btn-sm">Upgrade Now — Go Pro
+                        $<?php echo e($activePlan->price); ?></button>
+
+                    <button id="upgrade-yearly" class="btn btn-success btn-sm">Upgrade Now — Go Pro Yearly
+                        $<?php echo e($yearlyActivePlan->price); ?></button>
+
+                    <?php if(auth()->user()->country_location == 'Jordan'): ?>
+                        <button id="pay-with-cliq" class="btn btn-primary btn-sm">Pay with Cliq</button>
+                        <button id="pay-with-cliq-yearly" class="btn btn-primary btn-sm">Pay with Cliq For A Year</button>
+                    <?php endif; ?>
+                <?php else: ?>
+                    <button id="upgrade" class="btn btn-success btn-sm">Upgrade Now — Go Pro
+                        $<?php echo e($activePlan->price); ?></button>
+                    <button id="upgrade-yearly" class="btn btn-success btn-sm">Upgrade Now — Go Pro Yearly
+                        $<?php echo e($yearlyActivePlan->price); ?></button>
+                    <?php if(auth()->user()->country_location == 'Jordan'): ?>
+                        <button id="pay-with-cliq" class="btn btn-primary btn-sm">Pay with Cliq</button>
+                        <button id="pay-with-cliq-yearly" class="btn btn-primary btn-sm">Pay with Cliq For A Year</button>
+                    <?php endif; ?>
+                <?php endif; ?>
+            </div>
+        </div>
+        <div class="card-body">
+            <div class="border-bottom pt-0 pb-2">
+                <div class="row mb-4">
+                    <div class="col-lg-6 col-md-8 col-7 mb-2 mb-lg-0">
+                        <span class="d-block">
+                            <span
+                                class="h4"><?php echo e($subscriptionStatus == 'active' ? ($payment->payment_type == 'cliq' ? 'one time payment' : 'Monthly') : 'N/A'); ?>
+
+                            </span>
+                            <span
+                                class="badge <?php echo e($subscriptionStatus == 'active' ? 'bg-success' : ($subscriptionStatus == 'suspended' ? 'bg-warning' : 'bg-danger')); ?> ms-2">
+                                <?php echo e($subscriptionStatus ? ucfirst($subscriptionStatus) : 'InActive'); ?>
+
+                            </span>
+                        </span>
+                        <p class="mb-0 fs-6">Subscription ID:
+                            <?php echo e($subscription ? '#100010' . $subscription->subscription_id : 'N/A'); ?></p>
+                    </div>
+                </div>
+                <div class="row">
+                    <div class="col-lg-3 col-md-3 col-6 mb-2 mb-lg-0">
+                        <span class="fs-6">Started On</span>
+                        <h6 class="mb-0"><?php echo e($subscription ? $subscriptionDate : 'N/A'); ?></h6>
+                    </div>
+                    <div class="col-lg-3 col-md-3 col-6 mb-2 mb-lg-0">
+                        <span class="fs-6">Price</span>
+                        <h6 class="mb-0">
+                            <?php echo e('$ ' . $planDetails->price . ' / Monthly'); ?></h6>
+                    </div>
+                    <div class="col-lg-3 col-md-3 col-6 mb-2 mb-lg-0">
+                        <span class="fs-6">Access</span>
+                        <h6 class="mb-0">
+                            Access All units</h6>
+                    </div>
+                    <div class="col-lg-3 col-md-3 col-6 mb-2 mb-lg-0">
+                        <span
+                            class="fs-6"><?php echo e($subscriptionStatus == 'active' ? ($payment->payment_type == 'paypal' ? 'Billing Date ' : 'Expire Date') : 'Billing Date'); ?></span>
+                        <h6 class="mb-0">
+                            <?php echo e($subscriptionStatus == 'active' ? ($payment->payment_type == 'paypal' ? 'Next Billing on ' . $nextBillingDate : 'expire on ' . $nextBillingDate) : 'N/A'); ?>
+
+                    </div>
+                </div>
+                <?php if($features): ?>
+                    <div class="mt-4">
+                        <h4>Features</h4>
+                        <div class="card">
+                            <div class="card-body">
+                                <div class="row">
+                                    <ul class="list-unstyled d-flex flex-wrap">
+                                        <?php $__currentLoopData = $features; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $index => $feature): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
+                                            <div class="col-lg-6 col-md-6 col-12 mb-2">
+                                                <li class="d-flex align-items-start">
+                                                    <i class="bi bi-check-circle-fill text-success me-2"></i>
+                                                    <span><?php echo e($feature); ?></span>
+                                                </li>
+                                            </div>
+                                        <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); ?>
+                                    </ul>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                <?php endif; ?>
+            </div>
+            <div class="border-bottom pt-0 pb-2">
+                <div class="row my-4">
+                    <div class="col mb-2 mb-lg-0">
+                        <span class="d-block mt-3">
+                            <span class="h4"><?php echo e($otherPlan->subscription_type == 'Yearly' ? 'Yearly' : 'Monthly'); ?>
+
+                            </span>
+                            <span class="badge bg-danger ms-2">
+                                InActive
+                            </span>
+                        </span>
+                        <p class="mb-0 fs-6">Subscription ID:
+                            N/A
+                        </p>
+                    </div>
+                    <div class="col-auto">
+                        <a href="#" class="btn btn-light btn-sm disabled">InActive</a>
+                    </div>
+                </div>
+                <div class="row">
+                    <div class="col-lg-3 col-md-3 col-6 mb-2 mb-lg-0">
+                        <span class="fs-6">Started On</span>
+                        <h6 class="mb-0"> N/A</h6>
+                    </div>
+                    <div class="col-lg-3 col-md-3 col-6 mb-2 mb-lg-0">
+                        <span class="fs-6">Price</span>
+                        <h6 class="mb-0">
+                            <?php echo e('$ ' . $otherPlan->price); ?>
+
+                    </div>
+                    <div class="col-lg-3 col-md-3 col-6 mb-2 mb-lg-0">
+                        <span class="fs-6">Access</span>
+                        <h6 class="mb-0">
+                            Access All Courses </h6>
+                    </div>
+                    <div class="col-lg-3 col-md-3 col-6 mb-2 mb-lg-0">
+                        <span class="fs-6"> Billing Date</span>
+                        <h6 class="mb-0">
+                            N/A
+                    </div>
+                </div>
+                <?php if($Otherfeatures): ?>
+                    <div class="mt-4">
+                        <h4>Features</h4>
+                        <div class="card">
+                            <div class="card-body">
+                                <div class="row">
+                                    <ul class="list-unstyled d-flex flex-wrap">
+                                        <?php $__currentLoopData = $Otherfeatures; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $index => $feature): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
+                                            <div class="col-lg-6 col-md-6 col-12 mb-2">
+                                                <li class="d-flex align-items-start">
+                                                    <i class="bi bi-check-circle-fill text-success me-2"></i>
+                                                    <span><?php echo e($feature); ?></span>
+                                                </li>
+                                            </div>
+                                        <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); ?>
+                                    </ul>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                <?php endif; ?>
+            </div>
+            <div class="pt-5">
+                <div class="row mb-4">
+                    <div class="col mb-2 mb-lg-0">
+                        <span class="d-block">
+                            <span class="h4">Free Plan</span>
+                            <span class="badge <?php echo e($subscriptionStatus == 'active' ? 'bg-danger' : 'bg-success'); ?> ms-2">
+                                <?php echo e($subscriptionStatus == 'active' ? 'Inactive' : 'Active'); ?>
+
+                            </span>
+                        </span>
+                        <p class="mb-0 fs-6">Subscription ID: #100010<?php echo e($planDetails ? $planDetails->id : 'N/A'); ?></p>
+                    </div>
+                    <div class="col-auto">
+                        <a href="#" class="btn btn-light btn-sm disabled">Disabled</a>
+                    </div>
+                </div>
+                <div class="row">
+                    <div class="col-lg-3 col-md-3 col-6 mb-2 mb-lg-0">
+                        <span class="fs-6">Started On</span>
+                        <h6 class="mb-0"><?php echo e(Auth::user()->created_at->format('M d, Y')); ?></h6>
+                    </div>
+                    <div class="col-lg-3 col-md-3 col-6 mb-2 mb-lg-0">
+                        <span class="fs-6">Price</span>
+                        <h6 class="mb-0">Free</h6>
+                    </div>
+                    <div class="col-lg-3 col-md-3 col-6 mb-2 mb-lg-0">
+                        <span class="fs-6">Access</span>
+                        <h6 class="mb-0">Access YouTube Videos</h6>
+                    </div>
+                    <div class="col-lg-3 col-md-3 col-6 mb-2 mb-lg-0">
+                        <span class="fs-6">Billing Date</span>
+                        <h6 class="mb-0">N/A</h6>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+<?php $__env->stopSection(); ?>
+
+<?php $__env->startSection('scripts'); ?>
+    
+    
+    <script src="https://unpkg.com/filepond/dist/filepond.js"></script>
+    <script src="https://unpkg.com/filepond-plugin-file-validate-size/dist/filepond-plugin-file-validate-size.js"></script>
+    <script src="https://unpkg.com/filepond-plugin-image-preview/dist/filepond-plugin-image-preview.js"></script>
+    <script src="https://unpkg.com/filepond-plugin-file-validate-type/dist/filepond-plugin-file-validate-type.js"></script>
+
+    <script>
+        $(document).ready(function() {
+            FilePond.registerPlugin(FilePondPluginFileValidateSize, FilePondPluginFileValidateType);
+
+            $('#upgrade, #upgrade-yearly').click(function(event) {
+                showLoader('Processing your subscription, please wait...');
+                const isYearly = event.target.id === 'upgrade-yearly';
+                const planId = isYearly ? '<?php echo e($yearlyActivePlan->paypal_plan_id); ?>' :
+                    '<?php echo e($monthlyActivePlan->paypal_plan_id); ?>';
+                $.ajax({
+                    url: '<?php echo e(route('subscriptions.create')); ?>',
+                    method: 'POST',
+                    data: {
+                        _token: '<?php echo e(csrf_token()); ?>',
+                        user_id: '<?php echo e(Auth::id()); ?>',
+                        email: '<?php echo e(Auth::user()->email); ?>',
+                        plan_id: planId
+                    },
+                    success: function(response) {
+                        if (response.success) {
+                            window.location.href = response.approval_url;
+                        } else {
+                            hideLoader();
+                            showAlert('error', response.message);
+                        }
+                    },
+                    error: function(error) {
+                        hideLoader();
+                        showAlert('error', 'Failed to subscribe. Please try again.');
+                    }
+                });
+            });
+
+            $('#pay-with-cliq, #pay-with-cliq-yearly, #extend-subscription, #extend-subscription-yearly').click(
+                function(event) {
+                    console.log(event.target.id);
+
+                    const isYearly = event.target.id === 'pay-with-cliq-yearly' || event.target.id ===
+                        'extend-subscription-yearly';
+                    console.log(isYearly);
+
+                    const isExtend = event.target.id === 'extend-subscription' || event.target.id ===
+                        'extend-subscription-yearly';
+                    console.log(isExtend);
+
+                    const action = isExtend ? (isYearly ? 'extend-yearly' : 'extend') : (isYearly ? 'yearly' :
+                        'initial');
+                    console.log(action);
+
+                    const paymentStatus = '<?php echo e($payment !== null ? $payment->payment_status : 'none'); ?>';
+                    console.log(paymentStatus);
+                    const rejectionReason = '<?php echo e($payment ? $payment->rejection_reason : ''); ?>';
+                    const price = isYearly ? '<?php echo e($yearlyActivePlan->price); ?>' :
+                        '<?php echo e($monthlyActivePlan->price); ?>';
+
+                    let htmlContent = `
+                <form id="cliqPaymentForm">
+                    <div class="mb-3 text-center">
+                        <div>
+                            <h3><strong>Pay with</strong> <img src="<?php echo e(asset('img/cliq.svg')); ?>" alt="Cliq Logo" style="max-width: 50px;"></h3>
+                        </div>
+                        <div>
+                            <h2 id="cliqUserName" class="border fw-bold d-inline-block" onclick="copyCliqUserName()" data-toggle="tooltip" data-placement="top" title="Click to copy"><?php echo e($cliqUserName); ?> <i class="bi bi-clipboard" style="cursor: pointer;" onclick="copyCliqUserName()"></i></h2>
+                        </div>
+                        <div>
+                            <h6 class="text">You can pay to the Cliq account using the above aliases and then upload the proof of payment below.</h6>
+                            <h5 class="text">The amount to be paid is <span class="text-primary">$${price}</span></h5>
+                            <h6 class="text-success">The payment will be confirmed within 24-48 hours.</h6>
+                        </div>
+                    </div>
+                    <div class="mb-3">
+                        <label for="userName" class="form-label">Your Full Name</label>
+                        <input type="text" class="form-control" id="userName" name="userName" required>
+                    </div>
+                    <div class="mb-3">
+                        <label for="payment_image" class="form-label">Proof of Payment</label>
+                        <input type="file" class="form-control" id="payment_image" name="payment_image" accept="image/*" required>
+                    </div>`;
+
+                    if (paymentStatus === 'pending') {
+                        htmlContent += `<div class="alert alert-info" role="alert">
+                        Your payment is still pending approval.
+                    </div>`;
+                    } else if (paymentStatus === 'rejected') {
+                        htmlContent += `<div class="alert alert-danger" role="alert">
+                       Your payment was rejected. Reason: ${rejectionReason}
+                    </div>`;
+                    }
+
+                    htmlContent += `</form>`;
+
+                    Swal.fire({
+                        title: '',
+                        html: htmlContent,
+                        showCancelButton: true,
+                        confirmButtonText: 'Submit',
+                        didOpen: () => {
+                            const inputElement = document.querySelector(
+                                'input[name="payment_image"]');
+                            pond = FilePond.create(inputElement, {
+                                allowFileTypeValidation: true,
+                                acceptedFileTypes: ['image/*'],
+                                fileValidateTypeLabelExpectedTypes: 'Expected file type: Image'
+                            });
+                        },
+                        preConfirm: () => {
+                            const form = document.getElementById('cliqPaymentForm');
+                            const formData = new FormData();
+                            if (!form.userName.value) {
+                                Swal.showValidationMessage('Please enter your full name.');
+                                return;
+                            }
+                            formData.append('userName', form.userName.value);
+
+                            if (pond.getFiles().length > 0) {
+                                const file = pond.getFile();
+                                formData.append('payment_image', file.file);
+                            } else {
+                                Swal.showValidationMessage('Please upload a proof of payment.');
+                                return;
+                            }
+
+                            return fetch(`/pay-with-cliq?action=${action}`, {
+                                    method: 'POST',
+                                    body: formData,
+                                    headers: {
+                                        'X-CSRF-TOKEN': '<?php echo e(csrf_token()); ?>'
+                                    }
+                                })
+                                .then(response => response.json())
+                                .then(data => {
+                                    if (!data.success) {
+                                        throw new Error(data.message ||
+                                            'There was an error submitting your payment proof.'
+                                        );
+                                    }
+                                    window.location.reload();
+                                    return data;
+                                })
+                                .catch(error => {
+                                    Swal.showValidationMessage(`Request failed: ${error}`);
+                                });
+                        }
+                    }).then((result) => {
+                        if (result.isConfirmed) {
+                            Swal.fire('Submitted!',
+                                'Your payment proof has been submitted. Await admin approval.',
+                                'success');
+                        }
+                    });
+                });
+
+
+
+            $('#reupload-payment').click(function() {
+                const rejectionReason = '<?php echo e($payment ? $payment->rejection_reason : ''); ?>';
+                const paymentStatus = '<?php echo e($payment !== null ? $payment->payment_status : 'none'); ?>';
+                let htmlContent = `
+                <form id="reuploadPaymentForm">
+                    <div class="mb-3 text-center">
+                        <div>
+                            <h3><strong>Reupload Payment for</strong> <img src="<?php echo e(asset('img/cliq.svg')); ?>" alt="Cliq Logo" style="max-width: 50px;"></h3>
+                        </div>
+                        <div>
+                            <h2 id="cliqUserName" onclick="copyCliqUserName()" data-toggle="tooltip" data-placement="top" title="Click to copy" class="border fw-bold d-inline-block"><?php echo e($cliqUserName); ?> <i class="bi bi-clipboard" style="cursor: pointer;" onclick="copyCliqUserName()"></i></h2>
+                        </div>
+                    </div>
+                    <div class="alert alert-danger" role="alert">
+                        Your payment was rejected. Reason: ${rejectionReason}
+                    </div>
+                    <div>
+                        <h6 class="text">You can pay to the Cliq account using the above aliases and then upload the proof of payment below.</h6>
+                        <h5 class="text">The amount to be paid is <span class="text-primary">$${paymentStatus === 'yearly' ? '<?php echo e($yearlyActivePlan->price); ?>' : '<?php echo e($monthlyActivePlan->price); ?>'}</span></h5>
+                        <h6 class="text-success">The payment will be confirmed within 24-48 hours.</h6>
+                    </div>
+                    <div class="mb-3">
+                        <label for="userName" class="form-label">Your Full Name</label>
+                        <input type="text" class="form-control" id="userName" name="userName" required>
+                    </div>
+                    <div class="mb-3">
+                        <label for="payment_image" class="form-label">Proof of Payment</label>
+                        <input type="file" class="form-control" id="payment_image" name="payment_image" accept="image/*" required>
+                    </div>
+                </form>`;
+
+                Swal.fire({
+                    title: '',
+                    html: htmlContent,
+                    showCancelButton: true,
+                    confirmButtonText: 'Submit',
+                    didOpen: () => {
+                        const inputElement = document.querySelector(
+                            'input[name="payment_image"]');
+                        pond = FilePond.create(inputElement, {
+                            allowFileTypeValidation: true,
+                            acceptedFileTypes: ['image/*'],
+                            fileValidateTypeLabelExpectedTypes: 'Expected file type: Image'
+                        });
+                    },
+                    preConfirm: () => {
+                        const form = document.getElementById('reuploadPaymentForm');
+                        const formData = new FormData();
+                        var file = pond.getFile();
+                        formData.append('userName', form.userName.value);
+                        formData.append('payment_image', file.file);
+
+                        return fetch(`/reupload-payment-proof/<?php echo e($payment->id); ?>`, {
+                                method: 'POST',
+                                body: formData,
+                                headers: {
+                                    'X-CSRF-TOKEN': '<?php echo e(csrf_token()); ?>'
+                                }
+                            })
+                            .then(response => response.json())
+                            .then(data => {
+                                if (!data.success) {
+                                    throw new Error(data.message ||
+                                        'There was an error re-uploading your payment proof.'
+                                    );
+                                }
+                                window.location.reload();
+                                return data;
+                            })
+                            .catch(error => {
+                                Swal.showValidationMessage(`Request failed: ${error}`);
+                            });
+                    }
+                }).then((result) => {
+                    if (result.isConfirmed) {
+                        Swal.fire('Submitted!',
+                            'Your payment proof has been re-uploaded. Await admin approval.',
+                            'success');
+                    }
+                });
+            });
+
+            $('#cancel-subscription').click(function() {
+                showLoader('Cancelling your subscription, please wait...');
+                $.ajax({
+                    url: '<?php echo e(route('subscriptions.cancel')); ?>',
+                    method: 'POST',
+                    data: {
+                        _token: '<?php echo e(csrf_token()); ?>',
+                        subscription_id: '<?php echo e($subscription->subscription_id); ?>'
+                    },
+                    success: function(response) {
+                        if (response.success) {
+                            listenForEvent('cancelled', '<?php echo e(Auth::id()); ?>');
+                        } else {
+                            hideLoader();
+                            showAlert('error', response.message);
+                        }
+                    },
+                    error: function(error) {
+                        hideLoader();
+                        showAlert('error', 'Failed to cancel subscription. Please try again.');
+                    }
+                });
+            });
+
+            $('#reactivate-subscription').click(function() {
+                showLoader('Reactivating your subscription, please wait...');
+                $.ajax({
+                    url: '<?php echo e(route('subscriptions.reactivate')); ?>',
+                    method: 'POST',
+                    data: {
+                        _token: '<?php echo e(csrf_token()); ?>',
+                        subscription_id: '<?php echo e($subscription->paypal_subscription_id); ?>'
+                    },
+                    success: function(response) {
+                        if (response.success) {
+                            listenForEvent('reactivated', '<?php echo e(Auth::id()); ?>');
+                        } else {
+                            hideLoader();
+                            showAlert('error', response.message);
+                        }
+                    },
+                    error: function(error) {
+                        hideLoader();
+                        showAlert('error',
+                            'Failed to reactivate subscription. Please try again.');
+                    }
+                });
+            });
+
+            function listenForEvent(type, userId) {
+                //         let eventReceived = false;
+
+                //         Echo.private('subscriptions.' + userId)
+                //             .listen('SubscriptionEvent', (e) => {
+                //                 if (e.type === type) {
+                //                     eventReceived = true;
+                //                     hideLoader();
+                //                     showAlert('success', `Subscription ${type} successfully.`);
+                //                     location.reload();
+                //                 }
+                //             });
+
+                //         setTimeout(() => {
+                //             if (!eventReceived) {
+                //                 hideLoader();
+                //                 showAlert('warning',
+                //                     'Timeout waiting for subscription confirmation. Redirecting...');
+                //                 setTimeout(() => {
+                //                     window.location.href = '<?php echo e(route('student.dashboard')); ?>';
+                //                 }, 2000);
+                //             }
+                //         }, 30000); // 30 seconds timeout
+            }
+        });
+
+        function showLoader(message) {
+            var loaderHtml = `
+                <div class="loader-overlay">
+                    <div class="spinner-border text-primary" role="status">
+                        <span class="sr-only"></span>
+                    </div>
+                    <div class="loader-message">${message}</div>
+                </div>
+            `;
+            $('body').append(loaderHtml);
+        }
+
+        function hideLoader() {
+            $('.loader-overlay').remove();
+        }
+
+        function showAlert(type, message) {
+            Swal.fire({
+                icon: type,
+                title: type.charAt(0).toUpperCase() + type.slice(1),
+                text: message,
+            });
+        }
+
+        function copyCliqUserName() {
+            const cliqUserName = document.getElementById('cliqUserName').innerText.trim();
+            navigator.clipboard.writeText(cliqUserName).then(function() {
+                showAlertS('success', 'Copied to clipboard!', 'bi-check-circle');
+            }, function(err) {
+                showAlertS('error', 'Failed to copy text: ' + err, 'bi-exclamation-circle');
+            });
+        }
+
+        function showAlertS(type, message, icon) {
+            var alertHtml = `
+                <div class="alert alert-${type} border-0 bg-${type} alert-dismissible fade show py-2 position-fixed top-0 end-0 m-3" role="alert">
+                    <div class="d-flex align-items-center">
+                        <div class="font-35 text-white">
+                            <i class="bx ${icon}"></i>
+                        </div>
+                        <div class="ms-3">
+                            <h6 class="mb-0 text-white">${type.charAt(0).toUpperCase() + type.slice(1)}</h6>
+                            <div class="text-white">${message}</div>
+                        </div>
+                    </div>
+                    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                </div>
+            `;
+            $('body').append(alertHtml);
+            setTimeout(function() {
+                $('.alert').alert('close');
+            }, 5000);
+        }
+    </script>
+<?php $__env->stopSection(); ?>
+
+<?php echo $__env->make('layouts_dashboard.main', \Illuminate\Support\Arr::except(get_defined_vars(), ['__data', '__path']))->render(); ?><?php /**PATH /var/www/html/safar-ai-staging/resources/views/dashboard/student/subscription_details.blade.php ENDPATH**/ ?>

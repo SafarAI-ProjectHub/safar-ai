@@ -59,4 +59,20 @@ class FileUploadController extends Controller
 
         return response()->json(['error' => 'File not found.'], 404);
     }
+
+
+    public function uploadCanvasImage(Request $request)
+{
+    $base64 = $request->input('imageBase64');
+    
+    $exploded = explode(',', $base64);
+    $decoded = base64_decode(end($exploded));
+
+    $fileName = uniqid().'.png';
+    Storage::disk('public')->put('uploads/'.$fileName, $decoded);
+
+    $fileUrl = asset('storage/uploads/'.$fileName);
+    return response()->json(['url' => $fileUrl]);
+}
+
 }

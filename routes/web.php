@@ -233,6 +233,8 @@ Route::middleware(['auth', 'role:Super Admin|Admin|Teacher'])->group(function ()
     Route::get('courses/getUnits/{courseId}', [QuizController::class, 'getUnits'])->name('quiz.getUnits');
     Route::get('/units/{id}/script', [AdminController::class, 'getScript'])->name('units.getScript');
     Route::post('/units/{id}/script', [AdminController::class, 'updateScript'])->name('units.updateScript');
+    Route::get('/units/{id}', [AdminController::class, 'showUnit'])->name('units.show');
+    Route::post('/upload-canvas-image', [FileUploadController::class, 'uploadCanvasImage']);
 
     // Quizzes
     Route::post('quizzes/store', [QuizController::class, 'storeQuiz'])->name('quiz.storeQuiz');
@@ -304,6 +306,7 @@ Route::middleware(['auth', 'role:Student'])->prefix('student')->group(function (
     Route::post('/certificate/download', [CertificateController::class, 'generatePDF'])->name('certificate.generatePDF');
     Route::get('/my-certificates', [CertificateController::class, 'myCertificates'])->name('student.myCertificates');
 });
+
 
 // Routes for Admin access only
 Route::middleware(['auth', 'role:Admin'])->get('/admin', [AdminController::class, 'index'])->name('admin.uploadVideo');

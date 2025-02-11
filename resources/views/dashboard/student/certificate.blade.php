@@ -343,35 +343,42 @@
                 e.preventDefault();
                 var form = $('#ssn-form');
                 $.ajax({
-                    url: '{{ route('certificate.generatePDF') }}',
-                    type: 'POST',
-                    data: form.serialize(),
-                    headers: {
-                        'X-CSRF-TOKEN': '{{ csrf_token() }}'
-                    },
-                    xhrFields: {
-                        responseType: 'blob'
-                    },
-                    success: function(response, status, xhr) {
-                        var filename = "";
-                        var disposition = xhr.getResponseHeader('Content-Disposition');
-                        if (disposition && disposition.indexOf('attachment') !== -1) {
-                            var matches = /filename="([^;]+)"/.exec(disposition);
-                            if (matches != null && matches[1]) filename = matches[1];
-                        }
-                        var link = document.createElement('a');
-                        var url = window.URL.createObjectURL(response);
-                        link.href = url;
-                        link.download = filename;
-                        document.body.append(link);
-                        link.click();
-                        link.remove();
-                        window.URL.revokeObjectURL(url);
-                    },
-                    error: function() {
-                        Swal.fire('An error occurred. Please try again.');
-                    }
-                });
+    url: '{{ route('certificate.generatePDF') }}',
+    type: 'POST',
+    data: form.serialize(),
+    headers: {
+        'X-CSRF-TOKEN': '{{ csrf_token() }}'
+    },
+    xhrFields: {
+        responseType: 'blob' // مهم لكي يستلم الملف كـBlob
+    },
+    success: function(response, status, xhr) {
+        // إن عُدنا بملف PDF سليم نكوّن رابط تحميل
+        var disposition = xhr.getResponseHeader('Content-Disposition');
+        var filename = 'certificate.pdf'; // اسم افتراضي
+        if (disposition && disposition.indexOf('attachment') !== -1) {
+            var matches = /filename[^;=\n]*=((['"]).*?\2|[^;\n]*)/.exec(disposition);
+            if (matches != null && matches[1]) filename = matches[1].replace(/['"]/g, '');
+        }
+        var url = window.URL.createObjectURL(response);
+        var link = document.createElement('a');
+        link.href = url;
+        link.download = filename;
+        document.body.appendChild(link);
+        link.click();
+        link.remove();
+        window.URL.revokeObjectURL(url);
+    },
+    error: function(xhr) {
+        // في حالة وجود خطأ، اعرض الرسالة القادمة من السيرفر إن أمكن
+        if (xhr.responseJSON && xhr.responseJSON.error) {
+            Swal.fire(xhr.responseJSON.error);
+        } else {
+            Swal.fire('An error occurred. Please try again.');
+        }
+    }
+});
+
             });
         });
     </script>

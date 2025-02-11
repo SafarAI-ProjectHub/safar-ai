@@ -6,12 +6,9 @@ use Illuminate\Http\Request;
 use App\Models\Teacher;
 use App\Models\Student;
 use App\Jobs\ProcessUnitAI;
-// use App\Models\Block;
 use App\Models\Course;
-use Illuminate\Http\UploadedFile;
-use Illuminate\Support\Facades\Auth;
 use App\Models\Unit;
-
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Storage;
 use App\Models\CourseCategory;
 use Yajra\DataTables\DataTables;
@@ -21,13 +18,14 @@ use App\Models\LevelTestAssessment;
 use OpenAI\Laravel\Facades\OpenAI;
 use App\Services\VideoToAudioService;
 use Illuminate\Support\Facades\Http;
-use Illuminate\Support\Facades\Artisan;
 use Carbon\Carbon;
 use DB;
 use Illuminate\Support\Facades\Hash;
 
 class AdminController extends Controller
 {
+    protected $videoToAudioService;
+
     public function __construct(VideoToAudioService $videoToAudioService)
     {
         $this->videoToAudioService = $videoToAudioService;
@@ -38,14 +36,9 @@ class AdminController extends Controller
         return view('dashboard.index');
     }
 
-    /* 
-     *
-     *
-     *Admin functions 
-     *
-     *
+    /*
+     * -------------- ADMIN MANAGEMENT --------------
      */
-
     public function listAdmin(Request $request)
     {
         if ($request->ajax()) {
@@ -55,11 +48,12 @@ class AdminController extends Controller
                 $query->where('name', 'Super Admin');
             })->select(['id', 'first_name', 'last_name', 'email', 'phone_number', 'date_of_birth', 'country_location', 'status'])->get();
 
-
             return DataTables::of($admins)
                 ->addColumn('action', function ($admin) {
-                    return '<div class="d-flex justify-content-around gap-2" ><a href="' . route('admin.edit', $admin->id) . '" class="btn btn-sm btn-primary">Edit</a>
-                              <button class="btn btn-sm btn-danger" onclick="deleteAdmin(' . $admin->id . ')">Delete</button></div>';
+                    return '<div class="d-flex justify-content-around gap-2" >
+                                <a href="' . route('admin.edit', $admin->id) . '" class="btn btn-sm btn-primary">Edit</a>
+                                <button class="btn btn-sm btn-danger" onclick="deleteAdmin(' . $admin->id . ')">Delete</button>
+                            </div>';
                 })
                 ->editColumn('date_of_birth', function ($admin) {
                     return $admin->date_of_birth ? with(new Carbon($admin->date_of_birth))->format('Y-m-d') : '';
@@ -80,12 +74,12 @@ class AdminController extends Controller
     {
         $validator = Validator::make($request->all(), [
             'first_name' => 'required|string|max:255',
-            'last_name' => 'required|string|max:255',
-            'email' => 'required|string|email|max:255|unique:users',
-            'phone_number' => 'required|string|max:15',
-            'date_of_birth' => 'required|date',
-            'country_code' => 'required|string|max:5',
-            'password' => 'required|string|min:8|confirmed',
+            'last_name'  => 'required|string|max:255',
+            'email'      => 'required|string|email|max:255|unique:users',
+            'phone_number'=> 'required|string|max:15',
+            'date_of_birth'=> 'required|date',
+            'country_code'=> 'required|string|max:5',
+            'password'   => 'required|string|min:8|confirmed',
         ]);
 
         if ($validator->fails()) {
@@ -93,15 +87,15 @@ class AdminController extends Controller
         }
 
         $user = User::create([
-            'first_name' => $request->first_name,
-            'last_name' => $request->last_name,
-            'email' => $request->email,
-            'phone_number' => $request->country_code . $request->phone_number,
-            'date_of_birth' => $request->date_of_birth,
-            'password' => Hash::make($request->password),
-            'country_location' => $request->country_location,
-            'role_id' => 1,
-            'status' => 'active',
+            'first_name'        => $request->first_name,
+            'last_name'         => $request->last_name,
+            'email'             => $request->email,
+            'phone_number'      => $request->country_code . $request->phone_number,
+            'date_of_birth'     => $request->date_of_birth,
+            'password'          => Hash::make($request->password),
+            'country_location'  => $request->country_location,
+            'role_id'           => 1,
+            'status'            => 'active',
         ]);
 
         $user->assignRole('Admin');
@@ -118,13 +112,13 @@ class AdminController extends Controller
     public function updateAdmin(Request $request, $id)
     {
         $validator = Validator::make($request->all(), [
-            'first_name' => 'required|string|max:255',
-            'last_name' => 'required|string|max:255',
-            'email' => 'required|string|email|max:255|unique:users,email,' . $id,
-            'phone_number' => 'required|string|max:15',
+            'first_name'    => 'required|string|max:255',
+            'last_name'     => 'required|string|max:255',
+            'email'         => 'required|string|email|max:255|unique:users,email,' . $id,
+            'phone_number'  => 'required|string|max:15',
             'date_of_birth' => 'required|date',
-            'country_code' => 'required|string|max:5',
-            'password' => 'nullable|string|min:8|confirmed',
+            'country_code'  => 'required|string|max:5',
+            'password'      => 'nullable|string|min:8|confirmed',
         ]);
 
         if ($validator->fails()) {
@@ -133,12 +127,12 @@ class AdminController extends Controller
 
         $user = User::findOrFail($id);
         $user->update([
-            'first_name' => $request->first_name,
-            'last_name' => $request->last_name,
-            'email' => $request->email,
-            'phone_number' => $request->country_code . $request->phone_number,
-            'date_of_birth' => $request->date_of_birth,
-            'country_location' => $request->country_location,
+            'first_name'        => $request->first_name,
+            'last_name'         => $request->last_name,
+            'email'             => $request->email,
+            'phone_number'      => $request->country_code . $request->phone_number,
+            'date_of_birth'     => $request->date_of_birth,
+            'country_location'  => $request->country_location,
         ]);
 
         if ($request->password) {
@@ -150,7 +144,6 @@ class AdminController extends Controller
 
     public function deleteAdmin($id)
     {
-
         $user = User::findOrFail($id);
         if ($user) {
             if ($user->timeLogs()->exists()) {
@@ -159,17 +152,12 @@ class AdminController extends Controller
         }
 
         $user->delete();
-
         return response()->json(['message' => 'Admin deleted successfully']);
     }
 
 
-    /* 
-     *
-     *
-     *Teacher functions 
-     *
-     *
+    /*
+     * -------------- TEACHERS --------------
      */
 
     public function applicationsIndex()
@@ -191,14 +179,13 @@ class AdminController extends Controller
                 return $teacher->user->email;
             })
             ->addColumn('position', function ($teacher) {
-                return 'Teacher'; // You can customize this as needed
+                return 'Teacher';
             })
             ->addColumn('cv_link', function ($teacher) {
                 return $teacher->cv_link;
             })
             ->addColumn('exam_result', function ($teacher) {
                 if ($teacher->user->levelTestAssessments()->exists()) {
-
                     return '<button class="btn btn-primary btn-sm view-assessment" data-id="' . $teacher->user->id . '">View Result</button>';
                 } else {
                     return 'No attempt yet';
@@ -218,6 +205,7 @@ class AdminController extends Controller
         }
         return response()->json(['error' => 'Teacher not found'], 404);
     }
+
     public function teachers()
     {
         return view('dashboard.admin.teachers');
@@ -262,19 +250,17 @@ class AdminController extends Controller
                     }
                 })
                 ->addColumn('actions', function ($row) {
-                    // dd($row->user . " " . $row->id);
                     if ($row->user->contract) {
-
                         return '<div class="d-flex justify-content-around gap-2">
                                     <a href="#" class="btn btn-info edit-contract text-white" data-id="' . $row->user->contract->id . '">Edit Contract</a>
-                                    <button class="btn btn-warning btn-sm edit-teacher" data-id="' . $row->id . '">Edit</button>' .
-                            '<button class="btn btn-danger btn-sm delete-teacher" data-id="' . $row->id . '">Delete</button> </div>
+                                    <button class="btn btn-warning btn-sm edit-teacher" data-id="' . $row->id . '">Edit</button>
+                                    <button class="btn btn-danger btn-sm delete-teacher" data-id="' . $row->id . '">Delete</button>
                                 </div>';
                     } else {
                         return '<div class="d-flex justify-content-around gap-2">
                                     <a href="#" class="btn btn-primary create-contract" data-id="' . $row->user->id . '">Create Contract</a>
-                                    <button class="btn btn-warning btn-sm edit-teacher" data-id="' . $row->id . '">Edit</button>' .
-                            '<button class="btn btn-danger btn-sm delete-teacher" data-id="' . $row->id . '">Delete</button> </div>
+                                    <button class="btn btn-warning btn-sm edit-teacher" data-id="' . $row->id . '">Edit</button>
+                                    <button class="btn btn-danger btn-sm delete-teacher" data-id="' . $row->id . '">Delete</button>
                                 </div>';
                     }
                 })
@@ -294,11 +280,11 @@ class AdminController extends Controller
     public function updateTeacher(Request $request, $id)
     {
         $validator = Validator::make($request->all(), [
-            'first_name' => 'required|string|max:255',
-            'last_name' => 'required|string|max:255',
-            'email' => 'required|string|email|max:255',
-            'phone_number' => 'required|string|max:20',
-            'country_location' => 'required|string|max:255',
+            'first_name'        => 'required|string|max:255',
+            'last_name'         => 'required|string|max:255',
+            'email'             => 'required|string|email|max:255',
+            'phone_number'      => 'required|string|max:20',
+            'country_location'  => 'required|string|max:255',
         ]);
 
         if ($validator->fails()) {
@@ -309,14 +295,12 @@ class AdminController extends Controller
         $user = $teacher->user;
 
         $user->update([
-            'first_name' => $request->first_name,
-            'last_name' => $request->last_name,
-            'email' => $request->email,
-            'phone_number' => $request->phone_number,
+            'first_name'       => $request->first_name,
+            'last_name'        => $request->last_name,
+            'email'            => $request->email,
+            'phone_number'     => $request->phone_number,
             'country_location' => $request->country_location,
         ]);
-
-
 
         return response()->json(['message' => 'Teacher updated successfully']);
     }
@@ -341,19 +325,16 @@ class AdminController extends Controller
         }
     }
 
-    /* 
-     *
-     *
-     *Courses functions 
-     *
-     *
+
+    /*
+     * -------------- COURSES --------------
      */
 
     public function courses()
     {
         $categories = CourseCategory::all();
-        $teachers = Teacher::with('user')->get();
-        $blocks = \App\Models\Block::all(); 
+        $teachers   = Teacher::with('user')->get();
+        $blocks     = \App\Models\Block::all();
 
         return view('dashboard.admin.courses', compact('categories', 'teachers','blocks'));
     }
@@ -361,7 +342,7 @@ class AdminController extends Controller
     public function getCourses(Request $request)
     {
         if ($request->ajax()) {
-            $query = Course::with(['category', 'teacher.user', 'block']); 
+            $query = Course::with(['category', 'teacher.user', 'block']);
 
             if (Auth::user()->hasRole('Teacher')) {
                 $techerid = Teacher::where('teacher_id', Auth::id())->first()->id;
@@ -391,21 +372,26 @@ class AdminController extends Controller
                 })
                 ->addColumn('actions', function ($row) {
                     $actions = '';
-
                     if (Auth::user()->hasAnyRole(['Super Admin', 'Admin'])) {
-                        $assignButton = '<a href="#" class="btn btn-primary btn-sm assign-teacher-btn" data-course-id="' . $row->id . '"><i class="bx bx-user-plus"></i> ' . ($row->teacher ? 'Change Teacher' : 'Assign Teacher') . '</a>';
-                        $showUnitsButton = '<a href="' . url('courses') . '/' . $row->id . '/units" class="btn btn-primary btn-sm"><i class="bx bx-show-alt"></i> Show Lessons</a>';
-                        $viewCourseButton = '<a href="' . url('courses') . '/' . $row->id . '/show" class="btn btn-primary btn-sm"><i class="bx bx-detail"></i> View Unit</a>';
-                        $deleteCouresButton = ' <a class="btn btn-sm btn-outline-dark btn-danger delete-btn p-2" data-id="' . $row->id . '"><i class="bx bx-trash"></i>Delete</a>';
-                        $actions = '<div class="d-flex justify-content-around gap-2">' . $assignButton . $showUnitsButton . $viewCourseButton . $deleteCouresButton .'</div>';
+                        $assignButton      = '<a href="#" class="btn btn-primary btn-sm assign-teacher-btn" data-course-id="' . $row->id . '"><i class="bx bx-user-plus"></i> ' . ($row->teacher ? 'Change Teacher' : 'Assign Teacher') . '</a>';
+                        $showUnitsButton   = '<a href="' . url('courses') . '/' . $row->id . '/units" class="btn btn-primary btn-sm"><i class="bx bx-show-alt"></i> Show Lessons</a>';
+                        $viewCourseButton  = '<a href="' . url('courses') . '/' . $row->id . '/show" class="btn btn-primary btn-sm"><i class="bx bx-detail"></i> View Unit</a>';
+                        $deleteCouresButton= '<a class="btn btn-sm btn-outline-dark btn-danger delete-btn p-2" data-id="' . $row->id . '"><i class="bx bx-trash"></i>Delete</a>';
+                        $actions = '<div class="d-flex justify-content-around gap-2">' 
+                                . $assignButton 
+                                . $showUnitsButton
+                                . $viewCourseButton
+                                . $deleteCouresButton
+                                . '</div>';
                     }
-
                     if (Auth::user()->hasRole('Teacher')) {
                         $viewCourseButton = '<a href="' . url('/courses') . '/' . $row->id . '/show" class="btn btn-primary btn-sm"><i class="bx bx-detail"></i> View Unit</a>';
-                        $showUnitsButton = '<a href="' . url('courses') . '/' . $row->id . '/units" class="btn btn-primary btn-sm"><i class="bx bx-show-alt"></i> Show Lessons</a>';
-                        $actions = '<div class="d-flex justify-content-around gap-2">' . $viewCourseButton . $showUnitsButton . '</div>';
+                        $showUnitsButton  = '<a href="' . url('courses') . '/' . $row->id . '/units" class="btn btn-primary btn-sm"><i class="bx bx-show-alt"></i> Show Lessons</a>';
+                        $actions = '<div class="d-flex justify-content-around gap-2">'
+                                . $viewCourseButton
+                                . $showUnitsButton
+                                . '</div>';
                     }
-
                     return $actions;
                 })
                 ->rawColumns(['actions'])
@@ -423,77 +409,42 @@ class AdminController extends Controller
         return response()->json(['success' => true]);
     }
 
-    // public function storeCourse(Request $request)
-    // {
-    //     $request->validate([
-    //         'title' => 'required|string|max:255',
-    //         'description' => 'required|string',
-    //         'category_id' => 'required|exists:course_categories,id',
-    //         'level' => 'required|integer|min:1|max:6',
-    //         'type' => 'required|in:weekly,intensive',
-    //         'image' => 'required|image|mimes:jpeg,png,jpg,gif,svg|max:5120',
-    //     ]);
-
-    //     // Store the image
-    //     if ($request->hasFile('image')) {
-    //         $file = $request->file('image');
-    //         $filename = uniqid() . '.' . $file->getClientOriginalExtension();
-    //         $path = $file->storeAs('uploads', $filename, 'public');
-    //         $imagePath = 'storage/' . $path;
-    //     }
-
-    //     // Create the course
-    //     $course = new Course();
-    //     $course->title = $request->title;
-    //     $course->description = $request->description;
-    //     $course->category_id = $request->category_id;
-    //     $course->level = $request->level;
-    //     $course->type = $request->type;
-    //     $course->image = $imagePath;
-    //     if (Auth::user()->hasRole('Teacher')) {
-    //         $course->teacher_id = Auth::user()->teacher->id;
-    //     }
-    //     $course->save();
-
-    //     return response()->json(['success' => 'Unit added successfully']);
-    // }
     public function storeCourse(Request $request)
-{
-    $request->validate([
-        'block_id'     => 'required|exists:blocks,id',
-        'title'        => 'required|string|max:255',
-        'description'  => 'required|string',
-        'category_id'  => 'required|exists:course_categories,id',
-        'level'        => 'required|integer|min:1|max:6',
-        'type'         => 'required|in:weekly,intensive',
-        'image'        => 'required|image|mimes:jpeg,png,jpg,gif,svg|max:5120',
-    ]);
+    {
+        $request->validate([
+            'block_id'     => 'required|exists:blocks,id',
+            'title'        => 'required|string|max:255',
+            'description'  => 'required|string',
+            'category_id'  => 'required|exists:course_categories,id',
+            'level'        => 'required|integer|min:1|max:6',
+            'type'         => 'required|in:weekly,intensive',
+            'image'        => 'required|image|mimes:jpeg,png,jpg,gif,svg|max:5120',
+        ]);
 
-    if ($request->hasFile('image')) {
-        $file = $request->file('image');
-        $filename = uniqid() . '.' . $file->getClientOriginalExtension();
-        $path = $file->storeAs('uploads', $filename, 'public');
-        $imagePath = 'storage/' . $path;
+        if ($request->hasFile('image')) {
+            $file = $request->file('image');
+            $filename = uniqid() . '.' . $file->getClientOriginalExtension();
+            $path = $file->storeAs('uploads', $filename, 'public');
+            $imagePath = 'storage/' . $path;
+        }
+
+        $course = new Course();
+        $course->block_id    = $request->block_id;
+        $course->title       = $request->title;
+        $course->description = $request->description;
+        $course->category_id = $request->category_id;
+        $course->level       = $request->level;
+        $course->type        = $request->type;
+        $course->image       = $imagePath ?? null;
+
+        if (Auth::user()->hasRole('Teacher')) {
+            $course->teacher_id = Auth::user()->teacher->id;
+        }
+
+        $course->save();
+
+        return response()->json(['success' => 'Course added successfully']);
     }
-
-    $course = new Course();
-    $course->block_id    = $request->block_id;     
-    $course->title       = $request->title;
-    $course->description = $request->description;
-    $course->category_id = $request->category_id;
-    $course->level       = $request->level;
-    $course->type        = $request->type;
-    $course->image       = $imagePath ?? null;
-
-    if (Auth::user()->hasRole('Teacher')) {
-        $course->teacher_id = Auth::user()->teacher->id;
-    }
-
-    $course->save();
-
-    return response()->json(['success' => 'Course added successfully']);
-}
-
 
     public function getTeachersForAssignment()
     {
@@ -504,7 +455,7 @@ class AdminController extends Controller
     public function assignTeacherToCourse(Request $request)
     {
         $request->validate([
-            'course_id' => 'required|exists:courses,id',
+            'course_id'  => 'required|exists:courses,id',
             'teacher_id' => 'required|exists:teachers,id',
         ]);
 
@@ -519,10 +470,7 @@ class AdminController extends Controller
     {
         try {
             $course = Course::findOrFail($courseId);
-    
-            // Delete related certificates
             $course->certificates()->delete();
-    
             $course->students()->detach();
             $course->units()->each(function ($unit) {
                 $unit->quizzes()->each(function ($quiz) {
@@ -534,161 +482,166 @@ class AdminController extends Controller
                         $question->choices()->delete();
                         $question->delete();
                     });
-                    $quiz->delete(); 
+                    $quiz->delete();
                 });
                 $unit->delete();
             });
-    
             $course->rates()->delete();
             $course->courseStudents()->delete();
             $course->delete();
-    
+
             return response()->json(['success' => true, 'message' => 'Course deleted successfully']);
         } catch (\Exception $e) {
             return response()->json(['success' => false, 'message' => 'Error deleting course: ' . $e->getMessage()], 500);
         }
     }
-    
-    /* 
-     *
-     *
-     *Units functions 
-     *
-     *
+
+    /*
+     * -------------- UNITS (Lessons) --------------
      */
 
-   
     public function showUnits($courseId)
     {
-        $course = Course::with('units')->findOrFail($courseId); 
-    
+        $course = Course::with('units')->findOrFail($courseId);
+
+        // تحقق من صلاحية المعلم إن لزم
         if (Auth::user()->hasAnyRole(['Teacher'])) {
             if (Auth::id() != $course->teacher->teacher_id) {
                 abort(403, 'Unauthorized action.');
             }
         }
-    
+
         return view('dashboard.admin.units', compact('course'));
     }
-    
 
-
-    
-        public function storeUnit(Request $request)
-        {
-            \Log::info('Store Unit Request:', $request->all()); 
-
-            $request->validate([
-                'title' => 'required|string|max:255',
-                'subtitle' => 'nullable|string|max:255',
-                'content_type' => 'required|in:video,text,youtube',
-                'content' => 'required_if:content_type,text',
-            ]);
-
-            $unit = new Unit();
-            $unit->course_id = $request->course_id;
-            $unit->title = $request->title;
-            $unit->subtitle = $request->subtitle;
-            $unit->content_type = $request->content_type;
-            $unit->save();
-
-            return response()->json(['success' => 'Lesson added successfully']);
-        }
-
-        public function getUnits($courseId)
-        {
-            $units = Unit::where('course_id', $courseId)
-                        ->select('id', 'title', 'subtitle', 'content_type') 
-                        ->get();
-
-            return DataTables::of($units)
-                ->addColumn('actions', function($row){
-                    return '
-                        <div class="d-flex justify-content-around gap-2">
-                            <button class="btn btn-primary btn-sm edit-unit" data-id="'.$row->id.'">Edit</button>
-                            <button class="btn btn-info btn-sm show-script" data-id="'.$row->id.'">Show Script</button>
-                            <button class="btn btn-danger btn-sm delete-unit" data-id="'.$row->id.'">Delete</button>
-                        </div>';
-                })
-                ->make(true);
-        }
-
-
-
-    private function extractVideoId($url)
+    //  (Add) Lesson
+    public function storeUnit(Request $request)
     {
-        parse_str(parse_url($url, PHP_URL_QUERY), $queryParams);
-        return $queryParams['v'] ?? null;
-    }
-    private function checkUrl($videoId)
-    {
-        $apiKey = env('YOUTUBE_API_KEY');
-        // dd(env('YOUTUBE_API_KEY'));
-        $apiUrl = "https://www.googleapis.com/youtube/v3/videos?id={$videoId}&key={$apiKey}&part=snippet,statistics";
+        \Log::info('Store Unit Request:', $request->all());
 
-        $response = Http::get($apiUrl);
-        // dd($response->json());
-        if ($response->successful() && !empty($response->json()['items'])) {
-            $item = $response->json()['items'][0];
-            return [
-                'status' => 'success',
-                'message' => 'Correct YouTube Video URL',
-            ];
+        $request->validate([
+            'course_id'    => 'required|exists:courses,id',
+            'title'        => 'required|string|max:255',
+            'subtitle'     => 'nullable|string|max:255',
+            'content_type' => 'required|in:video,text,youtube',
+            'content'      => 'required_if:content_type,text',
+            'video'        => 'nullable|file|mimes:mp4,mov,ogg,qt|max:20000',
+            'youtube'      => 'nullable|string',
+        ]);
+
+        $unit = new Unit();
+        $unit->course_id    = $request->course_id;
+        $unit->title        = $request->title;
+        $unit->subtitle     = $request->subtitle;
+        $unit->content_type = $request->content_type;
+
+        if($request->content_type === 'text'){
+            $unit->content = $request->content;
+        } elseif($request->content_type === 'youtube'){
+            $videoId = $this->extractVideoId($request->youtube);
+            $checkUrl = $this->checkUrl($videoId);
+            if ($checkUrl['status'] === 'error') {
+                return response()->json(['error' => $checkUrl['error']], 422);
+            }
+            $unit->content = $videoId;
+            $unit->script  = $request->youtube; // نحتفظ بالرابط الأصلي في الحقل script
+        } elseif($request->content_type === 'video' && $request->hasFile('video')){
+            $file = $request->file('video');
+            $filename = uniqid() . '.' . $file->getClientOriginalExtension();
+            $path = $file->storeAs('uploads', $filename, 'public');
+            $unit->content = 'storage/' . $path;
         }
 
-        return [
-            'status' => 'error',
-            'error' => 'Invalid YouTube Video URL'
-        ];
+        $unit->save();
+
+        // استدعاء Job لمعالجة النص
+        ProcessUnitAI::dispatch($unit->id, $this->videoToAudioService);
+
+        return response()->json(['success' => 'Lesson added successfully']);
     }
+
+    //  (Read) for DataTables
+    public function getUnits($courseId)
+    {
+        $units = Unit::where('course_id', $courseId)
+                     ->select('id', 'title', 'subtitle', 'content_type')
+                     ->get();
+
+        return DataTables::of($units)
+            ->addColumn('actions', function($row){
+                return '
+                    <div class="d-flex justify-content-around gap-2">
+                        <button class="btn btn-success btn-sm view-lesson" data-id="'.$row->id.'">View Lesson</button>
+                        <button class="btn btn-primary btn-sm edit-unit" data-id="'.$row->id.'">Edit</button>
+                        <button class="btn btn-info btn-sm show-script" data-id="'.$row->id.'">Show Script</button>
+                        <button class="btn btn-danger btn-sm delete-unit" data-id="'.$row->id.'">Delete</button>
+                    </div>';
+            })
+            ->rawColumns(['actions'])
+            ->make(true);
+    }
+
+    //  (Show single lesson) - AJAX
+    public function showUnit($id)
+    {
+        $unit = Unit::findOrFail($id);
+        return response()->json($unit); 
+    }
+
+    //  (Edit) - AJAX Get
     public function editUnit($id)
     {
         $unit = Unit::findOrFail($id);
         return response()->json($unit);
     }
 
+    //  (Update) Lesson
     public function updateUnit(Request $request, $id)
     {
         $request->validate([
-            'title' => 'required|string|max:255',
-            'subtitle' => 'nullable|string|max:255',
+            'title'        => 'required|string|max:255',
+            'subtitle'     => 'nullable|string|max:255',
             'content_type' => 'required|in:video,text,youtube',
-            'content' => 'required_if:content_type,text,youtube',
-            'video' => 'nullable|file|mimes:mp4,mov,ogg,qt|max:20000'
+            'content'      => 'required_if:content_type,text,youtube',
+            'video'        => 'nullable|file|mimes:mp4,mov,ogg,qt|max:20000',
         ]);
 
         $unit = Unit::findOrFail($id);
-        $unit->title = $request->title;
-        $unit->subtitle = $request->subtitle;
+        $unit->title        = $request->title;
+        $unit->subtitle     = $request->subtitle;
         $unit->content_type = $request->content_type;
 
         if ($request->content_type == 'text') {
             $unit->content = $request->content;
-        } else if ($request->content_type == 'video' && $request->hasFile('video')) {
-            // Delete the old video file if it exists
-            if ($unit->content && Storage::disk('public')->exists($unit->content)) {
-                Storage::disk('public')->delete($unit->content);
+        } elseif ($request->content_type == 'video' && $request->hasFile('video')) {
+            // Delete old if exists
+            if ($unit->content && Storage::disk('public')->exists(str_replace('storage/', '', $unit->content))) {
+                Storage::disk('public')->delete(str_replace('storage/', '', $unit->content));
             }
-
-            // Store the new video file
+            // store new
             $file = $request->file('video');
             $filename = uniqid() . '.' . $file->getClientOriginalExtension();
             $path = $file->storeAs('uploads', $filename, 'public');
             $unit->content = 'storage/' . $path;
-        } else if ($request->content_type == 'youtube') {
+        } elseif ($request->content_type == 'youtube') {
             $videoId = $this->extractVideoId($request->youtube);
             $checkUrl = $this->checkUrl($videoId);
             if ($checkUrl['status'] == 'error') {
                 return response()->json(['error' => $checkUrl['error']], 422);
             }
             $unit->content = $videoId;
-            $unit->script = $request->youtube;
+            $unit->script  = $request->youtube;
         }
+
         $unit->save();
+
+        // Dispatch job to handle AI script
         ProcessUnitAI::dispatch($unit->id, $this->videoToAudioService);
+
         return response()->json(['success' => 'Lesson updated successfully']);
     }
 
+    // (Delete) Lesson
     public function destroyUnit(Request $request, $id)
     {
         try {
@@ -703,10 +656,7 @@ class AdminController extends Controller
                 }
                 $quiz->delete();
             }
-            DB::table('student_units')
-                ->whereIn('unit_id', $unitsIds)
-                ->delete();
-
+            DB::table('student_units')->whereIn('unit_id', $unitsIds)->delete();
             $unit->delete();
 
             return response()->json(['success' => 'Lesson and all related quizzes and assessments deleted successfully']);
@@ -715,6 +665,7 @@ class AdminController extends Controller
         }
     }
 
+    //  get and update script
     public function getScript($id)
     {
         $unit = Unit::findOrFail($id);
@@ -731,9 +682,7 @@ class AdminController extends Controller
     }
 
     /*
-     *
-     * Students functions
-     *
+     * -------------- STUDENTS --------------
      */
     public function showStudents()
     {
@@ -744,7 +693,6 @@ class AdminController extends Controller
     {
         if ($request->ajax()) {
             $data = Student::with('user')->get();
-
             return DataTables::of($data)
                 ->addColumn('student_id', function ($row) {
                     return $row->id;
@@ -785,14 +733,12 @@ class AdminController extends Controller
                 ->rawColumns(['actions'])
                 ->make(true);
         }
-
         return null;
     }
 
     public function editStudent($id)
     {
         $student = Student::with('user')->findOrFail($id);
-
         return response()->json($student);
     }
 
@@ -802,39 +748,37 @@ class AdminController extends Controller
 
         $validator = Validator::make($request->all(), [
             'first_name' => 'required|string|max:255',
-            'last_name' => 'required|string|max:255',
-            'email' => [
+            'last_name'  => 'required|string|max:255',
+            'email'      => [
                 'required',
                 'regex:/^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/',
                 'unique:users,email,' . $student->user->id
             ],
-            'phone_number' => 'required|string|max:15',
-            'country_location' => 'required|string|max:255',
-            'country_code' => 'required|string|max:5',
+            'phone_number'            => 'required|string|max:15',
+            'country_location'        => 'required|string|max:255',
+            'country_code'            => 'required|string|max:5',
             'english_proficiency_level' => 'required|string|max:255',
-            'subscription_status' => 'required|string|max:255',
-            'status' => 'required|string|max:255',
+            'subscription_status'     => 'required|string|max:255',
+            'status'                  => 'required|string|max:255',
         ]);
 
         if ($validator->fails()) {
             return response()->json(['errors' => $validator->errors()], 422);
         }
 
-
-
         $student->update([
             'english_proficiency_level' => $request->english_proficiency_level,
-            'subscription_status' => $request->subscription_status,
+            'subscription_status'       => $request->subscription_status,
         ]);
         $user = $student->user;
 
         $user->update([
-            'first_name' => $request->first_name,
-            'last_name' => $request->last_name,
-            'email' => $request->email,
-            'phone_number' => $request->country_code . ltrim($request->phone_number, '0'),
-            'country_location' => $request->country_location,
-            'status' => $request->status,
+            'first_name'        => $request->first_name,
+            'last_name'         => $request->last_name,
+            'email'             => $request->email,
+            'phone_number'      => $request->country_code . ltrim($request->phone_number, '0'),
+            'country_location'  => $request->country_location,
+            'status'            => $request->status,
         ]);
 
         return response()->json(['message' => 'Student updated successfully']);
@@ -852,7 +796,6 @@ class AdminController extends Controller
             if ($user->userSubscriptions()->exists()) {
                 $user->userSubscriptions()->delete();
             }
-
             $user->delete();
         }
         $student->delete();
@@ -861,20 +804,13 @@ class AdminController extends Controller
     }
 
 
-
     /*
-     *
-     * teacher level test assessments section
-     *
+     * -------------- TEACHER LEVEL TEST ASSESSMENTS --------------
      */
-
-
     public function teacherAssessments()
     {
         return view('dashboard.admin.teacher_level_test_assessment');
     }
-
-
 
     public function getTeachersWithAssessments(DataTables $dataTables)
     {
@@ -899,7 +835,6 @@ class AdminController extends Controller
             ->make(true);
     }
 
-
     public function getTeacherAssessments($id)
     {
         $teacher = User::with(['levelTestAssessments.question.choices'])
@@ -907,7 +842,6 @@ class AdminController extends Controller
                 $q->where('name', 'Teacher');
             })
             ->findOrFail($id);
-        // dd($teacher->levelTestAssessments);
         return response()->json([
             'assessments' => $teacher->levelTestAssessments,
         ]);
@@ -925,9 +859,7 @@ class AdminController extends Controller
 
 
     /*
-     *
-     * student level test assessments section
-     *
+     * -------------- STUDENT LEVEL TEST ASSESSMENTS --------------
      */
 
     public function studentAssessments()
@@ -940,9 +872,9 @@ class AdminController extends Controller
         $query = User::whereHas('roles', function ($q) {
             $q->where('name', 'Student');
         })
-            ->whereHas('levelTestAssessments') // Ensure only students with assessments are included
-            ->with(['levelTestAssessments.question', 'student']) // Include the student relationship
-            ->select('users.*'); // Select only from users, we will access student details via relationship
+            ->whereHas('levelTestAssessments')
+            ->with(['levelTestAssessments.question', 'student'])
+            ->select('users.*');
 
         return $dataTables->eloquent($query)
             ->addColumn('full_name', function ($student) {
@@ -956,7 +888,6 @@ class AdminController extends Controller
             })
             ->addColumn('age', function ($student) {
                 return \Carbon\Carbon::parse($student->date_of_birth)->diffInYears(now());
-
             })
             ->rawColumns(['actions'])
             ->make(true);
@@ -972,10 +903,9 @@ class AdminController extends Controller
 
         return response()->json([
             'assessments' => $student->levelTestAssessments,
-            'student' => $student->student
+            'student'     => $student->student
         ]);
     }
-
 
     public function updateStudentAssessment(Request $request, $studentId, $assessmentId)
     {
@@ -984,7 +914,6 @@ class AdminController extends Controller
         $assessment->admin_review = $request->input('admin_review');
         $assessment->save();
 
-        // Update student's English proficiency level if provided
         if ($request->has('english_proficiency_level')) {
             $student = User::findOrFail($studentId);
             $student->student->english_proficiency_level = $request->input('english_proficiency_level');
@@ -995,127 +924,33 @@ class AdminController extends Controller
     }
 
 
-    private function scriptAi($prompt, $type = 'text',$transcription = null)
+    /*
+     * -------------- Helpers --------------
+     */
+
+    private function extractVideoId($url)
     {
-        if ($type == 'text') {
-            $text = 'You are an AI assistant tasked with turning the content of a course unit into a detailed script. This script will be used when the user takes a quiz for this unit. Please generate a script based strictly on the provided content. Ensure that the script explains the content thoroughly and comprehensively without adding any new details or elements. The script should clearly describe the original  content. Return the response in JSON format with the key "script". note: the script will not be for the Student it will be for the ai so just explain in a way the ai will understand the subject that the quastions and answerss revlove around but also insure that the content will be at the end of the script so the ai will be able to answer the questions and know what answers are wrong and what are corect fro example if there names or place could the quastio by about them and return in teh json script as a keyand even if the contetn is short and simple as hello  and do not need explanation then just removeing the html tags and return it as it is   and the value should not be multi line keep it on the same line to not get wrong json .';
-        } elseif ($type == 'video') {
-            // unit type is vedio and we need to tell that to the ai that the text is taken from the vedio audio
-            $text = 'You are an AI assistant tasked with turning the audio content of a course unit video into a detailed script. This script will be used when the user takes a quiz for this unit. Please generate a script based strictly on the provided audio content. Ensure that the script explains the content thoroughly and comprehensively without adding any new details or elements. The script should clearly describe the original content. Return the response in JSON format with the key "script". Note that the script will not be for the student, but for the AI, so explain the subject in a way that the AI will understand the questions and answers. Ensure the content is at the end of the script so the AI can answer the questions correctly. If there are names or places, the questions could be about them. The JSON should have the "script" key, and the value should be a single line to avoid incorrect JSON formatting. If the content is short and simple like "hello", return it as it is. Additionally, note that the text has been extracted from the video, so if some words do not make sense, correct them in the best way based on the context of the video.Please respond with a single JSON object containing only the script key and its value, without any extra characters, backticks, or formatting. The response should start with { and end with }. Do not include any explanations or additional text outside of the JSON object.';
-
-        }
-        // dd('test');
-        $response = OpenAI::chat()->create([
-            'model' => 'gpt-4o',
-            'messages' => [
-                [
-                    'role' => 'system',
-                    'content' => $text
-                ],
-                ['role' => 'user', 'content' => $prompt]
-            ],
-            'temperature' => 0,
-        ]);
-        // dd($response);
-        \Log::info("response: ai-text-unit::::::::::::::: " . json_encode($response));
-
-        // Extract and clean the JSON part of the response
-        $responseContent = $response->choices[0]->message->content;
-        $jsonString = $this->extractJsonString($responseContent);
-
-        $aiResponse = json_decode($jsonString, true);
-        if ($aiResponse === null && $type === 'video' && $transcription) {
-            // Fallback to using the transcription text if JSON parsing fails
-            \Log::warning("Falling back to transcription due to JSON extraction failure");
-            $aiResponse = ['script' => $transcription];
-        }
-        \Log::info("aiResponse: " . json_encode($aiResponse));
-
-        return $aiResponse;
-    }
-    private function extractJsonString($responseContent)
-    {
-        // Step 1: Attempt direct JSON decoding
-        $decodedJson = json_decode($responseContent, true);
-        if (json_last_error() === JSON_ERROR_NONE) {
-            \Log::info("Successfully decoded JSON response directly");
-            return $decodedJson;  // Return decoded JSON if valid
-        }
-
-        // Step 2: Fallback to extracting JSON pattern within backticks or curly braces
-        if (
-            preg_match('/```json\s*(\{[\s\S]*?\})\s*```/s', $responseContent, $matches) ||
-            preg_match('/(\{[\s\S]*\})/', $responseContent, $matches)
-        ) {
-
-            $jsonString = trim($matches[1]);
-            $jsonString = str_replace(['“', '”', '‘', '’'], '"', $jsonString);  // Replace non-standard quotes
-
-            // Try decoding extracted JSON string
-            $decodedJson = json_decode($jsonString, true);
-            if (json_last_error() === JSON_ERROR_NONE) {
-                \Log::info("Successfully decoded JSON from extracted pattern");
-                return $decodedJson;
-            }
-        }
-
-        // Step 3: Log error if JSON extraction fails
-        \Log::error("Failed to extract or decode JSON string from response content: " . $responseContent);
-        return null;
+        parse_str(parse_url($url, PHP_URL_QUERY), $queryParams);
+        return $queryParams['v'] ?? null;
     }
 
-
-
-
-    private function isValidJson($string)
+    private function checkUrl($videoId)
     {
-        json_decode($string);
-        return (json_last_error() == JSON_ERROR_NONE);
-    }
+        $apiKey = env('YOUTUBE_API_KEY');
+        $apiUrl = "https://www.googleapis.com/youtube/v3/videos?id={$videoId}&key={$apiKey}&part=snippet,statistics";
 
-    private function transcribeAudio($audioPath)
-    {
-        \Log::info("inside transcribeAudio");
-        \Log::info("Transcribing audio file at path: " . $audioPath);
-        $extension = pathinfo($audioPath, PATHINFO_EXTENSION);
-
-        if ($extension === 'webm' && is_string($audioPath) && file_exists($audioPath)) {
-            // Convert the webm file to wav format using laravel-ffmpeg
-            $wavPath = str_replace('.webm', '.wav', $audioPath);
-            FFMpeg::fromDisk('local')
-                ->open($audioPath)
-                ->export()
-                ->toDisk('local')
-                ->inFormat(new \FFMpeg\Format\Audio\Wav)
-                ->save($wavPath);
-
-            \Log::info("Converted audio file path: " . $wavPath);
-
-            // Use the wav file for transcription
-            $audioContent = new UploadedFile($wavPath, basename($wavPath));
-        } else {
-            $audioContent = new UploadedFile($audioPath, basename($audioPath));
+        $response = Http::get($apiUrl);
+        if ($response->successful() && !empty($response->json()['items'])) {
+            $item = $response->json()['items'][0];
+            return [
+                'status' => 'success',
+                'message' => 'Correct YouTube Video URL',
+            ];
         }
 
-        // Ensure $audioContent is an instance of UploadedFile
-        if ($audioContent instanceof UploadedFile) {
-            \Log::info("File details - MimeType: " . $audioContent->getMimeType() . ", Size: " . $audioContent->getSize() . ", Original Name: " . $audioContent->getClientOriginalName() . ", Extension: " . $audioContent->getClientOriginalExtension());
-
-            // Check if the file type is supported by the transcription service
-
-            $response = OpenAI::audio()->translate([
-                'model' => 'whisper-1',
-                'file' => fopen($audioContent->getRealPath(), 'r'),
-                'language' => 'en',
-                'temperature' => 0, // Set temperature to 0 for deterministic output
-            ]);
-
-            \Log::info("Transcription response: " . json_encode($response));
-            return $response['text'];
-        } else {
-            \Log::info("fail on line 338: ");
-            dd("Invalid audio content provided.");
-        }
+        return [
+            'status' => 'error',
+            'error' => 'Invalid YouTube Video URL'
+        ];
     }
-
 }

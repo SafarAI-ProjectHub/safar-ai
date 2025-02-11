@@ -65,7 +65,7 @@
     </div>
 </div>
 
-<!-- Add Unit Modal -->
+<!-- Add Lesson Modal -->
 <div class="modal fade" id="addUnitModal" tabindex="-1" aria-hidden="true">
     <div class="modal-dialog modal-fullscreen">
         <div class="modal-content">
@@ -248,7 +248,7 @@
     </div>
 </div>
 
-<!-- Edit Unit Modal -->
+<!-- Edit Lesson Modal -->
 <div class="modal fade" id="editUnitModal" tabindex="-1" aria-hidden="true">
     <div class="modal-dialog modal-fullscreen">
         <div class="modal-content">
@@ -403,6 +403,22 @@
         </div>
     </div>
 </div>
+
+<!-- View Lesson Modal -->
+<div class="modal fade" id="viewLessonModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">View Lesson</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body" id="viewLessonBody">
+                <!-- سيتم تعبئة المحتوى جافاسكربتياً -->
+            </div>
+        </div>
+    </div>
+</div>
+
 @endsection
 
 @section('scripts')
@@ -441,10 +457,8 @@
             }
             return results;
         }
-        // شكل سهم (تقريبي) باستخدام Polygon
+        // شكل سهم (تقريبي)
         function arrowPoints() {
-            // مثلث + مستطيل?
-            // هنا شكل سهم بسيط
             return [
                 { x: 0,  y: 0 },
                 { x: 60, y: 0 },
@@ -457,7 +471,6 @@
         }
         // شكل ماسة
         function diamondPoints(w=80, h=80) {
-            // أربع نقاط
             return [
                 { x: 0,    y: -h/2},
                 { x: w/2,  y: 0},
@@ -465,9 +478,8 @@
                 { x: -w/2, y: 0}
             ];
         }
-        // شكل شبه منحرف بسيط
+        // شبه منحرف
         function trapezoidPoints(topW=50, bottomW=100, h=60) {
-            // top line centered
             let halfTop = topW/2, halfBottom= bottomW/2;
             return [
                 { x: -halfTop,    y: 0 },
@@ -531,10 +543,10 @@
                         data: { _token: $('meta[name="csrf-token"]').attr('content') },
                         success: function() {
                             table.ajax.reload(null, false);
-                            swal("Success", "Lesson deleted", "success");
+                            Swal.fire("Success", "Lesson deleted", "success");
                         },
                         error: function(xhr) {
-                            swal("Error", "Error: " + xhr.responseText, "error");
+                            Swal.fire("Error", "Error: " + xhr.responseText, "error");
                         }
                     });
                 }
@@ -565,7 +577,38 @@
                   });
             });
 
-            // 4) Quill
+            // 4) View Lesson (new)
+            $('#units-table').on('click', '.view-lesson', function(){
+                var unitId = $(this).data('id');
+                // جلب بيانات الدرس وعرضها
+                $.ajax({
+                    url: '/units/'+unitId, // روت showUnit
+                    method: 'GET',
+                    success:function(resp){
+                        // الآن تعبئة محتوى المودال حسب نوع الدرس
+                        let htmlContent = '';
+                        htmlContent += '<h4>'+resp.title+'</h4>';
+                        htmlContent += '<p><strong>Subtitle: </strong>'+ (resp.subtitle ? resp.subtitle : '') +'</p>';
+                        htmlContent += '<p><strong>Type: </strong>'+ resp.content_type +'</p>';
+                        if(resp.content_type === 'text'){
+                            htmlContent += '<hr><div>'+ resp.content +'</div>';
+                        } else if(resp.content_type === 'youtube'){
+                            htmlContent += '<hr><p>YouTube Video ID: '+ resp.content +'</p>';
+                            htmlContent += '<p>(Original Link: '+ resp.script +')</p>';
+                        } else if(resp.content_type === 'video'){
+                            htmlContent += '<hr><video width="100%" controls src="'+ (resp.content) +'">Video not supported</video>';
+                        }
+                        $('#viewLessonBody').html(htmlContent);
+                        $('#viewLessonModal').modal('show');
+                    },
+                    error:function(err){
+                        Swal.fire("Error", "Cannot fetch lesson data", "error");
+                    }
+                });
+            });
+
+
+            // 5) Quill Editors
             let advancedModules = {
                 toolbar: [
                     [{ 'font': [] }],
@@ -592,7 +635,7 @@
                 modules: advancedModules
             });
 
-            // 5) إظهار الأقسام: text-and-canvas , video-content, youtube-content
+            // 6) Toggle content types
             $('#content_type').on('change', function(){
                 let val = $(this).val();
                 $('#text-and-canvas, #video-content, #youtube-content').hide();
@@ -616,20 +659,19 @@
                 }
             });
 
-            // 6) Fabric.js (Add)
+            // 7) Fabric.js (Add)
             let canvas = new fabric.Canvas('designCanvas',{
                 backgroundColor:'#fff',
                 preserveObjectStacking:true
             });
             canvasAdd = canvas;
-            // دبل كلك لتحرير النص
+            // Double click => edit text
             canvasAdd.on('mouse:dblclick', function(opt){
                 if(opt.target && opt.target.type === 'textbox'){
                     opt.target.enterEditing();
                 }
             });
 
-            // تغيير حجم اللوحة
             $('#applySizeBtn').click(function(){
                 let w = parseInt($('#designWidth').val() || '800');
                 let h = parseInt($('#designHeight').val() || '400');
@@ -664,20 +706,16 @@
                         obj = new fabric.Polygon(starPts,{ left:150,top:150, fill,stroke,strokeWidth:strokeW });
                         break;
                     case 'arrow':
-                        let arrPts= arrowPoints();
-                        obj = new fabric.Polygon(arrPts,{ left:100,top:100, fill,stroke,strokeWidth:strokeW });
+                        obj = new fabric.Polygon(arrowPoints(),{ left:100,top:100, fill,stroke,strokeWidth:strokeW });
                         break;
                     case 'diamond':
-                        let diaPts= diamondPoints();
-                        obj = new fabric.Polygon(diaPts,{ left:150,top:150, fill,stroke,strokeWidth:strokeW });
+                        obj = new fabric.Polygon(diamondPoints(),{ left:150,top:150, fill,stroke,strokeWidth:strokeW });
                         break;
                     case 'trapezoid':
-                        let trapPts= trapezoidPoints();
-                        obj = new fabric.Polygon(trapPts,{ left:150,top:150, fill,stroke,strokeWidth:strokeW });
+                        obj = new fabric.Polygon(trapezoidPoints(),{ left:150,top:150, fill,stroke,strokeWidth:strokeW });
                         break;
                     case 'zigzag':
-                        let zzPts= zigzagPoints(6,100,50); // 6 steps
-                        obj = new fabric.Polyline(zzPts,{ left:150,top:150, fill:'',stroke,strokeWidth:strokeW });
+                        obj = new fabric.Polyline(zigzagPoints(6,100,50),{ left:150,top:150, fill:'',stroke,strokeWidth:strokeW });
                         break;
                 }
                 if(obj){
@@ -705,20 +743,28 @@
                 canvasAdd.add(textbox).setActiveObject(textbox);
                 textbox.enterEditing();
             });
-            // زر Insert Design to Editor
+            // Insert Design
             $('#insertDesignBtn').click(function(){
-                let dataURL = canvasAdd.toDataURL({format:'png'});
-                // ندخله كصورة في المحرر
+                let dataURL = canvasAdd.toDataURL('image/png');
                 let range = quillAdd.getSelection(true);
-                quillAdd.insertEmbed(range.index, 'image', dataURL, Quill.sources.USER);
-                quillAdd.setSelection(range.index+1, Quill.sources.SILENT);
-            });
-            // Clear Canvas
+                
+                $.ajax({
+                    url: '/upload-canvas-image',
+                    type: 'POST',
+                    data: { imageBase64: dataURL },
+                    headers: { 'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content') },
+                    success: function(resp){
+                    quillAdd.insertEmbed(range.index, 'image', resp.url, Quill.sources.USER);
+                    quillAdd.setSelection(range.index+1, Quill.sources.SILENT);
+                    }
+                });
+                });
+            // Clear
             $('#clearCanvasBtn').click(function(){
                 canvasAdd.clear();
             });
 
-            // 7) Fabric.js (Edit)
+            // 8) Fabric.js (Edit)
             let canvas2 = new fabric.Canvas('editDesignCanvas',{
                 backgroundColor:'#fff',
                 preserveObjectStacking:true
@@ -759,24 +805,19 @@
                         obj = new fabric.Line([50,50,200,50], { stroke, strokeWidth:strokeW, fill });
                         break;
                     case 'star':
-                        let sp = starPolygonPoints(5, 50, 20);
-                        obj = new fabric.Polygon(sp,{ left:150,top:150, fill,stroke,strokeWidth:strokeW });
+                        obj = new fabric.Polygon(starPolygonPoints(5, 50, 20),{ left:150,top:150, fill,stroke,strokeWidth:strokeW });
                         break;
                     case 'arrow':
-                        let ap = arrowPoints();
-                        obj = new fabric.Polygon(ap,{ left:100,top:100, fill,stroke,strokeWidth:strokeW });
+                        obj = new fabric.Polygon(arrowPoints(),{ left:100,top:100, fill,stroke,strokeWidth:strokeW });
                         break;
                     case 'diamond':
-                        let dp= diamondPoints();
-                        obj = new fabric.Polygon(dp,{ left:150,top:150, fill,stroke,strokeWidth:strokeW });
+                        obj = new fabric.Polygon(diamondPoints(),{ left:150,top:150, fill,stroke,strokeWidth:strokeW });
                         break;
                     case 'trapezoid':
-                        let tp= trapezoidPoints();
-                        obj = new fabric.Polygon(tp,{ left:150,top:150, fill,stroke,strokeWidth:strokeW });
+                        obj = new fabric.Polygon(trapezoidPoints(),{ left:150,top:150, fill,stroke,strokeWidth:strokeW });
                         break;
                     case 'zigzag':
-                        let zpoints= zigzagPoints(6,100,50);
-                        obj = new fabric.Polyline(zpoints,{ left:150,top:150, fill:'',stroke,strokeWidth:strokeW });
+                        obj = new fabric.Polyline(zigzagPoints(6,100,50),{ left:150,top:150, fill:'',stroke,strokeWidth:strokeW });
                         break;
                 }
                 if(obj){
@@ -806,15 +847,24 @@
             $('#editClearCanvasBtn').click(function(){
                 canvasEdit.clear();
             });
-            // Insert to Editor
             $('#editInsertDesignBtn').click(function(){
-                let dataURL = canvasEdit.toDataURL({format:'png'});
+                let dataURL = canvasEdit.toDataURL('image/png');
                 let range = quillEdit.getSelection(true);
-                quillEdit.insertEmbed(range.index, 'image', dataURL, Quill.sources.USER);
-                quillEdit.setSelection(range.index+1, Quill.sources.SILENT);
+
+                $.ajax({
+                url: '/upload-canvas-image', 
+                type: 'POST',
+                data: { imageBase64: dataURL },
+                headers: { 'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content') },
+                success: function(resp){
+                    quillEdit.insertEmbed(range.index, 'image', resp.url, Quill.sources.USER);
+                    quillEdit.setSelection(range.index+1, Quill.sources.SILENT);
+                }
+                });
             });
 
-            // 8) FilePond
+
+            // 9) FilePond
             FilePond.registerPlugin(
                 FilePondPluginImagePreview,
                 FilePondPluginImageExifOrientation,
@@ -832,7 +882,7 @@
                 acceptedFileTypes: ['video/*']
             });
 
-            // 9) تفريغ المودال
+            // 10) Clear modals on hide
             function clearModal(modalId){
                 $(modalId + ' input[type="text"], '+modalId+' textarea').val('');
                 if(modalId==='#addUnitModal'){
@@ -851,7 +901,7 @@
                 clearModal('#'+this.id);
             });
 
-            // 10) إضافة درس
+            // 11) إضافة درس
             $('#addUnitForm').on('submit', function(e){
                 e.preventDefault();
                 let originalFormData = new FormData(this);
@@ -889,7 +939,7 @@
                 });
             });
 
-            // 11) تعديل درس
+            // 12) تعديل درس
             $('#editUnitForm').on('submit', function(e){
                 e.preventDefault();
                 let originalFormData = new FormData(this);
@@ -941,9 +991,13 @@
                         if(data.content_type==='text'){
                             quillEdit.root.innerHTML= data.content;
                         } else if(data.content_type==='youtube'){
-                            $('#edit-youtube').val('https://www.youtube.com/watch?v='+ data.content);
+                            // الدرس خزّن الvideoId في الحقل content
+                            // بينما رابط اليوتيوب في script
+                            // لعرضه للتعديل إن لزم
+                            // هنا نفترض أنك تريد أن تعرض script بداخل الحقل
+                            $('#edit-youtube').val(data.script || '');
                         }
-                        // video => we don't do anything special
+                        // video => لا شيء مخصوص سوى ترك رفع فيديو جديد لو احتاج
                         $('#editUnitModal').modal('show');
                     }
                 });
@@ -968,6 +1022,7 @@
                 $('body').append(html);
                 setTimeout(()=>{$('.alert').alert('close');},5000);
             }
+
         });
     </script>
 @endsection

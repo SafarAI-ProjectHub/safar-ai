@@ -136,14 +136,42 @@ class CertificateController extends Controller
 
     public function generatePDF(Request $request)
     {
-        $user = Auth::user();
+        $user   = Auth::user();
         $course = Course::find($request->course_id);
-        $certificate = Certificate::where('user_id', $user->id)->where('course_id', $course->id)->first();
+    
+        // تحقّق من وجود الكورس
+        if (!$course) {
+            return response()->json([
+                'error' => 'Course not found.'
+            ], 404);
+        }
+    
+        // تحقّق من وجود شهادة للمستخدم في هذا الكورس
+        $certificate = Certificate::where('user_id', $user->id)
+                                  ->where('course_id', $course->id)
+                                  ->first();
+    
+        if (!$certificate) {
+            return response()->json([
+                'error' => 'No certificate found for this user and course.'
+            ], 404);
+        }
+    
+        // تأكد أن حقل completed_at متوفر
+        if (!$certificate->completed_at) {
+            return response()->json([
+                'error' => 'Certificate does not have a completion date.'
+            ], 422);
+        }
+    
+        // البيانات التي ستُعرض في الـPDF
         $data = [
-            'user' => $user,
+            'user'   => $user,
             'course' => $course,
-            'date' => $certificate->completed_at->format('F j, Y')
+            'date'   => $certificate->completed_at->format('F j, Y'),
         ];
+    
+        // توليد الـPDF باستخدام المكتبة
         $pdf = PDF::loadView('pdf.certificate', $data);
         $pdf->setOption('page-size', 'A4');
         $pdf->setOption('orientation', 'landscape');
@@ -153,69 +181,91 @@ class CertificateController extends Controller
         $pdf->setOption('margin-right', '0');
         $pdf->setOption('margin-bottom', '0');
         $pdf->setOption('margin-left', '0');
-
+    
+        // نرجع الملف كـ"Blob" حتى يتعامل معه الـAjax في المتصفح
         return $pdf->download('certificate-' . $course->title . '.pdf');
     }
-
+    
     public function myCertificates(Request $request)
     {
         if ($request->ajax()) {
             $user = Auth::user();
+    
+            // جلب جميع الكورسات التي ظهرت في جدول user_courses بعلامة completed = 1
             $courses = $user->courses()->where('completed', 1)->get();
             $completedCourses = [];
+    
             foreach ($courses as $course) {
                 $unitnumber = Unit::where('course_id', $course->id)->count();
                 $unitsIds = $course->units->pluck('id')->toArray();
+    
+                // جلب معرفات الوحدات التي أنهاها الطالب
                 $completedUnitIds = DB::table('student_units')
                     ->where('student_id', $user->student->id)
                     ->where('completed', 1)
                     ->whereIn('unit_id', $unitsIds)
                     ->pluck('unit_id')
                     ->toArray();
-
+    
                 $completedUnitCount = count($completedUnitIds);
-
-                if ($unitnumber == $completedUnitCount) {
+    
+                // إذا كان عدد الوحدات في الكورس يساوي عدد الوحدات المكتملة فعلاً
+                if ($unitnumber == $completedUnitCount && $unitnumber > 0) {
+                    // آخر وحدة مكتملة من حيث التاريخ
                     $lastCompletedUnit = DB::table('student_units')
                         ->where('student_id', $user->student->id)
                         ->where('completed', 1)
                         ->whereIn('unit_id', $unitsIds)
                         ->orderBy('updated_at', 'desc')
                         ->first();
-
-                    $completedAt = $lastCompletedUnit->updated_at;
-
-                    // Store or update certificate record
-                    Certificate::firstOrCreate(
-                        [
-                            'user_id' => $user->id,
-                            'course_id' => $course->id
-                        ],
-                        [
-                            'completed_at' => $completedAt
-                        ]
-                    );
-
-                    $completedCourses[] = $course;
+    
+                    // تحقق من أن lastCompletedUnit ليس null
+                    if ($lastCompletedUnit) {
+                        $completedAt = $lastCompletedUnit->updated_at;
+    
+                        // إنشاء شهادة أو تجاهل إذا كانت موجودة مسبقاً
+                        Certificate::firstOrCreate(
+                            [
+                                'user_id'   => $user->id,
+                                'course_id' => $course->id
+                            ],
+                            [
+                                'completed_at' => $completedAt
+                            ]
+                        );
+    
+                        $completedCourses[] = $course;
+                    }
+                    // إن كان null، نتجاهل هذا الكورس أو 
                 }
             }
-
-            // Get the certificates data to return to DataTables
-            $certificates = Certificate::where('user_id', $user->id)->with('course')->get();
-
+    
+            // جلب الشهادات لإرسالها إلى DataTables
+            $certificates = Certificate::where('user_id', $user->id)
+                ->with('course')
+                ->get();
+    
             return DataTables::of($certificates)
                 ->addColumn('course', function ($certificate) {
-                    return $certificate->course->title;
+                    return $certificate->course
+                        ? $certificate->course->title
+                        : 'Course Not Found';
                 })
                 ->addColumn('completed_at', function ($certificate) {
-                    return $certificate->completed_at;
+                    return $certificate->completed_at
+                        ? $certificate->completed_at->format('Y-m-d')
+                        : '-';
                 })
                 ->addColumn('action', function ($certificate) {
-                    return '<a href="' . route('certificate.review', $certificate->course->id) . '" class="btn btn-primary">Show</a>';
+                    if ($certificate->course) {
+                        return '<a href="' . route('certificate.review', $certificate->course->id) . '" 
+                                    class="btn btn-primary">Show</a>';
+                    }
+                    return '';
                 })
                 ->make(true);
         }
-
+    
         return view('dashboard.student.my_certificates');
     }
-}
+    }
