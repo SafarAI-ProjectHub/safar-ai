@@ -71,10 +71,10 @@ class User extends Authenticatable
     /**
      * Relationship with Role
      */
-    public function role()
-    {
-        return $this->belongsTo(Role::class);
-    }
+    // public function role()
+    // {
+    //     return $this->belongsTo(Role::class);
+    // }
 
     // User's responses to various quiz questions
     public function userResponses()
@@ -138,7 +138,7 @@ class User extends Authenticatable
      */
     public function isStudent()
     {
-        return $this->role->role_name === 'Student';
+        return $this->hasRole('Student');
     }
 
     /**
@@ -148,7 +148,7 @@ class User extends Authenticatable
      */
     public function isTeacher()
     {
-        return $this->role->role_name === 'Teacher';
+        return $this->hasRole('Teacher');
     }
 
     /**
@@ -158,7 +158,7 @@ class User extends Authenticatable
      */
     public function isAdmin()
     {
-        return $this->role->role_name === 'Admin';
+        return $this->hasRole('Admin');
     }
 
 

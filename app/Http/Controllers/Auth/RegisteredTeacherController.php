@@ -40,7 +40,7 @@ class RegisteredTeacherController extends Controller
             'date_of_birth' => $data['date_of_birth'],
             'password' => Hash::make($data['password']),
             'country_location' => $data['country_location'],
-            'role_id' => 3,
+            // 'role_id' => 3,
             'status' => 'pending',
         ]);
         $user->assignRole('Teacher');

@@ -615,9 +615,10 @@
                             @endif
                         </p>
                         <p class="designattion mb-0">
-                            @if (Auth::check())
-                                {{ Auth::user()->role->role_name }}
-                            @endif
+                        @if (Auth::check() && Auth::user()->roles->count())
+                            {{ Auth::user()->roles->first()->name }}
+                        @endif
+
                         </p>
                     </div>
                 </a>
