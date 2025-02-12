@@ -23,6 +23,17 @@
       0 => 'Barryvdh\\Snappy\\ServiceProvider',
     ),
   ),
+  'haggag/h5p' => 
+  array (
+    'aliases' => 
+    array (
+      'LaravelH5p' => 'Djoudi\\LaravelH5p\\Facades',
+    ),
+    'providers' => 
+    array (
+      0 => 'Djoudi\\LaravelH5p\\LaravelH5pServiceProvider',
+    ),
+  ),
   'jubaer/zoom-laravel' => 
   array (
     'aliases' => 
