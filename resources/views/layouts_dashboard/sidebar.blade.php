@@ -15,7 +15,9 @@
             $teacherPath = parse_url(asset('/teacher'), PHP_URL_PATH);
             $href = $currentPath != $teacherPath ? $teacherPath : '#';
         @endphp
-        @if (auth()->user()->hasRole('Teacher') && auth()->user()->teacher->approval_status == 'pending')
+        @if (auth()->user()->hasRole('Teacher') 
+     && auth()->user()->teacher &&
+     optional(auth()->user()->teacher)->approval_status == 'pending')
             <li>
                 <a href="{{ $href }}" onclick="showPendingApprovalAlert()">
                     <div class="parent-icon"><i class='bx bx-time-five'></i></div>
@@ -154,7 +156,7 @@
         @endhasanyrole
 
         @hasanyrole('Super Admin|Admin|Teacher')
-            @if (auth()->user()->hasRole('Teacher') && auth()->user()->teacher->approval_status == 'pending')
+            @if (auth()->user()->hasRole('Teacher') &&  optional(auth()->user()->teacher)->approval_status == 'pending')
             @else
                 <li>
                     <a href="javascript:;" class="has-arrow">
@@ -228,7 +230,8 @@
         @endhasanyrole
 
         @hasanyrole('Super Admin|Admin|Teacher')
-            @if (auth()->user()->hasRole('Teacher') && auth()->user()->teacher->approval_status == 'pending')
+            @if (auth()->user()->hasRole('Teacher') &&
+            optional(auth()->user()->teacher)->approval_status == 'pending')
             @else
                 <li>
                     <a href="javascript:;" class="has-arrow">
@@ -278,7 +281,8 @@
         @endhasanyrole
 
         @hasanyrole('Super Admin|Admin|Teacher|Student')
-            @if (auth()->user()->hasRole('Teacher') && auth()->user()->teacher->approval_status == 'pending')
+            @if (auth()->user()->hasRole('Teacher') &&
+            optional(auth()->user()->teacher)->approval_status == 'pending')
             @elseif (auth()->user()->getAgeGroup() == '1-5' && auth()->user()->hasRole('Student'))
             @else
                 <li>

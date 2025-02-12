@@ -3,33 +3,15 @@
 namespace Database\Seeders;
 
 use Illuminate\Database\Seeder;
-use Illuminate\Support\Facades\DB;
-
+use Spatie\Permission\Models\Role; 
 class RolesTableSeeder extends Seeder
 {
-    /**
-     * Run the database seeds.
-     *
-     * @return void
-     */
     public function run()
     {
-        DB::table('roles')->firstOrCreate([
-            'role_name' => 'Admin',
-            'created_at' => now(),
-            'updated_at' => now(),
-        ]);
-
-        DB::table('roles')->firstOrCreate([
-            'role_name' => 'Student',
-            'created_at' => now(),
-            'updated_at' => now(),
-        ]);
-
-        DB::table('roles')->firstOrCreate([
-            'role_name' => 'Teacher',
-            'created_at' => now(),
-            'updated_at' => now(),
-        ]);
+        
+        Role::firstOrCreate(['name' => 'Admin', 'guard_name' => 'web']);
+        Role::firstOrCreate(['name' => 'Student', 'guard_name' => 'web']);
+        Role::firstOrCreate(['name' => 'Teacher', 'guard_name' => 'web']);
+        Role::firstOrCreate(['name' => 'Super Admin', 'guard_name' => 'web']);
     }
 }

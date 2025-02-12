@@ -69,7 +69,7 @@ class RolesAndPermissionsSeeder extends Seeder
         });
 
         $user = User::find(1);
-        $user->assignRole('Super Admin');
+        $user->assignRole('Student');
 
         echo "user has role: " . $user->getRoleNames() . "\n";
         echo "user has role: " . $user->hasRole('Super Admin') . "\n";

@@ -94,7 +94,7 @@ class AdminController extends Controller
             'date_of_birth'     => $request->date_of_birth,
             'password'          => Hash::make($request->password),
             'country_location'  => $request->country_location,
-            'role_id'           => 1,
+            // 'role_id'           => 1,
             'status'            => 'active',
         ]);
 

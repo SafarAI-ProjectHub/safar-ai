@@ -14,10 +14,13 @@ class FFMpegServiceProvider extends ServiceProvider
      */
     public function register()
     {
-        $this->app->singleton('ffmpeg', function ($app) {
+       $ffmpegPath = env('FFMPEG_BINARIES', PHP_OS_FAMILY === 'Windows' ? 'C:/ffmpeg/bin/ffmpeg.exe' : '/usr/bin/ffmpeg');
+        $ffprobePath = env('FFPROBE_BINARIES', PHP_OS_FAMILY === 'Windows' ? 'C:/ffmpeg/bin/ffprobe.exe' : '/usr/bin/ffprobe');
+
+        $this->app->singleton('ffmpeg', function ($app) use ($ffmpegPath, $ffprobePath) {
             return FFMpeg::create([
-                'ffmpeg.binaries' => '/usr/bin/ffmpeg',
-                'ffprobe.binaries' => '/usr/bin/ffprobe',
+                'ffmpeg.binaries' => realpath($ffmpegPath),
+                'ffprobe.binaries' => realpath($ffprobePath),
                 'timeout' => 3600,
                 'ffmpeg.threads' => 12,
             ]);

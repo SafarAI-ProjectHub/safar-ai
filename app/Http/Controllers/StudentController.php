@@ -23,20 +23,36 @@ use App\Models\Teacher;
 use Spatie\Permission\Models\Role;
 use App\Models\LevelTestChoice;
 use App\Models\YoutubeVideo;
-// استدعي موديل Block
 use App\Models\Block;
+use App\Models\Student; // [Newly Added] تأكد من استدعاء موديل Student
 
 class StudentController extends Controller
 {
     public function index(Request $request)
     {
         $user = Auth::user();
+
+        // [Newly Added] تأكّد أن للمستخدم سجل في جدول students. 
+        // في حال كان المستخدم طالبًا، ولم يتم إنشاء سجل، ننشئ له سجل افتراضي.
+        if (!$user->student && $user->hasRole('Student')) {
+            $newStudent = new Student();
+            $newStudent->user_id = $user->id;
+            // يمكنك ضبط قيمة افتراضية للمستوى إن أحببت
+            $newStudent->english_proficiency_level = 1; 
+            $newStudent->save();
+            // حدّث علاقة user->student في الذاكرة
+            $user->refresh();
+        }
+
         $ageGroup = $user->getAgeGroup();
 
         if ($ageGroup === '1-5') {
             $user->status = 'active';
             $user->save();
-            $user->student->updateProficiencyLevel(1);
+            // تحقق هنا أيضًا من أن $user->student ليس null
+            if ($user->student) {
+                $user->student->updateProficiencyLevel(1);
+            }
         } else {
             if ($user->hasRole('Student') && $user->status === 'pending') {
                 $completedLevelTest = LevelTestAssessment::where('user_id', Auth::id())->exists();
@@ -55,7 +71,9 @@ class StudentController extends Controller
                     if ($levelTestQuestions->isEmpty()) {
                         $user->status = 'active';
                         $user->save();
-                        $user->student->updateProficiencyLevel(1);
+                        if ($user->student) {
+                            $user->student->updateProficiencyLevel(1);
+                        }
                     } else {
                         return view('dashboard.student.level_test', compact('levelTestQuestions'));
                     }
@@ -81,8 +99,12 @@ class StudentController extends Controller
             ->where('age_group', $ageGroup)
             ->first();
 
+        // لاحظ أننا نستخدم هنا $user->student->english_proficiency_level
+        // لذا تأكدنا مسبقًا أنه ليس null أعلاه، لكن أضفنا شرط احتياطي:
+        $englishLevel = $user->student ? $user->student->english_proficiency_level : 1;
+
         if ($category) {
-            $courses = Course::where('level', $user->student->english_proficiency_level)
+            $courses = Course::where('level', $englishLevel)
                 ->where('category_id', $category->id)
                 ->get();
 
@@ -169,161 +191,60 @@ class StudentController extends Controller
         ]);
     }
 
-    /*
-        الدالة القديمة لإظهار الدورات المسجّل بها الطالب (معلّقة للاحتفاظ بها مستقبلاً)
-
-        public function myCourses()
-        {
-            $courses = Auth::user()->courses;
-            $student = Auth::user()->student;
-            if (!$courses) {
-                $courses = collect();
-            }
-            foreach ($courses as $course) {
-                $totalUnits = $course->units()->count();
-                $completedUnits = DB::table('student_units')
-                    ->where('student_id', $student->id)
-                    ->whereIn('unit_id', $course->units->pluck('id'))
-                    ->where('completed', true)
-                    ->count();
-                $course->progress = $totalUnits > 0 ? number_format(($completedUnits / $totalUnits) * 100, 2) : 0;
-            }
-            return view('dashboard.student.myCourses', compact('courses'));
-        }
-    */
-
     /**
-     * دالة myCourses الجديدة التي تعرض كل البلوكات (وبداخلها الكورسات)
-     * مع الإبقاء على منطق الإظهار السابق معلّقًا (كومنت)
+     * الدالة myCourses الجديدة التي تعرض كل البلوكات (وبداخلها الكورسات)
      */
     public function myCourses(Request $request)
     {
-        // ***1) بدلاً من إحضار الدورات المسجّل بها فقط, نجلب جميع البلوكات من قاعدة البيانات***
-        // (يفترض أن لديك علاقة Block -> hasMany -> Course)
         $blocksAll = Block::with('courses')->get(); 
 
-        // --------- الكود السابق الذي يعتمد على ما سجّل به الطالب (معلّق) -----------
-        /*
-        $user = Auth::user();
-        $student = $user->student;
-        $courses = $user->courses ?? collect();
-        $blockId = $request->get('block_id');
-        $unitId = $request->get('unit_id');
-        if (!$blockId && !$unitId) {
-            $blocks = $courses->filter(function($course){
-                    return $course->block_id != null;
-                })->groupBy('block_id'); 
-            $blockModels = [];
-            foreach ($blocks as $block_id => $coursesInBlock) {
-                if ($block_id) {
-                    $block = \App\Models\Block::find($block_id);
-                    if ($block) {
-                        $block->courses_count = $coursesInBlock->count();
-                        $blockModels[] = $block;
-                    }
-                }
-            }
-            return view('dashboard.student.myCourses', [
-                'stage' => 'blocks',
-                'blocks' => $blockModels,
-                'courses' => collect(),
-                'units' => collect(),
-                'lessons' => collect(),
-            ]);
-        }
-        if ($blockId && !$unitId) {
-            $filteredCourses = $courses->where('block_id', $blockId);
-            foreach ($filteredCourses as $course) {
-                $totalUnits = $course->units()->count();
-                $completedUnits = DB::table('student_units')
-                    ->where('student_id', $student->id)
-                    ->whereIn('unit_id', $course->units->pluck('id'))
-                    ->where('completed', true)
-                    ->count();
-                $course->progress = $totalUnits > 0 ? number_format(($completedUnits / $totalUnits) * 100, 2) : 0;
-            }
-            return view('dashboard.student.myCourses', [
-                'stage' => 'units',
-                'blocks' => collect(),
-                'courses' => $filteredCourses,
-                'units' => collect(),
-                'lessons' => collect(),
-            ]);
-        }
-        if ($unitId) {
-            $course = $courses->where('id', $unitId)->first();
-            if (!$course) {
-                return redirect()->route('student.myCourses')->with('error', 'Course not found!');
-            }
-            $lessons = $course->units;
-            return view('dashboard.student.myCourses', [
-                'stage' => 'lessons',
-                'blocks' => collect(),
-                'courses' => collect(),
-                'units' => collect(),
-                'lessons' => $lessons,
-            ]);
-        }
-        */
-
-        // ***2) المنطق الجديد: عرض جميع البلوكات (وما بداخلها من كورسات)***
-        $blockId = $request->get('block_id');
-        $unitId  = $request->get('unit_id');
+        $blockId  = $request->get('block_id');
+        $unitId   = $request->get('unit_id');
         $lessonId = $request->get('lesson_id'); 
+
         if ($lessonId) {
-            // ابحث عن الدرس في جدول units (إن كنت تستخدم جدول units للدروس)
-            // أو في جدول lessons (استخدم Lesson::find($lessonId)) لو عندك جدول مستقل للدروس
             $lesson = \App\Models\Unit::find($lessonId);
             if (!$lesson) {
                 return redirect()->route('student.myCourses')->with('error', 'Lesson not found!');
             }
-            // انتقل لمرحلة lesson_details
-        return view('dashboard.student.myCourses', [
-            'stage'   => 'lesson_details',
-            'lesson'  => $lesson,
-            'blocks'  => collect(),
-            'courses' => collect(),
-            'units'   => collect(),
-            'lessons' => collect(),
-        ]);
-    }
-                    // لو لم يصل block_id ولا unit_id → نعرض جميع البلوكات
-        if (!$blockId && !$unitId) {
             return view('dashboard.student.myCourses', [
-                'stage'   => 'blocks',
-                'blocks'  => $blocksAll,      // جميع البلوكات
-                'courses' => collect(), 
+                'stage'   => 'lesson_details',
+                'lesson'  => $lesson,
+                'blocks'  => collect(),
+                'courses' => collect(),
                 'units'   => collect(),
                 'lessons' => collect(),
             ]);
         }
 
-        // لو وصل block_id فقط → نعرض الكورسات التابعة لهذا البلوك
+        if (!$blockId && !$unitId) {
+            return view('dashboard.student.myCourses', [
+                'stage'   => 'blocks',
+                'blocks'  => $blocksAll,
+                'courses' => collect(),
+                'units'   => collect(),
+                'lessons' => collect(),
+            ]);
+        }
+
         if ($blockId && !$unitId) {
-            // ابحث عن البلوك المطلوب
             $selectedBlock = $blocksAll->where('id', $blockId)->first();
             if (!$selectedBlock) {
                 return redirect()->route('student.myCourses')->with('error', 'Block not found!');
             }
 
-            // الكورسات الموجودة في هذا البلوك
             $filteredCourses = $selectedBlock->courses;
-
-            // (اختياري) لو أردت حساب progress أو غيره؛ تفعله هنا
-            // foreach ($filteredCourses as $course) { ... }
 
             return view('dashboard.student.myCourses', [
                 'stage'   => 'units',
                 'blocks'  => collect(),
-                'courses' => $filteredCourses, 
+                'courses' => $filteredCourses,
                 'units'   => collect(),
                 'lessons' => collect(),
             ]);
         }
 
-        // لو وصلنا unit_id → نعرض الدروس (أو الوحدات الداخلية) إن وجدت
         if ($unitId) {
-            // ابحث في جميع الـBlocks => جميع الـCourses, عن الكورس المطلوب
             $foundCourse = null;
             foreach ($blocksAll as $block) {
                 $courseInBlock = $block->courses->where('id', $unitId)->first();
@@ -337,7 +258,6 @@ class StudentController extends Controller
                 return redirect()->route('student.myCourses')->with('error', 'Course not found!');
             }
 
-            // نفترض $foundCourse->units هو الدروس
             $lessons = $foundCourse->units ?? collect();
 
             return view('dashboard.student.myCourses', [
@@ -349,10 +269,6 @@ class StudentController extends Controller
             ]);
         }
     }
-
-    /*
-     *  Meetings + Level Test sections as is...
-     */
 
     public function myMeetings()
     {
@@ -409,6 +325,15 @@ class StudentController extends Controller
     public function submit(Request $request)
     {
         $user = Auth::user();
+        // [Newly Added - وقائي] تأكّد من وجود سجل الطالب 
+        if (!$user->student && $user->hasRole('Student')) {
+            $newStudent = new Student();
+            $newStudent->user_id = $user->id;
+            $newStudent->english_proficiency_level = 1;
+            $newStudent->save();
+            $user->refresh();
+        }
+
         $data = $request->all();
         $assessments = [];
         $openAiRequests = [];
@@ -501,7 +426,11 @@ class StudentController extends Controller
 
         $user->status = 'active';
         $user->save();
-        $user->student->updateProficiencyLevel($aiResponse['english_proficiency_level']);
+
+        // هنا نستخدم $user->student بأمان أكثر لأننا أنشأناه أعلاه لو كان null
+        if ($user->student) {
+            $user->student->updateProficiencyLevel($aiResponse['english_proficiency_level']);
+        }
 
         return response()->json(['success' => true]);
     }

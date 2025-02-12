@@ -18,131 +18,212 @@ class SubscriptionController extends Controller
     {
         $this->paypalService = $paypalService;
     }
+
+    /**
+     * عرض تفاصيل الاشتراك
+     */
     public function showSubscriptionDetails()
     {
         $user = Auth::user();
 
+        // إذا كان عمر المستخدم 1-5 لا يسمح بالاشتراك
         if ($user->getAgeGroup() == '1-5') {
-            return redirect()->route('student.dashboard')->with('error', 'You are not eligible to subscribe to any plan.');
+            return redirect()
+                ->route('student.dashboard')
+                ->with('error', 'You are not eligible to subscribe to any plan.');
         }
 
+        // جلب اشتراك المستخدم إن وجد
         $subscription = UserSubscription::where('user_id', $user->id)->first();
 
+        // متغيرات سيعاد تعبئتها
+        $planDetails = null;
+        $payment     = null;
+
         if ($subscription) {
+            // الاشتراك موجود
             if ($subscription->status == 'active' || $subscription->status == 'suspend') {
+                // إذا كان اشتراكه عبر Cliq
                 if ($subscription->subscription_id == 'cliq-' . $user->id) {
+                    // ابحث عن الخطة بالـ id
                     $planDetails = Subscription::where('id', $subscription->subscriptionId)->first();
-                    $payment = Payment::where('user_id', $user->id)->latest()->first();
+                    $payment     = Payment::where('user_id', $user->id)->latest()->first();
                 } else {
+                    // ابحث عن الخطة بالـ paypal_plan_id
                     $planDetails = Subscription::where('paypal_plan_id', $subscription->subscription_id)->first();
-                    $payment = Payment::where('user_id', $user->id)->latest()->first();
+                    $payment     = Payment::where('user_id', $user->id)->latest()->first();
                 }
             } else {
+                // الاشتراك موجود لكنه ليس active أو suspend
+                // افتراضياً، نأتي بأي خطة فعّالة
                 $planDetails = Subscription::where('is_active', true)->first();
-                $payment = Payment::where('user_id', $user->id)->latest()->first();
+                $payment     = Payment::where('user_id', $user->id)->latest()->first();
             }
         } else {
-            $planDetails = Subscription::where('is_active', true)->first();
-            $payment = new Payment();
-            $subscription = new UserSubscription();
+            // لا يوجد اشتراك للمستخدم
+            $planDetails   = Subscription::where('is_active', true)->first();
+            $payment       = new Payment();
+            $subscription  = new UserSubscription(); 
         }
 
-        $otherPlan = Subscription::where('is_active', true)
-            ->where('subscription_type', '!=', $planDetails->subscription_type)
-            ->first();
-        // dd($otherPlan);
-        $cliqUserName = config('cliq.username');
-        $activePlan = Subscription::where('is_active', true)->first();
-        $monthlyActivePlan = Subscription::where('is_active', true)->where('subscription_type', 'monthly')->first();
-        $yearlyActivePlan = Subscription::where('is_active', true)->where('subscription_type', 'yearly')->first();
+        // الآن، إذا $planDetails == null، سيتسبب الوصول إلى subscription_type في خطأ
+        // نعالجه بالتحقق أولاً
+        $otherPlan = null;
+        if ($planDetails) {
+            // إذا وجدنا خطة، نأتي بخطط أخرى لها subscription_type مختلف
+            $otherPlan = Subscription::where('is_active', true)
+                ->where('subscription_type', '!=', $planDetails->subscription_type)
+                ->first();
+        }
+        // إن لم نجد أي خطة، سيظل $otherPlan = null
 
-        return view('dashboard.student.subscription_details', compact('planDetails', 'subscription', 'cliqUserName', 'payment', 'otherPlan', 'monthlyActivePlan', 'yearlyActivePlan', 'activePlan'));
+        // بقية المتغيرات
+        $cliqUserName      = config('cliq.username');
+        $activePlan        = Subscription::where('is_active', true)->first();
+        $monthlyActivePlan = Subscription::where('is_active', true)
+                                ->where('subscription_type', 'monthly')
+                                ->first();
+        $yearlyActivePlan  = Subscription::where('is_active', true)
+                                ->where('subscription_type', 'yearly')
+                                ->first();
+
+        return view('dashboard.student.subscription_details', compact(
+            'planDetails',
+            'subscription',
+            'cliqUserName',
+            'payment',
+            'otherPlan',
+            'monthlyActivePlan',
+            'yearlyActivePlan',
+            'activePlan'
+        ));
     }
 
-
-
-
-
+    /**
+     * إنشاء اشتراك (PayPal) جديد
+     */
     public function create(Request $request)
     {
-        $user = Auth::user();
+        $user   = Auth::user();
         $planId = $request->input('plan_id');
-        $email = $request->input('email');
-        $subscription_id = Subscription::where('paypal_plan_id', $planId)->first()->id;
+        $email  = $request->input('email');
 
+        // ابحث عن الـ subscription في جدول subscriptions
+        $subscriptionRecord = Subscription::where('paypal_plan_id', $planId)->first();
+        if (!$subscriptionRecord) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Invalid plan ID.'
+            ]);
+        }
 
-
-        // Check if user already has an active subscription based on user_id and subscription_id
-
+        // حفظ اشتراك المستخدم في user_subscriptions
         $userSubscription = UserSubscription::updateOrCreate(
             ['user_id' => $user->id],
-            ['subscription_id' => $planId, 'status' => 'inactive', 'subscriptionId' => $subscription_id]
+            [
+                'subscription_id' => $planId,
+                'status'          => 'inactive',
+                'subscriptionId'  => $subscriptionRecord->id
+            ]
         );
 
-        // Create PayPal subscription
-        $customId = $user->id;
-        $subscriptionResponse = $this->paypalService->createSubscription($planId, $email, $customId);
+        // إنشاء الاشتراك عبر PayPal
+        $customId           = $user->id;
+        $subscriptionResult = $this->paypalService->createSubscription($planId, $email, $customId);
 
-        // Log the full response for debugging
-        \Log::info('PayPal Subscription Response:', $subscriptionResponse);
+        Log::info('PayPal Subscription Response:', $subscriptionResult);
 
-        if (isset($subscriptionResponse['status']) && $subscriptionResponse['status'] == 'APPROVAL_PENDING') {
-            $approvalUrl = collect($subscriptionResponse['links'])->where('rel', 'approve')->first()['href'];
-            $user->paypal_subscription_id = $subscriptionResponse['id'];
+        if (isset($subscriptionResult['status']) && $subscriptionResult['status'] === 'APPROVAL_PENDING') {
+            $approvalLink = collect($subscriptionResult['links'])->where('rel', 'approve')->first();
+            $approvalUrl  = $approvalLink['href'] ?? null;
+
+            // حفظ رقم الاشتراك في user
+            $user->paypal_subscription_id = $subscriptionResult['id'];
             $user->save();
 
-            return response()->json(['success' => true, 'approval_url' => $approvalUrl]);
+            return response()->json([
+                'success'      => true,
+                'approval_url' => $approvalUrl
+            ]);
         } else {
-            // Log error details
-            \Log::error('Failed to create PayPal Subscription:', $subscriptionResponse);
-
-            return response()->json(['success' => false, 'message' => 'Failed to create subscription.']);
+            // فشل إنشاء الاشتراك
+            Log::error('Failed to create PayPal Subscription:', $subscriptionResult);
+            return response()->json([
+                'success' => false,
+                'message' => 'Failed to create subscription.'
+            ]);
         }
     }
 
-
+    /**
+     * إرجاع المستخدم من باي بال
+     */
     public function handleReturn(Request $request)
     {
-        // Handle PayPal return
-        return redirect()->route('student.dashboard')->with('success', 'Subscription successful.');
+        // يتم استدعاؤه بعد موافقة الاشتراك على باي بال
+        return redirect()
+            ->route('student.dashboard')
+            ->with('success', 'Subscription successful.');
     }
 
+    /**
+     * عند إلغاء الدفع على باي بال
+     */
     public function handleCancel(Request $request)
     {
-        // Handle PayPal cancel
-        return redirect()->route('student.dashboard')->with('error', 'Subscription cancelled.');
+        return redirect()
+            ->route('student.dashboard')
+            ->with('error', 'Subscription cancelled.');
     }
 
-
+    /**
+     * إلغاء الاشتراك (PayPal)
+     */
     public function cancel(Request $request)
     {
-        $user = Auth::user();
+        $user          = Auth::user();
         $subscriptionId = $user->paypal_subscription_id;
+
         $response = $this->paypalService->cancelSubscription($subscriptionId);
+        Log::info('PayPal Subscription Cancel Response:', [$subscriptionId, $response]);
 
-
+        // تحدّث user_subscriptions
         UserSubscription::where('user_id', $user->id)->update(['status' => 'cancelled']);
+        // تحدّث subscription_status في جدول students
         $user->student->subscription_status = 'cancelled';
         $user->student->save();
-        return response()->json(['success' => true, 'message' => 'Subscription cancelled successfully.']);
 
+        return response()->json([
+            'success' => true,
+            'message' => 'Subscription cancelled successfully.'
+        ]);
     }
 
+    /**
+     * إعادة تفعيل الاشتراك (PayPal)
+     */
     public function reactivate(Request $request)
     {
-        $user = Auth::user();
+        $user          = Auth::user();
         $subscriptionId = $user->paypal_subscription_id;
-        $response = $this->paypalService->reactivateSubscription($subscriptionId);
 
+        $response = $this->paypalService->reactivateSubscription($subscriptionId);
         Log::info('PayPal Subscription Reactivation Response:', $response);
 
-        if (isset($response['status']) && $response['status'] == 'ACTIVE') {
+        if (isset($response['status']) && $response['status'] === 'ACTIVE') {
             UserSubscription::where('user_id', $user->id)->update(['status' => 'active']);
             $user->student->subscription_status = 'subscribed';
             $user->student->save();
-            return response()->json(['success' => true, 'message' => 'Subscription reactivated successfully.']);
+
+            return response()->json([
+                'success' => true,
+                'message' => 'Subscription reactivated successfully.'
+            ]);
         } else {
-            return response()->json(['success' => false, 'message' => 'Failed to reactivate subscription.']);
+            return response()->json([
+                'success' => false,
+                'message' => 'Failed to reactivate subscription.'
+            ]);
         }
     }
 }
