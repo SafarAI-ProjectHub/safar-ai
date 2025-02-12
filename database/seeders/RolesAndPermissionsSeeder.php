@@ -12,8 +12,10 @@ class RolesAndPermissionsSeeder extends Seeder
 {
     public function run()
     {
+        // حذف الكاش للأذونات
         app()[\Spatie\Permission\PermissionRegistrar::class]->forgetCachedPermissions();
 
+        // إنشاء الأذونات
         $permissions = [
             'admin',
             'teacher',
@@ -22,6 +24,7 @@ class RolesAndPermissionsSeeder extends Seeder
             'create courses'
         ];
 
+        // إنشاء الأدوار
         $roles = [
             'Admin',
             'Student',
@@ -29,10 +32,20 @@ class RolesAndPermissionsSeeder extends Seeder
             'Super Admin'
         ];
 
+        // إنشاء الأدوار إذا لم تكن موجودة
         foreach ($roles as $role) {
             Role::firstOrCreate(['name' => $role, 'guard_name' => 'web']);
         }
 
+        // إنشاء الأذونات إذا لم تكن موجودة
+        foreach ($permissions as $permission) {
+            Permission::firstOrCreate(['name' => $permission, 'guard_name' => 'web']);
+        }
+
+        // تحديد دور Super Admin
+        $superAdminRole = Role::where('name', 'Super Admin')->first();
+
+        // إنشاء مستخدم Super Admin إذا لم يكن موجودًا
         $superAdminEmail = 'superadmin@safarAi.com';
         $superAdmin = User::firstOrCreate(
             ['email' => $superAdminEmail],
@@ -43,35 +56,29 @@ class RolesAndPermissionsSeeder extends Seeder
                 'date_of_birth' => '1990-01-01',
                 'password' => Hash::make('password'),
                 'country_location' => 'USA',
-                'role_id' => 1,
                 'status' => 'active'
             ]
         );
 
-        foreach ($permissions as $permission) {
-            Permission::firstOrCreate(['name' => $permission, 'guard_name' => 'web']);
+        // منح جميع الصلاحيات لـ Super Admin
+        $superAdminRole->syncPermissions(Permission::all());
+
+        // تعيين دور Super Admin له
+        if (!$superAdmin->hasRole('Super Admin')) {
+            $superAdmin->assignRole('Super Admin');
         }
 
-        $superAdminRole = Role::where('name', 'Super Admin')->first();
-        $allPermissions = Permission::all();
-        $superAdminRole->syncPermissions($allPermissions);
-
-        $superAdmin->assignRole('Super Admin');
-
+        // تحديث أدوار المستخدمين بناءً على البريد الإلكتروني أو أي شرط آخر
         User::all()->each(function ($user) {
-            if ($user->role_id == 1) {
+            if (strpos($user->email, 'admin') !== false) {
                 $user->assignRole('Admin');
-            } elseif ($user->role_id == 2) {
-                $user->assignRole('Student');
-            } elseif ($user->role_id == 3) {
+            } elseif (strpos($user->email, 'teacher') !== false) {
                 $user->assignRole('Teacher');
+            } elseif (strpos($user->email, 'student') !== false) {
+                $user->assignRole('Student');
             }
         });
 
-        $user = User::find(1);
-        $user->assignRole('Student');
-
-        echo "user has role: " . $user->getRoleNames() . "\n";
-        echo "user has role: " . $user->hasRole('Super Admin') . "\n";
+        echo "✅ Roles and Permissions seeding completed successfully.\n";
     }
 }

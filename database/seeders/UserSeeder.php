@@ -21,7 +21,7 @@ class UserSeeder extends Seeder
                 'date_of_birth' => '1990-01-01',
                 'password' => bcrypt('password'),
                 'country_location' => 'Jordan',
-                'role_id' => $adminRole->id, 
+                // 'role_id' => $adminRole->id, 
             ]);
         }
 
@@ -36,7 +36,7 @@ class UserSeeder extends Seeder
                 'date_of_birth' => '2000-01-01',
                 'password' => bcrypt('password'),
                 'country_location' => 'Jordan',
-                'role_id' => $studentRole->id, 
+                // 'role_id' => $studentRole->id, 
             ]);
         }
 
@@ -51,7 +51,7 @@ class UserSeeder extends Seeder
                 'date_of_birth' => '1985-01-01',
                 'password' => bcrypt('password'),
                 'country_location' => 'Jordan',
-                'role_id' => $teacherRole->id,
+                // 'role_id' => $teacherRole->id,
             ]);
         }
     }
