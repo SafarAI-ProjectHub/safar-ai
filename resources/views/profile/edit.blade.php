@@ -54,7 +54,7 @@
                                     </div>
                                     <div class="mt-3">
                                         <h4>{{ Auth::user()->first_name }} {{ Auth::user()->last_name }}</h4>
-                                        <p class="text-secondary mb-1">Position: {{ Auth::user()->role->role_name }}</p>
+                                        <p class="text-secondary mb-1">Position: {{ Auth::user()->getRoleNames()->join(', ') }}</p>
                                         <p class="text-muted font-size-sm">Country: {{ Auth::user()->country_location }}</p>
                                         <button type="submit" class="btn btn-primary">Update</button>
                                     </div>
@@ -226,7 +226,7 @@
                     {{-- <div class="row">
                             <div class="col-sm-12">
                                 @php
-                                    if(Auth::user()->role->role_name == 'Student') {
+                                    if(Auth::user()->getRoleNames()->first == 'Student') {
                                 @endphp
                                 <div class="card">
                                     <div class="card-body">

@@ -10,22 +10,16 @@
             list-style: none;
             padding-left: 0;
         }
-
         .feature-list li {
-            padding: 10px 0;
+            padding: 8px 0;
             border-bottom: 1px solid #ddd;
         }
-
         .feature-list li:last-child {
             border-bottom: none;
         }
-
         .loader-overlay {
             position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
+            top: 0; left: 0; width: 100%; height: 100%;
             background: rgba(255, 255, 255, 0.7);
             z-index: 9999;
             display: flex;
@@ -33,392 +27,171 @@
             align-items: center;
             justify-content: center;
         }
-
         .loader-message {
             margin-top: 15px;
             font-size: 1.2rem;
             color: #007bff;
         }
-
         #cliqUserName .bi-clipboard {
             font-size: 1.5rem;
             cursor: pointer;
+        }
+        /* Pricing card styles */
+        .pricing-card {
+            border: 2px solid #ddd;
+            border-radius: 10px;
+            transition: box-shadow 0.3s ease;
+            padding: 20px;
+            margin: 15px 0;
+        }
+        .pricing-card:hover {
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+        }
+        .pricing-icon {
+            font-size: 2.5rem;
+            margin-bottom: 10px;
         }
     </style>
 @endsection
 
 @section('content')
-    @php
-        // اشتراك المستخدم
-        $subscriptionStatus = $subscription ? $subscription->status : 'free';
-        $subscriptionDate = $subscription && $subscription->start_date ? $subscription->start_date->format('M d, Y') : 'N/A';
-        $nextBillingDate = $subscription && $subscription->next_billing_time
-            ? $subscription->next_billing_time->format('M d, Y')
-            : 'N/A';
 
-        // خصائص الخطة الحالية
-        $features = $planDetails ? json_decode($planDetails->features, true) : [];
-        // خصائص الخطة الأخرى
-        $Otherfeatures = $otherPlan ? json_decode($otherPlan->features, true) : [];
+@php
+    // حالة الاشتراك الحالي
+    $subscriptionStatus = $subscription ? $subscription->status : 'free';
+    $subscriptionDate   = $subscription && $subscription->start_date
+        ? $subscription->start_date->format('M d, Y')
+        : 'N/A';
+    $nextBillingDate    = $subscription && $subscription->next_billing_time
+        ? $subscription->next_billing_time->format('M d, Y')
+        : 'N/A';
 
-        // تأكدنا من $payment
-        $payment = $payment ?? null;
-    @endphp
+    // لو عندك حقل features كـ cast => مصفوفة مباشرة
+    $features = $planDetails && is_array($planDetails->features)
+        ? $planDetails->features
+        : [];
 
-    <div class="card mb-4">
-        <div class="card-body">
-            @if ($subscriptionStatus == 'active')
-                <h2 class="fw-bold mb-0">
-                    {{-- فحص قبل استخدام price --}}
-                    ${{ $planDetails ? $planDetails->price : '0' }}/
-                    @if ($subscriptionStatus == 'active')
-                        {{-- إن كانت باي بال أم دفع آخر --}}
-                        {{ $payment && $payment->payment_type == 'paypal' ? 'Monthly' : 'one time payment' }}
-                    @else
-                        'Monthly'
-                    @endif
-                </h2>
+    $payment = $payment ?? null;
+@endphp
 
-                {{-- تحقق من حالة الدفع --}}
-                @if ($subscriptionStatus == 'active' && $payment && $payment->payment_type != 'paypal')
-                    <p class="mb-0">
-                        Your subscription will expire on
-                        <span class="text-success">{{ $nextBillingDate }}</span>.
-                    </p>
-                @else
-                    <p class="mb-0">
-                        Your next monthly charge of
-                        <span class="text-success">
-                            ${{ $planDetails ? $planDetails->price : '0' }}
-                        </span>
-                        will be applied on
-                        <span class="text-success">{{ $nextBillingDate }}</span>.
-                    </p>
-                @endif
-            @else
-                <h2 class="fw-bold mb-0">Free Plan</h2>
-                <p class="mb-0">
-                    Your next monthly charge of
-                    <span class="text-success">$0</span>
-                    will be applied
-                    <span class="text-success">N/A</span>.
-                </p>
-            @endif
-        </div>
-    </div>
+<div class="mb-4">
+    <h4>Your Current Subscription</h4>
+    <p>
+        Status:
+        @if($subscriptionStatus == 'active')
+            <span class="badge bg-success">Active</span>
+        @else
+            <span class="badge bg-secondary">{{ ucfirst($subscriptionStatus) }}</span>
+        @endif
+    </p>
+    <!-- <p>Next Billing: {{ $nextBillingDate }}</p> -->
+</div>
 
-    <div class="card border-0">
-        <div class="card-header d-lg-flex justify-content-between align-items-center">
-            <div class="mb-3 mb-lg-0">
-                <h3 class="mb-0">My Subscriptions</h3>
-                <p class="mb-0">Here is a list of packages/products that you have subscribed to.</p>
-            </div>
+<div class="text-center mb-4">
+    <h2>Our Pricing Plans</h2>
+    <p>Please select a plan to upgrade, or pay with Cliq if needed.</p>
+</div>
 
-            <div class="d-flex gap-2 ">
-                @if ($subscriptionStatus == 'active')
-                    @if ($payment && $payment->payment_type == 'cliq')
-                        @if ($payment->payment_status == 'pending')
-                            <span class="badge bg-warning">Pending Approval</span>
+<div class="row row-cols-1 row-cols-md-3 g-4">
+    @foreach($activePlans as $plan)
+        @php
+            // تحديد نوع الخطة وأيقونتها
+            $typeLower   = strtolower($plan->subscription_type); 
+            $iconClass   = 'bi-star';
+            if ($typeLower === 'yolo') {
+                $iconClass = 'bi-youtube';
+            } elseif ($typeLower === 'solo') {
+                $iconClass = 'bi-person';
+            } elseif ($typeLower === 'tolo') {
+                $iconClass = 'bi-people';
+            }
+
+            $planName     = $plan->product_name ?: ucfirst($typeLower).' Plan';
+            $planFeatures = is_array($plan->features) ? $plan->features : [];
+            $isFree       = ($typeLower === 'yolo' && floatval($plan->price) == 0);
+        @endphp
+
+        <div class="col">
+            <div class="card pricing-card text-center h-100">
+                <div class="card-body d-flex flex-column justify-content-between">
+                    <div>
+                        <i class="pricing-icon bi {{ $iconClass }}"></i>
+                        <h5 class="card-title fw-bold">{{ $planName }}</h5>
+                        @if($isFree)
+                            <h2 class="fw-bold text-primary">Free</h2>
                         @else
-                            <button id="extend-subscription" class="btn btn-primary btn-sm">Add +1 Month via Cliq</button>
-                            <button id="extend-subscription-yearly" class="btn btn-primary btn-sm">
-                                Add +1 Year via Cliq
+                            <h2 class="fw-bold text-primary">{{ $plan->price }}</h2>
+                        @endif
+                        <p class="text-muted">{{ ucfirst($typeLower) }} Plan</p>
+
+                        {{-- قائمة الميزات --}}
+                        @if($planFeatures)
+                            <ul class="feature-list mt-3">
+                                @foreach($planFeatures as $feat)
+                                    <li><i class="bi bi-check-circle text-success me-2"></i>{{ $feat }}</li>
+                                @endforeach
+                            </ul>
+                        @endif
+                    </div>
+
+                    <div class="mt-3">
+                        @if($isFree)
+                            <button class="btn btn-secondary w-100 start-free-btn"
+                                    data-plan-type="yolo">
+                                Start Now (Free)
                             </button>
-                        @endif
-                    @else
-                        <button id="cancel-subscription" class="btn btn-danger btn-sm">
-                            Cancel Subscription
-                        </button>
-                    @endif
-
-                @elseif ($subscriptionStatus == 'inactive')
-                    @if ($payment && $payment->payment_type == 'cliq' && $payment->payment_status == 'pending')
-                        <span class="badge bg-warning">Pending Approval</span>
-                    @elseif($payment && $payment->payment_type == 'cliq' && $payment->payment_status == 'rejected')
-                        <button id="reupload-payment" class="btn btn-danger btn-sm">Reupload Payment Proof</button>
-                    @else
-                        {{-- زر الترقية الشهري --}}
-                        <button id="upgrade" class="btn btn-success btn-sm">
-                            Upgrade Now — Go Pro
-                            @if ($activePlan)
-                                ${{ $activePlan->price }}
-                            @else
-                                <span>No Active Plan Found</span>
-                            @endif
-                        </button>
-
-                        {{-- زر الترقية السنوي --}}
-                        <button id="upgrade-yearly" class="btn btn-success btn-sm">
-                            Upgrade Now — Go Pro Yearly
-                            @if ($yearlyActivePlan)
-                                ${{ $yearlyActivePlan->price }}
-                            @else
-                                <span>No Yearly Plan Found</span>
-                            @endif
-                        </button>
-
-                        @if (auth()->user()->country_location == 'Jordan')
-                            <button id="pay-with-cliq" class="btn btn-primary btn-sm">Pay with Cliq</button>
-                            <button id="pay-with-cliq-yearly" class="btn btn-primary btn-sm">
-                                Pay with Cliq For A Year
+                        @else
+                            {{-- باي بال --}}
+                            <button class="btn btn-success w-100 mb-2 upgrade-plan-btn"
+                                    data-plan-id="{{ $plan->paypal_plan_id }}"
+                                    data-plan-type="{{ $typeLower }}">
+                                Upgrade with PayPal
                             </button>
-                        @endif
-                    @endif
 
-                @elseif ($subscriptionStatus == 'suspended')
-                    <button id="reactivate-subscription" class="btn btn-success btn-sm">
-                        Reactivate Subscription
-                    </button>
-                    {{-- الترقية الشهري --}}
-                    <button id="upgrade" class="btn btn-success btn-sm">
-                        Upgrade Now — Go Pro
-                        @if ($activePlan)
-                            ${{ $activePlan->price }}
-                        @else
-                            <span>No Active Plan Found</span>
-                        @endif
-                    </button>
-
-                    {{-- الترقية السنوي --}}
-                    <button id="upgrade-yearly" class="btn btn-success btn-sm">
-                        Upgrade Now — Go Pro Yearly
-                        @if ($yearlyActivePlan)
-                            ${{ $yearlyActivePlan->price }}
-                        @else
-                            <span>No Yearly Plan Found</span>
-                        @endif
-                    </button>
-
-                    @if (auth()->user()->country_location == 'Jordan')
-                        <button id="pay-with-cliq" class="btn btn-primary btn-sm">Pay with Cliq</button>
-                        <button id="pay-with-cliq-yearly" class="btn btn-primary btn-sm">Pay with Cliq For A Year</button>
-                    @endif
-
-                @else
-                    <button id="upgrade" class="btn btn-success btn-sm">
-                        Upgrade Now — Go Pro
-                        @if ($activePlan)
-                            ${{ $activePlan->price }}
-                        @else
-                            <span>No Active Plan Found</span>
-                        @endif
-                    </button>
-                    <button id="upgrade-yearly" class="btn btn-success btn-sm">
-                        Upgrade Now — Go Pro Yearly
-                        @if ($yearlyActivePlan)
-                            ${{ $yearlyActivePlan->price }}
-                        @else
-                            <span>No Yearly Plan Found</span>
-                        @endif
-                    </button>
-                    @if (auth()->user()->country_location == 'Jordan')
-                        <button id="pay-with-cliq" class="btn btn-primary btn-sm">Pay with Cliq</button>
-                        <button id="pay-with-cliq-yearly" class="btn btn-primary btn-sm">Pay with Cliq For A Year</button>
-                    @endif
-                @endif
-            </div>
-        </div>
-
-        <div class="card-body">
-            <div class="border-bottom pt-0 pb-2">
-                <div class="row mb-4">
-                    <div class="col-lg-6 col-md-8 col-7 mb-2 mb-lg-0">
-                        <span class="d-block">
-                            <span class="h4">
-                                @if ($subscriptionStatus == 'active')
-                                    {{ ($payment && $payment->payment_type == 'cliq') ? 'one time payment' : 'Monthly' }}
-                                @else
-                                    N/A
-                                @endif
-                            </span>
-                            <span
-                                class="badge 
-                                {{ $subscriptionStatus == 'active' ? 'bg-success' : 
-                                   ($subscriptionStatus == 'suspended' ? 'bg-warning' : 'bg-danger') }} ms-2">
-                                {{ $subscriptionStatus ? ucfirst($subscriptionStatus) : 'InActive' }}
-                            </span>
-                        </span>
-                        <p class="mb-0 fs-6">
-                            Subscription ID:
-                            {{ $subscription ? '#100010' . $subscription->subscription_id : 'N/A' }}
-                        </p>
-                    </div>
-                </div>
-                <div class="row">
-                    <div class="col-lg-3 col-md-3 col-6 mb-2 mb-lg-0">
-                        <span class="fs-6">Started On</span>
-                        <h6 class="mb-0">{{ $subscription ? $subscriptionDate : 'N/A' }}</h6>
-                    </div>
-                    <div class="col-lg-3 col-md-3 col-6 mb-2 mb-lg-0">
-                        <span class="fs-6">Price</span>
-                        <h6 class="mb-0">
-                            @if($planDetails)
-                                ${{ $planDetails->price }} / Monthly
-                            @else
-                                Free
+                            {{-- كليك (للمستخدمين في الأردن مثلاً) --}}
+                            @if (auth()->user()->country_location == 'Jordan')
+                                <button class="btn btn-primary w-100 pay-with-cliq-btn"
+                                        data-plan-type="{{ $typeLower }}"
+                                        data-price="{{ $plan->price }}">
+                                    Pay with Cliq
+                                </button>
                             @endif
-                        </h6>
-                    </div>
-                    <div class="col-lg-3 col-md-3 col-6 mb-2 mb-lg-0">
-                        <span class="fs-6">Access</span>
-                        <h6 class="mb-0">Access All units</h6>
-                    </div>
-                    <div class="col-lg-3 col-md-3 col-6 mb-2 mb-lg-0">
-                        <span class="fs-6">
-                            {{ $subscriptionStatus == 'active' ? 
-                                ($payment && $payment->payment_type == 'paypal' ? 'Billing Date ' : 'Expire Date') 
-                                : 'Billing Date' }}
-                        </span>
-                        <h6 class="mb-0">
-                            @if($subscriptionStatus == 'active')
-                                @if($payment && $payment->payment_type == 'paypal')
-                                    Next Billing on {{ $nextBillingDate }}
-                                @else
-                                    expire on {{ $nextBillingDate }}
-                                @endif
-                            @else
-                                N/A
-                            @endif
-                        </h6>
-                    </div>
-                </div>
-
-                @if ($features)
-                    <div class="mt-4">
-                        <h4>Features</h4>
-                        <div class="card">
-                            <div class="card-body">
-                                <div class="row">
-                                    <ul class="list-unstyled d-flex flex-wrap">
-                                        @foreach ($features as $index => $feature)
-                                            <div class="col-lg-6 col-md-6 col-12 mb-2">
-                                                <li class="d-flex align-items-start">
-                                                    <i class="bi bi-check-circle-fill text-success me-2"></i>
-                                                    <span>{{ $feature }}</span>
-                                                </li>
-                                            </div>
-                                        @endforeach
-                                    </ul>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                @endif
-
-            </div>
-
-            {{-- خطة أخرى --}}
-            <div class="border-bottom pt-0 pb-2">
-                <div class="row my-4">
-                    <div class="col mb-2 mb-lg-0">
-                        <span class="d-block mt-3">
-                            <span class="h4">
-                                {{-- لو otherPlan موجودة نستعمل subscription_type، وإلا نضع إفتراضي --}}
-                                @if($otherPlan)
-                                    {{ $otherPlan->subscription_type == 'Yearly' ? 'Yearly' : 'Monthly' }}
-                                @else
-                                    N/A
-                                @endif
-                            </span>
-                            <span class="badge bg-danger ms-2">
-                                InActive
-                            </span>
-                        </span>
-                        <p class="mb-0 fs-6">Subscription ID: N/A</p>
-                    </div>
-                    <div class="col-auto">
-                        <a href="#" class="btn btn-light btn-sm disabled">InActive</a>
-                    </div>
-                </div>
-                <div class="row">
-                    <div class="col-lg-3 col-md-3 col-6 mb-2 mb-lg-0">
-                        <span class="fs-6">Started On</span>
-                        <h6 class="mb-0">N/A</h6>
-                    </div>
-                    <div class="col-lg-3 col-md-3 col-6 mb-2 mb-lg-0">
-                        <span class="fs-6">Price</span>
-                        <h6 class="mb-0">
-                            {{-- تفادي Null --}}
-                            @if($otherPlan)
-                                ${{ $otherPlan->price }}
-                            @else
-                                0
-                            @endif
-                        </h6>
-                    </div>
-                    <div class="col-lg-3 col-md-3 col-6 mb-2 mb-lg-0">
-                        <span class="fs-6">Access</span>
-                        <h6 class="mb-0">Access All Courses</h6>
-                    </div>
-                    <div class="col-lg-3 col-md-3 col-6 mb-2 mb-lg-0">
-                        <span class="fs-6">Billing Date</span>
-                        <h6 class="mb-0">N/A</h6>
-                    </div>
-                </div>
-
-                @if ($Otherfeatures)
-                    <div class="mt-4">
-                        <h4>Features</h4>
-                        <div class="card">
-                            <div class="card-body">
-                                <div class="row">
-                                    <ul class="list-unstyled d-flex flex-wrap">
-                                        @foreach ($Otherfeatures as $index => $feature)
-                                            <div class="col-lg-6 col-md-6 col-12 mb-2">
-                                                <li class="d-flex align-items-start">
-                                                    <i class="bi bi-check-circle-fill text-success me-2"></i>
-                                                    <span>{{ $feature }}</span>
-                                                </li>
-                                            </div>
-                                        @endforeach
-                                    </ul>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                @endif
-            </div>
-
-            {{-- الخطة المجانية --}}
-            <div class="pt-5">
-                <div class="row mb-4">
-                    <div class="col mb-2 mb-lg-0">
-                        <span class="d-block">
-                            <span class="h4">Free Plan</span>
-                            <span class="badge {{ $subscriptionStatus == 'active' ? 'bg-danger' : 'bg-success' }} ms-2">
-                                {{ $subscriptionStatus == 'active' ? 'Inactive' : 'Active' }}
-                            </span>
-                        </span>
-                        <p class="mb-0 fs-6">
-                            Subscription ID: #100010
-                            {{ $planDetails ? $planDetails->id : 'N/A' }}
-                        </p>
-                    </div>
-                    <div class="col-auto">
-                        <a href="#" class="btn btn-light btn-sm disabled">Disabled</a>
-                    </div>
-                </div>
-                <div class="row">
-                    <div class="col-lg-3 col-md-3 col-6 mb-2 mb-lg-0">
-                        <span class="fs-6">Started On</span>
-                        <h6 class="mb-0">{{ Auth::user()->created_at->format('M d, Y') }}</h6>
-                    </div>
-                    <div class="col-lg-3 col-md-3 col-6 mb-2 mb-lg-0">
-                        <span class="fs-6">Price</span>
-                        <h6 class="mb-0">Free</h6>
-                    </div>
-                    <div class="col-lg-3 col-md-3 col-6 mb-2 mb-lg-0">
-                        <span class="fs-6">Access</span>
-                        <h6 class="mb-0">Access YouTube Videos</h6>
-                    </div>
-                    <div class="col-lg-3 col-md-3 col-6 mb-2 mb-lg-0">
-                        <span class="fs-6">Billing Date</span>
-                        <h6 class="mb-0">N/A</h6>
+                        @endif
                     </div>
                 </div>
             </div>
         </div>
-    </div>
+    @endforeach
+</div>
+
+<div class="mt-5">
+    @if ($subscriptionStatus == 'active')
+        @if ($payment 
+             && $payment->payment_type == 'cliq' 
+             && $payment->payment_status == 'pending')
+            <span class="badge bg-warning">Payment Pending...</span>
+        @else
+            <button id="cancel-subscription" class="btn btn-danger">
+                Cancel Current Subscription
+            </button>
+        @endif
+    @elseif($subscriptionStatus == 'suspended')
+        <button id="reactivate-subscription" class="btn btn-success">
+            Reactivate Subscription
+        </button>
+    @endif
+
+    @if ($payment 
+         && $payment->payment_type == 'cliq' 
+         && $payment->payment_status == 'rejected')
+        <button id="reupload-payment" 
+                class="btn btn-danger"
+                data-payment-id="{{ $payment->id }}">
+            Reupload Payment Proof
+        </button>
+    @endif
+</div>
+
 @endsection
 
 @section('scripts')
@@ -428,185 +201,185 @@
     <script src="https://unpkg.com/filepond-plugin-file-validate-type/dist/filepond-plugin-file-validate-type.js"></script>
 
     <script>
-        $(document).ready(function() {
+        document.addEventListener('DOMContentLoaded', function() {
             FilePond.registerPlugin(FilePondPluginFileValidateSize, FilePondPluginFileValidateType);
 
-            // إحضار سعر الـ monthlyActivePlan والـ yearlyActivePlan بأمان من خلال optional
-            const monthlyPrice = '{{ optional($monthlyActivePlan)->price }}';
-            const yearlyPrice  = '{{ optional($yearlyActivePlan)->price }}';
-
-            $('#upgrade, #upgrade-yearly').click(function(event) {
-                showLoader('Processing your subscription, please wait...');
-                const isYearly = event.target.id === 'upgrade-yearly';
-                // استخدم plan_id بناءً على إذا هو yearly أو monthly
-                const planId = isYearly 
-                    ? '{{ optional($yearlyActivePlan)->paypal_plan_id }}' 
-                    : '{{ optional($monthlyActivePlan)->paypal_plan_id }}';
-
-                $.ajax({
-                    url: '{{ route('subscriptions.create') }}',
-                    method: 'POST',
-                    data: {
-                        _token: '{{ csrf_token() }}',
-                        user_id: '{{ Auth::id() }}',
-                        email: '{{ Auth::user()->email }}',
-                        plan_id: planId
-                    },
-                    success: function(response) {
-                        if (response.success) {
-                            window.location.href = response.approval_url;
-                        } else {
-                            hideLoader();
-                            showAlert('error', response.message);
-                        }
-                    },
-                    error: function(error) {
+            document.querySelectorAll('.start-free-btn').forEach(btn => {
+                btn.addEventListener('click', () => {
+                    showLoader('Subscribing you to YOLO free plan...');
+                    fetch('{{ route("subscription.subscribeFree") }}', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'X-CSRF-TOKEN': '{{ csrf_token() }}'
+                        },
+                        body: JSON.stringify({})
+                    })
+                    .then(res => res.json())
+                    .then(data => {
                         hideLoader();
-                        showAlert('error', 'Failed to subscribe. Please try again.');
-                    }
+                        if (data.success) {
+                            showAlert('success', data.message || 'Free plan activated!');
+                            setTimeout(() => {
+                                window.location.href = '/student';
+                            }, 1500);
+                        } else {
+                            showAlert('error', data.message || 'Failed to subscribe to free plan.');
+                        }
+                    })
+                    .catch(err => {
+                        hideLoader();
+                        showAlert('error', 'Something went wrong. Please try again.');
+                    });
                 });
             });
 
+            // باي بال
+            document.querySelectorAll('.upgrade-plan-btn').forEach(btn => {
+                btn.addEventListener('click', () => {
+                    const planId   = btn.getAttribute('data-plan-id');
+                    const planType = btn.getAttribute('data-plan-type');
+                    showLoader(`Subscribing to ${planType} plan via PayPal...`);
 
-            $('#pay-with-cliq, #pay-with-cliq-yearly, #extend-subscription, #extend-subscription-yearly').click(
-                function(event) {
-                    const isYearly = event.target.id === 'pay-with-cliq-yearly' || event.target.id === 'extend-subscription-yearly';
-                    const isExtend = event.target.id === 'extend-subscription' || event.target.id === 'extend-subscription-yearly';
-
-                    const action = isExtend 
-                        ? (isYearly ? 'extend-yearly' : 'extend') 
-                        : (isYearly ? 'yearly' : 'initial');
-
-                    const paymentStatus = '{{ $payment ? $payment->payment_status : 'none' }}';
-                    const rejectionReason = '{{ $payment ? $payment->rejection_reason : '' }}';
-                    // استخدم الأسعر من المتغيرات
-                    const price = isYearly ? yearlyPrice : monthlyPrice;
-
-                    let htmlContent = `
-                        <form id="cliqPaymentForm">
-                            <div class="mb-3 text-center">
-                                <div>
-                                    <h3><strong>Pay with</strong> <img src="{{ asset('img/cliq.svg') }}" alt="Cliq Logo" style="max-width: 50px;"></h3>
-                                </div>
-                                <div>
-                                    <h2 id="cliqUserName" class="border fw-bold d-inline-block" onclick="copyCliqUserName()" data-toggle="tooltip" data-placement="top" title="Click to copy">
-                                        {{ $cliqUserName }}
-                                        <i class="bi bi-clipboard" style="cursor: pointer;" onclick="copyCliqUserName()"></i>
-                                    </h2>
-                                </div>
-                                <div>
-                                    <h6 class="text">You can pay to the Cliq account using the above aliases and then upload the proof of payment below.</h6>
-                                    <h5 class="text">The amount to be paid is <span class="text-primary">$${price}</span></h5>
-                                    <h6 class="text-success">The payment will be confirmed within 24-48 hours.</h6>
-                                </div>
-                            </div>
-                            <div class="mb-3">
-                                <label for="userName" class="form-label">Your Full Name</label>
-                                <input type="text" class="form-control" id="userName" name="userName" required>
-                            </div>
-                            <div class="mb-3">
-                                <label for="payment_image" class="form-label">Proof of Payment</label>
-                                <input type="file" class="form-control" id="payment_image" name="payment_image" accept="image/*" required>
-                            </div>
-                    `;
-
-                    if (paymentStatus === 'pending') {
-                        htmlContent += `<div class="alert alert-info" role="alert">
-                            Your payment is still pending approval.
-                        </div>`;
-                    } else if (paymentStatus === 'rejected') {
-                        htmlContent += `<div class="alert alert-danger" role="alert">
-                            Your payment was rejected. Reason: ${rejectionReason}
-                        </div>`;
-                    }
-
-                    htmlContent += `</form>`;
-
-                    Swal.fire({
-                        title: '',
-                        html: htmlContent,
-                        showCancelButton: true,
-                        confirmButtonText: 'Submit',
-                        didOpen: () => {
-                            const inputElement = document.querySelector('input[name="payment_image"]');
-                            pond = FilePond.create(inputElement, {
-                                allowFileTypeValidation: true,
-                                acceptedFileTypes: ['image/*'],
-                                fileValidateTypeLabelExpectedTypes: 'Expected file type: Image'
-                            });
+                    fetch('{{ route('subscriptions.create') }}', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'X-CSRF-TOKEN': '{{ csrf_token() }}'
                         },
-                        preConfirm: () => {
-                            const form = document.getElementById('cliqPaymentForm');
-                            const formData = new FormData();
-                            if (!form.userName.value) {
-                                Swal.showValidationMessage('Please enter your full name.');
-                                return;
-                            }
-                            formData.append('userName', form.userName.value);
-
-                            if (pond.getFiles().length > 0) {
-                                const file = pond.getFile();
-                                formData.append('payment_image', file.file);
-                            } else {
-                                Swal.showValidationMessage('Please upload a proof of payment.');
-                                return;
-                            }
-
-                            return fetch(`/pay-with-cliq?action=${action}`, {
-                                method: 'POST',
-                                body: formData,
-                                headers: {
-                                    'X-CSRF-TOKEN': '{{ csrf_token() }}'
-                                }
-                            })
-                            .then(response => response.json())
-                            .then(data => {
-                                if (!data.success) {
-                                    throw new Error(data.message ||
-                                        'There was an error submitting your payment proof.'
-                                    );
-                                }
-                                window.location.reload();
-                                return data;
-                            })
-                            .catch(error => {
-                                Swal.showValidationMessage(`Request failed: ${error}`);
-                            });
+                        body: JSON.stringify({
+                            plan_id: planId,
+                            email: '{{ Auth::user()->email }}',
+                            user_id: '{{ Auth::id() }}'
+                        })
+                    })
+                    .then(res => res.json())
+                    .then(data => {
+                        hideLoader();
+                        if (data.success) {
+                            window.location.href = data.approval_url;
+                        } else {
+                            showAlert('error', data.message || 'Failed to create subscription.');
                         }
-                    }).then((result) => {
-                        if (result.isConfirmed) {
-                            Swal.fire('Submitted!',
-                                'Your payment proof has been submitted. Await admin approval.',
-                                'success');
-                        }
+                    })
+                    .catch(err => {
+                        hideLoader();
+                        showAlert('error', 'Something went wrong. Please try again.');
                     });
-                }
-            );
+                });
+            });
 
-            $('#reupload-payment').click(function() {
-                const rejectionReason = '{{ $payment ? $payment->rejection_reason : '' }}';
-                const paymentStatus = '{{ $payment ? $payment->payment_status : 'none' }}';
-                // يفضل التحقق ما إذا payment->price موجود أم لا. لكن سنستخدم monthlyPrice/yearlyPrice
-                let htmlContent = `
-                <form id="reuploadPaymentForm">
+            // الدفع بـCliq
+            document.querySelectorAll('.pay-with-cliq-btn').forEach(btn => {
+                btn.addEventListener('click', () => {
+                    const planType = btn.getAttribute('data-plan-type');
+                    const price    = btn.getAttribute('data-price') || '0';
+                    showCliqModal(planType, price);
+                });
+            });
+
+            // إلغاء الاشتراك (باي بال أو أي اشتراك)
+            const cancelBtn = document.getElementById('cancel-subscription');
+            if (cancelBtn) {
+                cancelBtn.addEventListener('click', () => {
+                    showLoader('Cancelling your subscription, please wait...');
+                    fetch('{{ route('subscriptions.cancel') }}', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'X-CSRF-TOKEN': '{{ csrf_token() }}'
+                        },
+                        body: JSON.stringify({
+                            subscription_id: '{{ $subscription ? $subscription->subscription_id : '' }}'
+                        })
+                    })
+                    .then(res => res.json())
+                    .then(data => {
+                        hideLoader();
+                        if (data.success) {
+                            showAlert('success', 'Subscription cancelled successfully.');
+                            setTimeout(() => window.location.reload(), 1500);
+                        } else {
+                            showAlert('error', data.message || 'Failed to cancel subscription.');
+                        }
+                    })
+                    .catch(() => {
+                        hideLoader();
+                        showAlert('error', 'Something went wrong. Try again.');
+                    });
+                });
+            }
+
+            // إعادة التفعيل
+            const reactivateBtn = document.getElementById('reactivate-subscription');
+            if (reactivateBtn) {
+                reactivateBtn.addEventListener('click', () => {
+                    showLoader('Reactivating your subscription, please wait...');
+                    fetch('{{ route('subscriptions.reactivate') }}', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'X-CSRF-TOKEN': '{{ csrf_token() }}'
+                        },
+                        body: JSON.stringify({
+                            subscription_id: '{{ $subscription ? $subscription->subscription_id : '' }}'
+                        })
+                    })
+                    .then(res => res.json())
+                    .then(data => {
+                        hideLoader();
+                        if (data.success) {
+                            showAlert('success', 'Subscription reactivated successfully.');
+                            setTimeout(() => window.location.reload(), 1500);
+                        } else {
+                            showAlert('error', data.message || 'Failed to reactivate subscription.');
+                        }
+                    })
+                    .catch(() => {
+                        hideLoader();
+                        showAlert('error', 'Something went wrong. Try again.');
+                    });
+                });
+            }
+
+            // إعادة الرفع في حال رفض إثبات الدفع عبر Cliq
+            const reuploadBtn = document.getElementById('reupload-payment');
+            if (reuploadBtn) {
+                reuploadBtn.addEventListener('click', () => {
+                    const paymentId = reuploadBtn.getAttribute('data-payment-id');
+                    showReuploadCliqModal(paymentId);
+                });
+            }
+        });
+
+        /**
+         * نافذة رفع إثبات الدفع بالـCliq
+         */
+        function showCliqModal(planType, price) {
+            const action = planType;
+            let htmlContent = `
+                <form id="cliqPaymentForm">
                     <div class="mb-3 text-center">
                         <div>
-                            <h3><strong>Reupload Payment for</strong> <img src="{{ asset('img/cliq.svg') }}" alt="Cliq Logo" style="max-width: 50px;"></h3>
+                            <h3><strong>Pay with</strong> 
+                                <img src="{{ asset('img/cliq.svg') }}" alt="Cliq Logo" style="max-width: 50px;">
+                            </h3>
                         </div>
                         <div>
-                            <h2 id="cliqUserName" onclick="copyCliqUserName()" data-toggle="tooltip" data-placement="top" title="Click to copy" class="border fw-bold d-inline-block">
-                                {{ $cliqUserName }}
+                            <h2 id="cliqUserName" class="border fw-bold d-inline-block"
+                                onclick="copyCliqUserName()"
+                                data-toggle="tooltip" 
+                                data-placement="top" 
+                                title="Click to copy">
+                                {{ $cliqUserName ?? 'CliqAccountName' }}
                                 <i class="bi bi-clipboard" style="cursor: pointer;" onclick="copyCliqUserName()"></i>
                             </h2>
                         </div>
-                    </div>
-                    <div class="alert alert-danger" role="alert">
-                       Your payment was rejected. Reason: ${rejectionReason}
-                    </div>
-                    <div>
-                        <h6 class="text">You can pay to the Cliq account using the above aliases and then upload the proof of payment below.</h6>
-                        <h5 class="text">The amount to be paid is <span class="text-primary">$${monthlyPrice}</span></h5>
-                        <h6 class="text-success">The payment will be confirmed within 24-48 hours.</h6>
+                        <div>
+                            <h6>You can pay to the above Cliq account, then upload the proof below.</h6>
+                            <h5>The amount to be paid is <span class="text-primary">$${price}</span> (Plan: ${planType.toUpperCase()})</h5>
+                            <h6 class="text-success">Payment confirmation might take 24-48 hours.</h6>
+                        </div>
                     </div>
                     <div class="mb-3">
                         <label for="userName" class="form-label">Your Full Name</label>
@@ -616,117 +389,154 @@
                         <label for="payment_image" class="form-label">Proof of Payment</label>
                         <input type="file" class="form-control" id="payment_image" name="payment_image" accept="image/*" required>
                     </div>
-                </form>`;
+                </form>
+            `;
 
-                Swal.fire({
-                    title: '',
-                    html: htmlContent,
-                    showCancelButton: true,
-                    confirmButtonText: 'Submit',
-                    didOpen: () => {
-                        const inputElement = document.querySelector('input[name="payment_image"]');
-                        pond = FilePond.create(inputElement, {
-                            allowFileTypeValidation: true,
-                            acceptedFileTypes: ['image/*'],
-                            fileValidateTypeLabelExpectedTypes: 'Expected file type: Image'
-                        });
-                    },
-                    preConfirm: () => {
-                        const form = document.getElementById('reuploadPaymentForm');
-                        const formData = new FormData();
-                        var file = pond.getFile();
-                        formData.append('userName', form.userName.value);
+            Swal.fire({
+                title: '',
+                html: htmlContent,
+                showCancelButton: true,
+                confirmButtonText: 'Submit',
+                didOpen: () => {
+                    const inputElement = document.querySelector('input[name="payment_image"]');
+                    window.pond = FilePond.create(inputElement, {
+                        allowFileTypeValidation: true,
+                        acceptedFileTypes: ['image/*'],
+                        fileValidateTypeLabelExpectedTypes: 'Expected file type: Image'
+                    });
+                },
+                preConfirm: () => {
+                    const form = document.getElementById('cliqPaymentForm');
+                    const formData = new FormData();
+                    if (!form.userName.value) {
+                        Swal.showValidationMessage('Please enter your full name.');
+                        return;
+                    }
+                    formData.append('userName', form.userName.value);
+
+                    if (pond.getFiles().length > 0) {
+                        const file = pond.getFile();
                         formData.append('payment_image', file.file);
-
-                        return fetch(`/reupload-payment-proof/{{ $payment ? $payment->id : '' }}`, {
-                            method: 'POST',
-                            body: formData,
-                            headers: {
-                                'X-CSRF-TOKEN': '{{ csrf_token() }}'
-                            }
-                        })
-                        .then(response => response.json())
-                        .then(data => {
-                            if (!data.success) {
-                                throw new Error(data.message ||
-                                    'There was an error re-uploading your payment proof.'
-                                );
-                            }
-                            window.location.reload();
-                            return data;
-                        })
-                        .catch(error => {
-                            Swal.showValidationMessage(`Request failed: ${error}`);
-                        });
+                    } else {
+                        Swal.showValidationMessage('Please upload a proof of payment.');
+                        return;
                     }
-                }).then((result) => {
-                    if (result.isConfirmed) {
-                        Swal.fire('Submitted!',
-                            'Your payment proof has been re-uploaded. Await admin approval.',
-                            'success');
-                    }
-                });
-            });
 
-            $('#cancel-subscription').click(function() {
-                showLoader('Cancelling your subscription, please wait...');
-                $.ajax({
-                    url: '{{ route('subscriptions.cancel') }}',
-                    method: 'POST',
-                    data: {
-                        _token: '{{ csrf_token() }}',
-                        subscription_id: '{{ $subscription ? $subscription->subscription_id : '' }}'
-                    },
-                    success: function(response) {
-                        if (response.success) {
-                            listenForEvent('cancelled', '{{ Auth::id() }}');
-                        } else {
-                            hideLoader();
-                            showAlert('error', response.message);
+                    // إرسال الطلب
+                    return fetch(`/pay-with-cliq?action=${action}`, {
+                        method: 'POST',
+                        body: formData,
+                        headers: {
+                            'X-CSRF-TOKEN': '{{ csrf_token() }}'
                         }
-                    },
-                    error: function(error) {
-                        hideLoader();
-                        showAlert('error', 'Failed to cancel subscription. Please try again.');
-                    }
-                });
-            });
-
-            $('#reactivate-subscription').click(function() {
-                showLoader('Reactivating your subscription, please wait...');
-                $.ajax({
-                    url: '{{ route('subscriptions.reactivate') }}',
-                    method: 'POST',
-                    data: {
-                        _token: '{{ csrf_token() }}',
-                        subscription_id: '{{ $subscription ? $subscription->paypal_subscription_id : '' }}'
-                    },
-                    success: function(response) {
-                        if (response.success) {
-                            listenForEvent('reactivated', '{{ Auth::id() }}');
-                        } else {
-                            hideLoader();
-                            showAlert('error', response.message);
+                    })
+                    .then(response => response.json())
+                    .then(data => {
+                        if (!data.success) {
+                            throw new Error(data.message || 'Error submitting your payment proof.');
                         }
-                    },
-                    error: function(error) {
-                        hideLoader();
-                        showAlert('error', 'Failed to reactivate subscription. Please try again.');
-                    }
-                });
+                        return data;
+                    })
+                    .catch(error => {
+                        Swal.showValidationMessage(`Request failed: ${error}`);
+                    });
+                }
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    Swal.fire(
+                        'Submitted!',
+                        'Your payment proof has been submitted. Await admin approval.',
+                        'success'
+                    );
+                    setTimeout(() => window.location.reload(), 1500);
+                }
             });
+        }
 
-            function listenForEvent(type, userId) {
-                // يمكنك إضافة منطق انتظار WebSocket إن رغبت
-                // أو ببساطة عمل reload
-                hideLoader();
-                showAlert('success', `Subscription ${type} successfully.`);
-                window.location.reload();
-            }
-        });
+        /**
+         * مودال إعادة الرفع في حال رفض إثبات الدفع
+         */
+        function showReuploadCliqModal(paymentId) {
+            let htmlContent = `
+                <form id="reuploadCliqForm">
+                    <div class="mb-3 text-center">
+                        <h4>Reupload Payment Proof</h4>
+                        <p>Please upload a new proof of payment.</p>
+                    </div>
+                    <div class="mb-3">
+                        <label for="userName" class="form-label">Your Full Name</label>
+                        <input type="text" class="form-control" id="userName" name="userName" required>
+                    </div>
+                    <div class="mb-3">
+                        <label for="payment_image" class="form-label">Proof of Payment</label>
+                        <input type="file" class="form-control" id="payment_image" name="payment_image" accept="image/*" required>
+                    </div>
+                </form>
+            `;
+            Swal.fire({
+                title: '',
+                html: htmlContent,
+                showCancelButton: true,
+                confirmButtonText: 'Submit',
+                didOpen: () => {
+                    const inputElement = document.querySelector('input[name="payment_image"]');
+                    window.pondReupload = FilePond.create(inputElement, {
+                        allowFileTypeValidation: true,
+                        acceptedFileTypes: ['image/*'],
+                        fileValidateTypeLabelExpectedTypes: 'Expected file type: Image'
+                    });
+                },
+                preConfirm: () => {
+                    const form = document.getElementById('reuploadCliqForm');
+                    const formData = new FormData();
+                    if (!form.userName.value) {
+                        Swal.showValidationMessage('Please enter your full name.');
+                        return;
+                    }
+                    formData.append('userName', form.userName.value);
 
+                    if (pondReupload.getFiles().length > 0) {
+                        const file = pondReupload.getFile();
+                        formData.append('payment_image', file.file);
+                    } else {
+                        Swal.showValidationMessage('Please upload a proof of payment.');
+                        return;
+                    }
+
+                    // إرسال الطلب
+                    return fetch(`/reupload-payment-proof/${paymentId}`, {
+                        method: 'POST',
+                        body: formData,
+                        headers: {
+                            'X-CSRF-TOKEN': '{{ csrf_token() }}'
+                        }
+                    })
+                    .then(response => response.json())
+                    .then(data => {
+                        if (!data.success) {
+                            throw new Error(data.message || 'Error reuploading your payment proof.');
+                        }
+                        return data;
+                    })
+                    .catch(error => {
+                        Swal.showValidationMessage(`Request failed: ${error}`);
+                    });
+                }
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    Swal.fire(
+                        'Submitted!',
+                        'Your reuploaded proof has been submitted. Await admin approval.',
+                        'success'
+                    );
+                    setTimeout(() => window.location.reload(), 1500);
+                }
+            });
+        }
+
+        // عرض لودينغ
         function showLoader(message) {
-            var loaderHtml = `
+            const loaderHtml = `
                 <div class="loader-overlay">
                     <div class="spinner-border text-primary" role="status">
                         <span class="sr-only"></span>
@@ -734,11 +544,12 @@
                     <div class="loader-message">${message}</div>
                 </div>
             `;
-            $('body').append(loaderHtml);
+            document.body.insertAdjacentHTML('beforeend', loaderHtml);
         }
 
         function hideLoader() {
-            $('.loader-overlay').remove();
+            const overlay = document.querySelector('.loader-overlay');
+            if (overlay) overlay.remove();
         }
 
         function showAlert(type, message) {
@@ -749,34 +560,14 @@
             });
         }
 
+        // نسخ اسم حساب Cliq
         function copyCliqUserName() {
             const cliqUserName = document.getElementById('cliqUserName').innerText.trim();
             navigator.clipboard.writeText(cliqUserName).then(function() {
-                showAlertS('success', 'Copied to clipboard!', 'bi-check-circle');
+                // success
             }, function(err) {
-                showAlertS('error', 'Failed to copy text: ' + err, 'bi-exclamation-circle');
+                // error
             });
-        }
-
-        function showAlertS(type, message, icon) {
-            var alertHtml = `
-                <div class="alert alert-${type} border-0 bg-${type} alert-dismissible fade show py-2 position-fixed top-0 end-0 m-3" role="alert">
-                    <div class="d-flex align-items-center">
-                        <div class="font-35 text-white">
-                            <i class="bx ${icon}"></i>
-                        </div>
-                        <div class="ms-3">
-                            <h6 class="mb-0 text-white">${type.charAt(0).toUpperCase() + type.slice(1)}</h6>
-                            <div class="text-white">${message}</div>
-                        </div>
-                    </div>
-                    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
-                </div>
-            `;
-            $('body').append(alertHtml);
-            setTimeout(function() {
-                $('.alert').alert('close');
-            }, 5000);
         }
     </script>
 @endsection

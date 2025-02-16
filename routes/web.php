@@ -293,6 +293,10 @@ Route::middleware(['auth', 'role:Student'])->prefix('student')->group(function (
     Route::get('/meetings/{id}', [StudentController::class, 'showMeeting'])->name('student.meetings.show');
 
     // subscriptions
+        // راوت للاشتراك المجاني
+        Route::post('/subscribe-free', [SubscriptionController::class, 'subscribeFree'])
+        ->name('subscription.subscribeFree');
+        
     // Route::post('/subscriptions/create', [SubscriptionController::class, 'create'])->name('subscriptions.create');
     Route::get('subscription/details', [SubscriptionController::class, 'showSubscriptionDetails'])->name('subscription.details');
 

@@ -1,6 +1,7 @@
 @extends('layouts_dashboard.main')
 
 @section('styles')
+    {{-- الروابط الأساسية للـCSS --}}
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-icons/1.8.1/font/bootstrap-icons.min.css">
     <link rel="stylesheet" href="{{ asset('css/bootstrap.min.css') }}">
     <link rel="stylesheet" href="{{ asset('css/line-awesome.css') }}">
@@ -12,22 +13,123 @@
     <link rel="stylesheet" href="{{ asset('css/style.css') }}">
 
     <style>
-        .card.card-item {
-            height: 100%;
+        html, body {
+            margin: 0 !important;
+            padding: 0 !important;
+            min-height: 100vh !important;
+            overflow: auto !important;
         }
 
-        .card-text.description {
-            height: 80px;
-            overflow: hidden;
-            text-overflow: ellipsis;
+        /* خلفية صفحة التفاصيل */
+        @if($stage === 'lesson_details')
+            body {
+                background: url('{{ asset("images/lesson-bg.png") }}') no-repeat center top !important;
+                background-attachment: fixed !important;
+                background-size: cover !important; 
+                min-height: 100vh !important;
+            }
+            @media (min-width: 1200px) {
+                body {
+                    background-size: 842px 900px !important; /* يشبه A4 */
+                }
+            }
+            @media (max-width: 842px) {
+                body {
+                    background-size: contain !important;
+                }
+            }
+        @else
+            body {
+                background: #f8f9fa !important;
+            }
+        @endif
+
+        .lesson-wrapper {
+            @if($stage === 'lesson_details')
+                /* background-color: rgba(255, 255, 255, 0.85) !important;
+                box-shadow: 0 2px 8px rgba(0,0,0,0.2) !important;
+                border-radius: 10px; */
+                padding: 2rem;
+                width: 95%;
+                max-width: 1200px;
+                min-height: 60vh; 
+                margin: 2rem auto;
+            @else
+                background-color: #fff !important;
+                box-shadow: none !important;
+                border-radius: 0 !important;
+                padding: 0 !important;
+                width: 100% !important;
+                max-width: 100% !important;
+                min-height: auto !important;
+                margin: 0 !important;
+            @endif
         }
 
-        .bg-primary {
-            background-color: #be09cd !important;
+        @media (min-width: 1200px) {
+            @if($stage === 'lesson_details')
+                .lesson-wrapper {
+                    width: 832px  !important;
+                    height: 500px;
+                    margin-right: 395px;
+                }
+            @endif
         }
 
-        .skillbar-box {
-            width: 100%;
+        .lesson-logo {
+            text-align: center;
+            margin-right: 300px;
+            margin-top: -45px;
+        }
+        
+        .lesson-logo img {
+            max-width: 120px; 
+        }
+
+        .lesson-page-title {
+            text-align: center;
+            font-size: 2rem;
+            font-weight: 700;
+            margin-bottom: 2rem;
+            color: #333;
+            margin-right: 290px;
+        }
+        .lesson-logo {
+            display: block;
+            text-align: center;
+            margin: 1rem auto; 
+        }
+        @media (min-width: 768px) {
+            .lesson-logo {
+                margin: 1.5rem auto;
+            }
+        }
+        @media (min-width: 1200px) {
+            .lesson-logo {
+                margin-right: 272px;
+            }
+        }
+
+        @media (max-width: 576px) {
+            .lesson-page-title {
+                font-size: 1.5rem; 
+                margin-right: 0px;
+            }
+        }
+        .lesson-page-title {
+            display: block;
+            text-align: center;
+            margin: 1rem auto; 
+        }
+        @media (min-width: 768px) {
+            .lesson-page-title {
+                margin: 1.5rem auto;
+            }
+        }
+        @media (min-width: 1200px) {
+            .lesson-page-title {
+                margin-right: 272px;
+            }
         }
 
         .block-circle {
@@ -43,8 +145,8 @@
             padding: 10px;
             transition: transform 0.3s ease-in-out;
             overflow: hidden;
+            margin: 0 auto;
         }
-
         .block-circle::before {
             content: "";
             position: absolute;
@@ -56,15 +158,12 @@
             z-index: 1;
             transition: transform 0.3s ease-in-out;
         }
-
         .block-circle:hover {
             transform: scale(1.05) rotate(2deg);
         }
-
         .block-circle:hover::before {
             transform: scale(1.2);
         }
-
         .block-circle a {
             position: relative;
             z-index: 2;
@@ -74,58 +173,33 @@
             font-size: 1.1rem;
             text-shadow: 0 0 10px rgba(0, 0, 0, 0.5);
         }
-        .my-course-progress-bar-wrap {
-            margin-top: auto;
-            margin-bottom: 1rem;
-            }
-            .skillbar-box {
-                flex: 1;
-                margin-right: 10px;
-                background: #f2f2f2;
-                border-radius: 4px;
-                overflow: hidden;
-            }
-            .skillbar {
-                width: 100%;
-                height: 8px;
-                background: #e9e9e9;
-                border-radius: 4px;
-                position: relative;
-            }
-            .skillbar-bar {
-                height: 100%;
-                transition: width 0.4s ease-in-out;
-            }
-            .bg-primary {
-                background-color: #be09cd !important;
-            }
-            .skill-bar-percent {
-                font-size: 0.9rem;
-                color: #666;
-            }
-                .review-stars span {
-            color: #FFD700;
-            font-size: 1.2rem;
-            margin-right: 2px;
+
+        .card.card-item {
+            height: 100%;
+            border: none;
+            border-radius: 10px;
+            overflow: hidden;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
         }
-        .review-stars {
-            direction: ltr; 
-            margin-bottom: 0.5rem;
+        .card-text.description {
+            height: 80px;
+            overflow: hidden;
+            text-overflow: ellipsis;
         }
 
         .lesson-card {
             position: relative;
-            background: rgba(255, 255, 255, 0.15);
-            backdrop-filter: blur(10px);
+            background: rgba(255, 255, 255, 0.3);
+            backdrop-filter: blur(8px);
             border-radius: 15px;
             overflow: hidden;
-            box-shadow: 0 5px 20px rgba(0,0,0,0.1);
+            box-shadow: 0 3px 15px rgba(0,0,0,0.1);
             transition: transform 0.3s ease, box-shadow 0.3s ease;
             min-height: 280px; 
             display: flex;
             flex-direction: column;
+            border: none;
         }
-
         .lesson-card::before {
             content: "";
             position: absolute;
@@ -140,234 +214,186 @@
             pointer-events: none;
             z-index: 0;
         }
-
         .lesson-card .card-body {
-            
             position: relative;
             z-index: 1;
-            color: #fff;
+            color: #444;
         }
-
         .lesson-card h5.card-title {
-            color:#000;
+            color: #333;
             font-size: 1.3rem;
-            font-weight: 600;
+            font-weight: 700;
             margin-bottom: 1rem;
-            text-shadow: 0 2px 4px rgba(0,0,0,0.3);
         }
-
         .lesson-card p {
-            color : #000;
-            text-shadow: 0 1px 3px rgba(0,0,0,0.2);
+            color: #555;
         }
-
         .lesson-card:hover {
-            transform: scale(1.03);
-            box-shadow: 0 10px 30px rgba(190, 9, 205, 0.3);
-            margin-bottom: auto; 
-
+            transform: scale(1.02);
+            box-shadow: 0 10px 20px rgba(0,0,0,0.15);
         }
-
-        /* زر العرض */
         .lesson-card .btn-primary {
             background-color: #be09cd;
             border: none;
-            margin-top: auto; /* يجعل الزر دائمًا بأسفل البطاقة */
+            margin-top: auto; 
             box-shadow: 0 4px 10px rgba(0,0,0,0.2);
             transition: background-color 0.3s ease;
         }
-
         .lesson-card .btn-primary:hover {
             background-color: #a0007d;
         }
 
-        /* نص محتوى الدرس (lesson_details) مع تنسيق أفضل */
-        .lesson-content {
-            background: linear-gradient(to right, #e1e1e1, #f7f7f7);
-            padding: 1.5rem;
-            border-radius: 10px;
-            box-shadow: 0 0 15px rgba(0,0,0,0.05);
-        }
-
-        .lesson-content p {
-            color: #333;
+        .lesson-body-text {
+            text-align: left;
+            font-size: 1.1rem;
             line-height: 1.8;
+            color: #333;
+            margin: 0 auto;
+            max-width: 700px;
         }
 
-        /* يفضل التأكد من ملائمة الفيديو لنمط الـGlassmorphism */
-        .lesson-content video, 
-        .lesson-content iframe {
-            border: 3px solid #be09cd;
-            border-radius: 5px;
-            max-height: 500px;
-            width: 100%;
+        .lesson-banner {
+            background-color: #be09cd; 
+            color: #fff;
+            padding: 0.4rem 1rem;
+            font-size: 1.3rem;
+            font-weight: bold;
+            border-radius: 4px;
+            display: inline-block;
+            margin: 1.5rem auto;
         }
     </style>
 @endsection
 
 @section('content')
-<div class="container my-5">
 
-    @if($stage === 'blocks')
-        <div class="row text-center mb-4">
-            <h1>My Blocks</h1>
-        </div>
-        <div class="row d-flex justify-content-center">
-            @forelse($blocks as $block)
-                <div class="col-md-3 mb-4 d-flex justify-content-center">
-                    <div class="block-circle">
-                        <a href="{{ route('student.myCourses', ['block_id' => $block->id]) }}">
-                            {{ $block->name }}
-                        </a>
-                    </div>
-                </div>
-            @empty
-                <div class="col-12 text-center">
-                    <h3>You have no blocks.</h3>
-                </div>
-            @endforelse
-        </div>
-    @endif
-
-    @if($stage === 'units')
-        <div class="row">
-            <div class="col-md-12 text-center mb-4">
-                <h1>Units in This Block</h1>
-            </div>
-            @if ($courses->isEmpty())
-                <div class="col-md-12 text-center">
-                    <h3>You have not enrolled in any units yet.</h3>
-                </div>
-            @else
-                @foreach ($courses as $course)
-                    <div class="col-lg-4 responsive-column-half mb-4">
-                        <div class="card card-item">
-                            <div class="card-image">
-                                <a href="{{ route('student.myCourses', ['unit_id' => $course->id]) }}" class="d-block">
-                                    <img class="card-img-top lazy" src="{{ $course->image }}" alt="Card image cap" style="width:100%; min-height:212px; object-fit:cover;">
-                                    <div class="play-button">
-                                        <svg version="1.1" xmlns="http://www.w3.org/2000/svg" x="0px" y="0px"
-                                             viewBox="-307.4 338.8 91.8 91.8" xml:space="preserve">
-                                            <style type="text/css">
-                                                .st0 {
-                                                    opacity: 0.6;
-                                                    fill: #000000;
-                                                }
-                                                .st1 {
-                                                    fill: #ffffff;
-                                                }
-                                            </style>
-                                            <g>
-                                                <circle class="st0" cx="-261.5" cy="384.7" r="45.9"></circle>
-                                                <path class="st1"
-                                                      d="M-272.9,363.2l35.8,20.7c0.7,0.4,0.7,1.3,0,1.7l-35.8,20.7
-                                                         c-0.7,0.4-1.5-0.1-1.5-0.9V364
-                                                         C-274.4,363.3-273.5,362.8-272.9,363.2z">
-                                                </path>
-                                            </g>
-                                        </svg>
-                                    </div>
-                                </a>
-                            </div>
-                            <div class="card-body d-flex flex-column">
-                                <h5 class="card-title">
-                                    <a href="{{ route('student.myCourses', ['unit_id' => $course->id]) }}">
-                                        {{ $course->title }}
-                                    </a>
-                                </h5>
-                                <p class="card-text description lh-22 pt-2">
-                                    @if (strlen($course->description) > 100)
-                                        {{ substr($course->description, 0, 100) }}...
-                                    @else
-                                        {{ $course->description }}
-                                    @endif
-                                </p>
-                                <p class="card-text lh-22 pt-2">
-                                    {{ $course->teacher ? $course->teacher->user->full_name : 'No teacher assigned yet' }}
-                                </p>
-
-                                {{-- Progress Bar --}}
-                                <div class="my-course-progress-bar-wrap justify-content-between d-flex flex-nowrap align-items-center mt-3 position-relative w-100">
-                                    <div class="skillbar-box">
-                                        <div class="skillbar skillbar-skillbar-2" data-percent="{{ $course->progress }}%">
-                                            <div class="skillbar-bar skillbar--bar-2 bg-primary" style="width: {{ $course->progress }}%;"></div>
-                                        </div>
-                                    </div>
-                                    <div class="skill-bar-percent text-nowrap">
-                                        {{ $course->progress }}%
-                                    </div>
-                                </div>
-
-                                @php
-                                    $rating = $course->RateAvg();
-                                    $fullStars = floor($rating);
-                                    $halfStar = $rating - $fullStars >= 0.5;
-                                    $emptyStars = 5 - $fullStars - ($halfStar ? 1 : 0);
-                                @endphp
-                                <div class="review-stars pt-3">
-                                    @for ($i = 0; $i < $fullStars; $i++)
-                                        <span class="la la-star"></span>
-                                    @endfor
-                                    @if ($halfStar)
-                                        <span class="la la-star-half-o"></span>
-                                    @endif
-                                    @for ($i = 0; $i < $emptyStars; $i++)
-                                        <span class="la la-star-o"></span>
-                                    @endfor
-                                </div>
-
-                                <a href="{{ route('student.myCourses', ['unit_id' => $course->id]) }}"
-                                   class="btn btn-primary mt-auto d-block">
-                                   View Lessons
-                                </a>
-                            </div>
-                        </div>
-                    </div>
-                @endforeach
-            @endif
-        </div>
-    @endif
-
-    @if($stage === 'lessons')
-        <div class="row">
-            <div class="col-md-12 text-center mb-4">
-                <h1>Lessons in This Unit</h1>
-            </div>
-            @if ($lessons->isEmpty())
-                <div class="col-md-12 text-center">
-                    <h3>No Lessons found.</h3>
-                </div>
-            @else
-                @foreach ($lessons as $lesson)
-                    <div class="col-md-4 mb-4">
-                        <div class="card lesson-card">
-                            <div class="card-body d-flex flex-column">
-                                <h5 class="card-title">
-                                    {{ $lesson->title ?? 'Lesson Title' }}
-                                </h5>
-                                <p>{!! $lesson->subtitle !!}</p>
-                                <a href="{{ route('student.myCourses', ['lesson_id' => $lesson->id]) }}"
-                                   class="btn btn-primary d-block">
-                                   View Lesson
-                                </a>
-                            </div>
-                        </div>
-                    </div>
-                @endforeach
-            @endif
-        </div>
-    @endif
+    @php
+        $pageTitle = '';
+        if ($stage === 'blocks') {
+            $pageTitle = 'My Blocks';
+        } elseif ($stage === 'units') {
+            $pageTitle = 'Units in This Block';
+        } elseif ($stage === 'lessons') {
+            $pageTitle = 'Lessons in This Unit';
+        } elseif ($stage === 'lesson_details') {
+            $pageTitle = $lesson->title ?? 'Lesson Title';
+        }
+    @endphp
 
     @if($stage === 'lesson_details')
-        <div class="row">
-            <div class="col-md-12 text-center mb-4">
-                <h1>{{ $lesson->title ?? 'Lesson Title' }}</h1>
+        <div class="lesson-logo">
+            <img src="{{ asset('images/logo.png') }}" alt="Logo" />
+        </div>
+    @endif
+
+    <h1 class="lesson-page-title">{{ $pageTitle }}</h1>
+
+    <div class="lesson-wrapper">
+
+        {{-- ### BLOCKS ### --}}
+        @if($stage === 'blocks')
+            <div class="row text-center mb-4">
+                <h2>Choose a Block</h2>
             </div>
-            <div class="col-12 lesson-content">
+            <div class="row d-flex justify-content-center">
+                @forelse($blocks as $block)
+                    <div class="col-md-3 mb-4">
+                        <div class="block-circle">
+                            <a href="{{ route('student.myCourses', ['block_id' => $block->id]) }}">
+                                {{ $block->name }}
+                            </a>
+                        </div>
+                    </div>
+                @empty
+                    <div class="col-12 text-center">
+                        <h3>You have no blocks.</h3>
+                    </div>
+                @endforelse
+            </div>
+        @endif
+
+        {{-- ### UNITS ### --}}
+        @if($stage === 'units')
+            <div class="row">
+                @if ($courses->isEmpty())
+                    <div class="col-md-12 text-center">
+                        <h3>You have not enrolled in any units yet.</h3>
+                    </div>
+                @else
+                    @foreach ($courses as $course)
+                        <div class="col-lg-4 responsive-column-half mb-4">
+                            <div class="card card-item">
+                                <div class="card-image">
+                                    <a href="{{ route('student.myCourses', ['unit_id' => $course->id]) }}" class="d-block">
+                                        <img class="card-img-top lazy"
+                                             src="{{ $course->image }}"
+                                             alt="Course Image"
+                                             style="width:100%; min-height:212px; object-fit:cover;">
+                                    </a>
+                                </div>
+                                <div class="card-body d-flex flex-column">
+                                    <h5 class="card-title">
+                                        <a href="{{ route('student.myCourses', ['unit_id' => $course->id]) }}">
+                                            {{ $course->title }}
+                                        </a>
+                                    </h5>
+                                    <p class="card-text description lh-22 pt-2">
+                                        @if (strlen($course->description) > 100)
+                                            {{ substr($course->description, 0, 100) }}...
+                                        @else
+                                            {{ $course->description }}
+                                        @endif
+                                    </p>
+                                    <p class="card-text lh-22 pt-2">
+                                        {{ $course->teacher ? $course->teacher->user->full_name : 'No teacher assigned yet' }}
+                                    </p>
+                                    <a href="{{ route('student.myCourses', ['unit_id' => $course->id]) }}"
+                                       class="btn btn-primary mt-auto d-block">
+                                        View Lessons
+                                    </a>
+                                </div>
+                            </div>
+                        </div>
+                    @endforeach
+                @endif
+            </div>
+        @endif
+
+        {{-- ### LESSONS ### --}}
+        @if($stage === 'lessons')
+            <div class="row">
+                @if ($lessons->isEmpty())
+                    <div class="col-md-12 text-center">
+                        <h3>No Lessons found.</h3>
+                    </div>
+                @else
+                    @foreach ($lessons as $lesson)
+                        <div class="col-md-4 mb-4">
+                            <div class="card lesson-card">
+                                <div class="card-body d-flex flex-column">
+                                    <h5 class="card-title">
+                                        {{ $lesson->title ?? 'Lesson Title' }}
+                                    </h5>
+                                    <p>{!! $lesson->subtitle !!}</p>
+                                    <a href="{{ route('student.myCourses', ['lesson_id' => $lesson->id]) }}"
+                                       class="btn btn-primary d-block">
+                                        View Lesson
+                                    </a>
+                                </div>
+                            </div>
+                        </div>
+                    @endforeach
+                @endif
+            </div>
+        @endif
+
+        {{-- ### LESSON DETAILS ### --}}
+        @if($stage === 'lesson_details')
+            <div class="lesson-body-text">
                 @if($lesson->content_type === 'text')
-                    <p>{!! $lesson->content !!}</p>
+                    {!! $lesson->content !!}
                 @elseif($lesson->content_type === 'video')
-                    <video controls>
+                    <video controls style="max-width: 100%; border: 2px solid #ddd; border-radius: 5px;">
                         <source src="{{ asset($lesson->content) }}" type="video/mp4">
                         Your browser does not support the video tag.
                     </video>
@@ -379,13 +405,12 @@
                         </iframe>
                     </div>
                 @else
-                    <p>{!! nl2br(e($lesson->content ?? 'No content')) !!}</p>
+                    {!! nl2br(e($lesson->content ?? 'No content')) !!}
                 @endif
             </div>
-        </div>
-    @endif
+        @endif
 
-</div>
+    </div><!-- /lesson-wrapper -->
 @endsection
 
 @section('scripts')

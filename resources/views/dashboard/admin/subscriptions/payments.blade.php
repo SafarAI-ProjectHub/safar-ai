@@ -49,9 +49,12 @@
                     $('#daterange span').html('All Dates');
                     $('#daterange').val('');
                 } else {
-                    $('#daterange span').html(start.format('MMMM D, YYYY') + ' - ' + end.format('MMMM D, YYYY'));
-                    $('#daterange').val(start.format('MM/DD/YYYY h:mm A') + ' - ' + end.format(
-                        'MM/DD/YYYY h:mm A'));
+                    $('#daterange span').html(
+                        start.format('MMMM D, YYYY') + ' - ' + end.format('MMMM D, YYYY')
+                    );
+                    $('#daterange').val(
+                        start.format('MM/DD/YYYY h:mm A') + ' - ' + end.format('MM/DD/YYYY h:mm A')
+                    );
                 }
                 table.ajax.reload();
             }
@@ -64,14 +67,14 @@
                 timePickerIncrement: 30,
                 ranges: {
                     'Today': [moment().startOf('day'), moment().endOf('day')],
-                    'Yesterday': [moment().subtract(1, 'days').startOf('day'), moment().subtract(1, 'days')
-                        .endOf('day')
-                    ],
+                    'Yesterday': [moment().subtract(1, 'days').startOf('day'), moment().subtract(1, 'days').endOf('day')],
                     'Last 7 Days': [moment().subtract(6, 'days').startOf('day'), moment().endOf('day')],
                     'Last 30 Days': [moment().subtract(29, 'days').startOf('day'), moment().endOf('day')],
                     'This Month': [moment().startOf('month'), moment().endOf('month')],
-                    'Last Month': [moment().subtract(1, 'month').startOf('month'), moment().subtract(1,
-                        'month').endOf('month')],
+                    'Last Month': [
+                        moment().subtract(1, 'month').startOf('month'),
+                        moment().subtract(1, 'month').endOf('month')
+                    ],
                     'All Dates': [moment().subtract(10, 'years'), moment()]
                 },
                 locale: {
@@ -89,51 +92,22 @@
                         d.daterange = $('#daterange').val();
                     }
                 },
-                columns: [{
-                        data: 'user_name',
-                        name: 'user_name'
-                    },
-                    {
-                        data: 'subscription_name',
-                        name: 'subscription_name'
-                    },
-                    {
-                        data: 'amount',
-                        name: 'amount'
-                    },
-                    {
-                        data: 'payment_status',
-                        name: 'payment_status'
-                    },
-                    {
-                        data: 'payment_type',
-                        name: 'payment_type'
-                    },
-                    {
-                        data: 'transaction_date',
-                        name: 'transaction_date'
-                    }
+                columns: [
+                    { data: 'user_name', name: 'user_name' },
+                    { data: 'subscription_name', name: 'subscription_name' },
+                    { data: 'amount', name: 'amount' },
+                    { data: 'payment_status', name: 'payment_status' },
+                    { data: 'payment_type', name: 'payment_type' },
+                    { data: 'transaction_date', name: 'transaction_date' }
                 ],
                 dom: 'Bfrtip',
-                buttons: [{
-                        extend: 'copy',
-                        className: 'btn btn-outline-secondary buttons-copy buttons-html5'
-                    },
-                    {
-                        extend: 'excel',
-                        className: 'btn btn-outline-secondary buttons-excel buttons-html5'
-                    },
-                    {
-                        extend: 'pdf',
-                        className: 'btn btn-outline-secondary buttons-pdf buttons-html5'
-                    },
-                    {
-                        extend: 'print',
-                        className: 'btn btn-outline-secondary buttons-print'
-                    }
+                buttons: [
+                    { extend: 'copy',  className: 'btn btn-outline-secondary' },
+                    { extend: 'excel', className: 'btn btn-outline-secondary' },
+                    { extend: 'pdf',   className: 'btn btn-outline-secondary' },
+                    { extend: 'print', className: 'btn btn-outline-secondary' }
                 ],
                 lengthChange: false
-
             });
 
             $('#daterange').on('apply.daterangepicker', function(ev, picker) {
