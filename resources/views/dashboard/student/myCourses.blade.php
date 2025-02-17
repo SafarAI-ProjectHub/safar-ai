@@ -1,7 +1,8 @@
+{{-- نستخدم لوحة التحكم الرئيسية --}}
 @extends('layouts_dashboard.main')
 
 @section('styles')
-    {{-- الروابط الأساسية للـCSS --}}
+    {{-- استيراد ملفات الـ CSS الأساسية --}}
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-icons/1.8.1/font/bootstrap-icons.min.css">
     <link rel="stylesheet" href="{{ asset('css/bootstrap.min.css') }}">
     <link rel="stylesheet" href="{{ asset('css/line-awesome.css') }}">
@@ -12,126 +13,109 @@
     <link rel="stylesheet" href="{{ asset('css/tooltipster.bundle.css') }}">
     <link rel="stylesheet" href="{{ asset('css/style.css') }}">
 
+    {{-- استيراد خطين إضافيين من جوجل --}}
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Emilys+Candy&family=Send+Flowers&display=swap" rel="stylesheet">
+
     <style>
+        /* 
+            إعدادات أساسية للصفحة:
+            - إلغاء أي هوامش خارجية
+            - تحديد خلفية فاتحة
+            - تحديد الحد الأدنى لطول الصفحة
+        */
         html, body {
             margin: 0 !important;
             padding: 0 !important;
+            background-color: #f8f9fa !important;
             min-height: 100vh !important;
-            overflow: auto !important;
         }
 
-        /* خلفية صفحة التفاصيل */
+        /*
+            عنصر lesson-wrapper يعتبر الحاوية الأساسية لصفحات الكتل (Blocks),
+            والوحدات (Units), والدروس (Lessons).
+            يتم تغيير التصميم بحسب المرحلة (stage) لاحقًا.
+        */
+        .lesson-wrapper {
+            width: 100%;
+            max-width: 100%;
+            height: 130vh;
+            margin: 2rem auto;
+            background-color: #fff;
+            border-radius: 10px;
+            box-shadow: none;
+            position: relative;
+            padding: 2rem;
+        }
+
+        /*
+            عندما نكون في مرحلة "تفاصيل الدرس" (lesson_details)، 
+            نضيف تنسيقات خاصة لعمل خلفية جميلة وزوايا مزخرفة وظهور اللوغو في الأعلى
+        */
         @if($stage === 'lesson_details')
-            body {
-                background: url('{{ asset("images/lesson-bg.png") }}') no-repeat center top !important;
-                background-attachment: fixed !important;
-                background-size: cover !important; 
-                min-height: 100vh !important;
+            .lesson-wrapper {
+                max-width: 800px;
+                box-shadow: 0 2px 8px rgba(0,0,0,0.2);
+                overflow: hidden; 
             }
-            @media (min-width: 1200px) {
-                body {
-                    background-size: 842px 900px !important; /* يشبه A4 */
-                }
+
+            .svg-corner {
+                position: absolute;
+                width: 400px;
+                height: 200px;
+                pointer-events: none;
+                opacity: 0.7;
+                z-index: 1;  
             }
-            @media (max-width: 842px) {
-                body {
-                    background-size: contain !important;
-                }
+            .svg-top-left {
+                top: 0px;
+                left: 1px;
             }
-        @else
-            body {
-                background: #f8f9fa !important;
+            .svg-top-right {
+                top: 0px;
+                right: 1px;
+                transform: scaleX(-1); 
+            }
+            .svg-bottom-left {
+                bottom: 0px;
+                left: 1px;
+                transform: rotate(180deg) scaleX(-1);
+            }
+            .svg-bottom-right {
+                bottom: 0px;
+                right: 1px;
+                transform: rotate(180deg);
+            }
+
+            .lesson-logo {
+                text-align: center;
+                margin: 1.5rem 0 0.5rem; 
+                position: relative;
+                z-index: 3; 
+            }
+            .lesson-logo img {
+                width: 120px; 
+            }
+
+            /*
+                العنوان بخط جميل يتم عرضه في المنتصف عند عرض تفاصيل الدرس
+            */
+            .fancy-title {
+                font-family: "Playfair Display", serif;
+                font-optical-sizing: auto;
+                font-size: 3rem;
+                font-weight: 800;  
+                color: #333;
+                text-align: center;
+                margin-bottom: 2rem; 
             }
         @endif
 
-        .lesson-wrapper {
-            @if($stage === 'lesson_details')
-                /* background-color: rgba(255, 255, 255, 0.85) !important;
-                box-shadow: 0 2px 8px rgba(0,0,0,0.2) !important;
-                border-radius: 10px; */
-                padding: 2rem;
-                width: 95%;
-                max-width: 1200px;
-                min-height: 60vh; 
-                margin: 2rem auto;
-            @else
-                background-color: #fff !important;
-                box-shadow: none !important;
-                border-radius: 0 !important;
-                padding: 0 !important;
-                width: 100% !important;
-                max-width: 100% !important;
-                min-height: auto !important;
-                margin: 0 !important;
-            @endif
-        }
-
-        @media (min-width: 1200px) {
-            @if($stage === 'lesson_details')
-                .lesson-wrapper {
-                    width: 832px  !important;
-                    height: 500px;
-                    margin-right: 395px;
-                }
-            @endif
-        }
-
-        .lesson-logo {
-            text-align: center;
-            margin-right: 300px;
-            margin-top: -45px;
-        }
-        
-        .lesson-logo img {
-            max-width: 120px; 
-        }
-
-        .lesson-page-title {
-            text-align: center;
-            font-size: 2rem;
-            font-weight: 700;
-            margin-bottom: 2rem;
-            color: #333;
-            margin-right: 290px;
-        }
-        .lesson-logo {
-            display: block;
-            text-align: center;
-            margin: 1rem auto; 
-        }
-        @media (min-width: 768px) {
-            .lesson-logo {
-                margin: 1.5rem auto;
-            }
-        }
-        @media (min-width: 1200px) {
-            .lesson-logo {
-                margin-right: 272px;
-            }
-        }
-
-        @media (max-width: 576px) {
-            .lesson-page-title {
-                font-size: 1.5rem; 
-                margin-right: 0px;
-            }
-        }
-        .lesson-page-title {
-            display: block;
-            text-align: center;
-            margin: 1rem auto; 
-        }
-        @media (min-width: 768px) {
-            .lesson-page-title {
-                margin: 1.5rem auto;
-            }
-        }
-        @media (min-width: 1200px) {
-            .lesson-page-title {
-                margin-right: 272px;
-            }
-        }
-
+        /*
+            تصميم خاص للدوائر التي تظهر في مرحلة عرض الكتل (blocks).
+            يتم استخدام تأثير الـgradient والهوفر عند تمرير الفأرة.
+        */
         .block-circle {
             position: relative;
             width: 180px;
@@ -174,6 +158,9 @@
             text-shadow: 0 0 10px rgba(0, 0, 0, 0.5);
         }
 
+        /*
+            تصميم البطاقات العادية المستخدمة في عرض الوحدات (Units)
+        */
         .card.card-item {
             height: 100%;
             border: none;
@@ -187,6 +174,9 @@
             text-overflow: ellipsis;
         }
 
+        /*
+            تصميم خاص لبطاقات الدروس (lesson-card) في مرحلة عرض الدروس (lessons).
+        */
         .lesson-card {
             position: relative;
             background: rgba(255, 255, 255, 0.3);
@@ -243,31 +233,31 @@
             background-color: #a0007d;
         }
 
+        /*
+            تنسيق نص محتوى الدرس (lesson_details) 
+            مع تحديد توسيط الهامش وتكبير الخط وحجم النص ليكون أكثر قابلية للقراءة.
+        */
         .lesson-body-text {
             text-align: left;
             font-size: 1.1rem;
             line-height: 1.8;
             color: #333;
-            margin: 0 auto;
+            margin: 1rem auto;
             max-width: 700px;
-        }
-
-        .lesson-banner {
-            background-color: #be09cd; 
-            color: #fff;
-            padding: 0.4rem 1rem;
-            font-size: 1.3rem;
-            font-weight: bold;
-            border-radius: 4px;
-            display: inline-block;
-            margin: 1.5rem auto;
         }
     </style>
 @endsection
 
-@section('content')
 
+@section('content')
     @php
+        /*
+            تحديد عنوان الصفحة بحسب المرحلة (stage) الحالية:
+            1- blocks   -> صفحة الكتل
+            2- units    -> صفحة الوحدات
+            3- lessons  -> صفحة الدروس
+            4- lesson_details -> تفاصيل الدرس
+        */
         $pageTitle = '';
         if ($stage === 'blocks') {
             $pageTitle = 'My Blocks';
@@ -280,17 +270,35 @@
         }
     @endphp
 
-    @if($stage === 'lesson_details')
-        <div class="lesson-logo">
-            <img src="{{ asset('images/logo.png') }}" alt="Logo" />
-        </div>
-    @endif
-
-    <h1 class="lesson-page-title">{{ $pageTitle }}</h1>
-
     <div class="lesson-wrapper">
+        {{-- 
+            إذا كنا في مرحلة التفاصيل، نظهر الزخارف (SVG) في الأركان + اللوغو في المنتصف بالأعلى + العنوان بخط مزخرف
+        --}}
+        @if($stage === 'lesson_details')
+            <div class="svg-corner svg-top-left">
+                <img src="{{ asset('images/file.svg') }}" alt="svg-ornament">
+            </div>
+            <div class="svg-corner svg-top-right">
+                <img src="{{ asset('images/file.svg') }}" alt="svg-ornament">
+            </div>
+            <div class="svg-corner svg-bottom-left">
+                <img src="{{ asset('images/file.svg') }}" alt="svg-ornament">
+            </div>
+            <div class="svg-corner svg-bottom-right">
+                <img src="{{ asset('images/file.svg') }}" alt="svg-ornament">
+            </div>
 
-        {{-- ### BLOCKS ### --}}
+            <div class="lesson-logo">
+                <img src="{{ asset('images/logo.png') }}" alt="Logo">
+            </div>
+
+            <h1 class="fancy-title">{{ $pageTitle }}</h1>
+        @else
+            {{-- غير ذلك، نعرض العنوان بشكل عادي في منتصف الصفحة --}}
+            <h1 class="text-center mb-4">{{ $pageTitle }}</h1>
+        @endif
+
+        {{-- ############################################ BLOCKS ############################################ --}}
         @if($stage === 'blocks')
             <div class="row text-center mb-4">
                 <h2>Choose a Block</h2>
@@ -299,6 +307,7 @@
                 @forelse($blocks as $block)
                     <div class="col-md-3 mb-4">
                         <div class="block-circle">
+                            {{-- الانتقال لصفحة الكورسات (الوحدات) الخاصة بهذا الـ Block --}}
                             <a href="{{ route('student.myCourses', ['block_id' => $block->id]) }}">
                                 {{ $block->name }}
                             </a>
@@ -312,7 +321,7 @@
             </div>
         @endif
 
-        {{-- ### UNITS ### --}}
+        {{-- ############################################ UNITS ############################################ --}}
         @if($stage === 'units')
             <div class="row">
                 @if ($courses->isEmpty())
@@ -324,6 +333,7 @@
                         <div class="col-lg-4 responsive-column-half mb-4">
                             <div class="card card-item">
                                 <div class="card-image">
+                                    {{-- الضغط على الصورة يحيل المستخدم لصفحة الدروس الخاصة بهذا الكورس --}}
                                     <a href="{{ route('student.myCourses', ['unit_id' => $course->id]) }}" class="d-block">
                                         <img class="card-img-top lazy"
                                              src="{{ $course->image }}"
@@ -338,6 +348,7 @@
                                         </a>
                                     </h5>
                                     <p class="card-text description lh-22 pt-2">
+                                        {{-- قص الوصف حتى 100 حرف مع إظهار نقاط في النهاية إذا كان أطول --}}
                                         @if (strlen($course->description) > 100)
                                             {{ substr($course->description, 0, 100) }}...
                                         @else
@@ -345,6 +356,7 @@
                                         @endif
                                     </p>
                                     <p class="card-text lh-22 pt-2">
+                                        {{-- إظهار اسم المعلم إذا كان موجوداً --}}
                                         {{ $course->teacher ? $course->teacher->user->full_name : 'No teacher assigned yet' }}
                                     </p>
                                     <a href="{{ route('student.myCourses', ['unit_id' => $course->id]) }}"
@@ -359,7 +371,7 @@
             </div>
         @endif
 
-        {{-- ### LESSONS ### --}}
+        {{-- ############################################ LESSONS ############################################ --}}
         @if($stage === 'lessons')
             <div class="row">
                 @if ($lessons->isEmpty())
@@ -387,16 +399,21 @@
             </div>
         @endif
 
-        {{-- ### LESSON DETAILS ### --}}
+        {{-- ###################################### LESSON DETAILS ###################################### --}}
         @if($stage === 'lesson_details')
             <div class="lesson-body-text">
+                {{-- في حالة كان المحتوى نصاً (Text) يتم طباعته بشكل مباشر --}}
                 @if($lesson->content_type === 'text')
                     {!! $lesson->content !!}
+
+                {{-- في حالة كان المحتوى فيديو مرفوع للسيستم يتم عرضه عبر عنصر الفيديو --}}
                 @elseif($lesson->content_type === 'video')
                     <video controls style="max-width: 100%; border: 2px solid #ddd; border-radius: 5px;">
                         <source src="{{ asset($lesson->content) }}" type="video/mp4">
                         Your browser does not support the video tag.
                     </video>
+
+                {{-- في حالة كان المحتوى فيديو يوتيوب يتم تضمينه عبر iframe --}}
                 @elseif($lesson->content_type === 'youtube')
                     <div style="position: relative; padding-bottom: 56.25%; height: 0; overflow: hidden;">
                         <iframe style="position: absolute; top: 0; left: 0; width: 100%; height: 100%;"
@@ -405,18 +422,21 @@
                         </iframe>
                     </div>
                 @else
+                    {{-- في حال لم يكن هناك نوع محدد أو لم يتم تعريفه --}}
                     {!! nl2br(e($lesson->content ?? 'No content')) !!}
                 @endif
             </div>
         @endif
-
     </div><!-- /lesson-wrapper -->
 @endsection
 
+
 @section('scripts')
+    {{-- تضمين ملفات الجافاسكربت الأساسية --}}
     <script src="{{ asset('js/bootstrap.bundle.min.js') }}"></script>
     <script src="{{ asset('js/bootstrap-select.min.js') }}"></script>
     <script src="{{ asset('js/owl.carousel.min.js') }}"></script>
+    <script src="{{ asset('js/owl.theme.default.min.css') }}"></script>
     <script src="{{ asset('js/isotope.js') }}"></script>
     <script src="{{ asset('js/waypoint.min.js') }}"></script>
     <script src="{{ asset('js/jquery.counterup.min.js') }}"></script>
@@ -428,6 +448,10 @@
     <script src="{{ asset('js/main.js') }}"></script>
 
     <script>
+        /*
+            دالة لضبط ارتفاع جميع البطاقات من نفس النوع بحيث تكون متساوية
+            في حال احتجنا ذلك في أي مرحلة لاحقة.
+        */
         function adjustCardHeights() {
             var maxHeight = 0;
             $('.card.card-item.youtube').each(function() {
@@ -439,6 +463,9 @@
             $('.card.card-item.youtube').height(maxHeight);
         }
 
+        /*
+            عند تحميل الصفحة بالكامل، نستدعي الدالة لضبط الارتفاعات.
+        */
         $(window).on('load', function() {
             adjustCardHeights();
         });
