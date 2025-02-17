@@ -94,7 +94,6 @@ class AdminController extends Controller
             'date_of_birth'     => $request->date_of_birth,
             'password'          => Hash::make($request->password),
             'country_location'  => $request->country_location,
-            // 'role_id'           => 1,
             'status'            => 'active',
         ]);
 
@@ -159,7 +158,6 @@ class AdminController extends Controller
     /*
      * -------------- TEACHERS --------------
      */
-
     public function applicationsIndex()
     {
         return view('dashboard.admin.applications');
@@ -329,7 +327,6 @@ class AdminController extends Controller
     /*
      * -------------- COURSES --------------
      */
-
     public function courses()
     {
         $categories = CourseCategory::all();
@@ -499,12 +496,11 @@ class AdminController extends Controller
     /*
      * -------------- UNITS (Lessons) --------------
      */
-
     public function showUnits($courseId)
     {
         $course = Course::with('units')->findOrFail($courseId);
 
-        // تحقق من صلاحية المعلم إن لزم
+        // إن أردت التحقق من صلاحية المعلم
         if (Auth::user()->hasAnyRole(['Teacher'])) {
             if (Auth::id() != $course->teacher->teacher_id) {
                 abort(403, 'Unauthorized action.');
@@ -514,7 +510,7 @@ class AdminController extends Controller
         return view('dashboard.admin.units', compact('course'));
     }
 
-    //  (Add) Lesson
+    // (Add) Lesson
     public function storeUnit(Request $request)
     {
         \Log::info('Store Unit Request:', $request->all());
@@ -554,13 +550,13 @@ class AdminController extends Controller
 
         $unit->save();
 
-        // استدعاء Job لمعالجة النص
+        // معالجته لاحقًا بالـ AI
         ProcessUnitAI::dispatch($unit->id, $this->videoToAudioService);
 
         return response()->json(['success' => 'Lesson added successfully']);
     }
 
-    //  (Read) for DataTables
+    // (Read) for DataTables
     public function getUnits($courseId)
     {
         $units = Unit::where('course_id', $courseId)
@@ -581,21 +577,21 @@ class AdminController extends Controller
             ->make(true);
     }
 
-    //  (Show single lesson) - AJAX
+    // (Show single lesson) - AJAX
     public function showUnit($id)
     {
         $unit = Unit::findOrFail($id);
-        return response()->json($unit); 
+        return response()->json($unit);
     }
 
-    //  (Edit) - AJAX Get
+    // (Edit) - AJAX Get
     public function editUnit($id)
     {
         $unit = Unit::findOrFail($id);
         return response()->json($unit);
     }
 
-    //  (Update) Lesson
+    // (Update) Lesson
     public function updateUnit(Request $request, $id)
     {
         $request->validate([
@@ -614,11 +610,11 @@ class AdminController extends Controller
         if ($request->content_type == 'text') {
             $unit->content = $request->content;
         } elseif ($request->content_type == 'video' && $request->hasFile('video')) {
-            // Delete old if exists
+            // حذف القديم إن وجد
             if ($unit->content && Storage::disk('public')->exists(str_replace('storage/', '', $unit->content))) {
                 Storage::disk('public')->delete(str_replace('storage/', '', $unit->content));
             }
-            // store new
+            // رفع الجديد
             $file = $request->file('video');
             $filename = uniqid() . '.' . $file->getClientOriginalExtension();
             $path = $file->storeAs('uploads', $filename, 'public');
@@ -635,7 +631,7 @@ class AdminController extends Controller
 
         $unit->save();
 
-        // Dispatch job to handle AI script
+        // إعادة معالجة بالـ AI
         ProcessUnitAI::dispatch($unit->id, $this->videoToAudioService);
 
         return response()->json(['success' => 'Lesson updated successfully']);
@@ -647,6 +643,8 @@ class AdminController extends Controller
         try {
             $unit = Unit::with(['quizzes.assessments'])->findOrFail($id);
             $unitsIds = [$unit->id];
+
+            // حذف أي Quiz/Assessments تابعة
             foreach ($unit->quizzes as $quiz) {
                 foreach ($quiz->assessments as $assessment) {
                     foreach ($assessment->userResponses as $response) {
@@ -656,6 +654,7 @@ class AdminController extends Controller
                 }
                 $quiz->delete();
             }
+
             DB::table('student_units')->whereIn('unit_id', $unitsIds)->delete();
             $unit->delete();
 
@@ -665,7 +664,7 @@ class AdminController extends Controller
         }
     }
 
-    //  get and update script
+    // get and update script
     public function getScript($id)
     {
         $unit = Unit::findOrFail($id);
@@ -861,7 +860,6 @@ class AdminController extends Controller
     /*
      * -------------- STUDENT LEVEL TEST ASSESSMENTS --------------
      */
-
     public function studentAssessments()
     {
         return view('dashboard.admin.student_level_test_assessment');
@@ -923,11 +921,9 @@ class AdminController extends Controller
         return response()->json(['success' => true]);
     }
 
-
     /*
      * -------------- Helpers --------------
      */
-
     private function extractVideoId($url)
     {
         parse_str(parse_url($url, PHP_URL_QUERY), $queryParams);
@@ -939,9 +935,8 @@ class AdminController extends Controller
         $apiKey = env('YOUTUBE_API_KEY');
         $apiUrl = "https://www.googleapis.com/youtube/v3/videos?id={$videoId}&key={$apiKey}&part=snippet,statistics";
 
-        $response = Http::get($apiUrl);
+        $response = \Illuminate\Support\Facades\Http::get($apiUrl);
         if ($response->successful() && !empty($response->json()['items'])) {
-            $item = $response->json()['items'][0];
             return [
                 'status' => 'success',
                 'message' => 'Correct YouTube Video URL',
