@@ -1,7 +1,8 @@
 @extends('layouts_dashboard.main')
 
 @section('styles')
-<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-icons/1.8.1/font/bootstrap-icons.min.css">
+    <!-- استدعاء ملفات CSS وباقي الإعدادات -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-icons/1.8.1/font/bootstrap-icons.min.css">
     <link rel="stylesheet" href="{{ asset('css/bootstrap.min.css') }}">
     <link rel="stylesheet" href="{{ asset('css/line-awesome.css') }}">
     <link rel="stylesheet" href="{{ asset('css/owl.carousel.min.css') }}">
@@ -36,6 +37,8 @@
         .modal-header {
             border-bottom: none;
         }
+
+        /* قمنا بتعطيل زر الإغلاق (X) في الهيدر، وأيضاً سنمنع الإغلاق بالنقر خارج الـ Modal */
         .btn-close {
             float: right;
         }
@@ -73,30 +76,9 @@
         .card-body.d-flex.flex-column.youtube {
             padding: 10px 20px 0;
         }
-
-        .card.card-item {
-            height: 100%;
-        }
-        .card-text.description {
-            height: 80px;
-            overflow: hidden;
-            text-overflow: ellipsis;
-        }
-        .bg-primary {
-            background-color: #be09cd !important;
-        }
-        .skillbar-box {
-            width: 100%;
-        }
-        .card.card-item.youtube {
-            height: 315px;
-        }
-        .card-body.d-flex.flex-column.youtube {
-            padding: 10px 20px 0;
-        }
         
     </style>
-    @endsection
+@endsection
 
 @section('content')
 @php
@@ -136,13 +118,12 @@
                     <div class="col-md-4 mb-4">
                         <div class="card card-item youtube h-100">
                             <div class="card-image">
-                                <a href="javascript:void(0);" 
+                                <a href="javascript:void(0);"
                                    class="d-block video-link"
                                    data-video-id="{{ $video->video_id }}"
                                    data-video-title="{{ $video->title }}">
                                     <img class="card-img-top lazy" src="{{ $video->thumbnail_url }}" alt="Video Thumbnail">
-                                    <div class="play-button">
-                                    </div>
+                                    <div class="play-button"></div>
                                 </a>
                             </div>
                             <div class="card-body d-flex flex-column youtube">
@@ -176,8 +157,7 @@
                                data-course-id="{{ $course->id }}"
                                data-enrolled="{{ in_array($course->id, $enrolledCourseIds) }}">
                                 <img class="card-img-top lazy" src="{{ $course->image }}" alt="Card image cap">
-                                <div class="play-button">
-                                </div>
+                                <div class="play-button"></div>
                             </a>
                         </div>
                         <div class="card-body d-flex flex-column">
@@ -251,13 +231,12 @@
                 <div class="col-md-4 mb-4">
                     <div class="card card-item youtube h-100">
                         <div class="card-image">
-                            <a href="javascript:void(0);" 
+                            <a href="javascript:void(0);"
                                class="d-block video-link"
                                data-video-id="{{ $video->video_id }}"
                                data-video-title="{{ $video->title }}">
                                 <img class="card-img-top lazy" src="{{ $video->thumbnail_url }}" alt="Video Thumbnail">
-                                <div class="play-button">
-                                </div>
+                                <div class="play-button"></div>
                             </a>
                         </div>
                         <div class="card-body d-flex flex-column youtube">
@@ -276,31 +255,46 @@
             </div>
         @endif
     </div>
+
     @if (auth()->user()->getAgeGroup() !== '1-5')
-        <div class="modal fade" id="subscriptionModal" tabindex="-1" aria-labelledby="subscriptionModalLabel"
-             aria-hidden="true">
+        <!-- 
+            هنا نجعل الـ Modal لا يُغلق إلا عند الضغط على زر "See Details"
+            وذلك بإضافة data-bs-backdrop="static" و data-bs-keyboard="false" 
+            وإزالة زر الإغلاق (X) في الهيدر
+         -->
+        <div class="modal fade"
+             id="subscriptionModal"
+             tabindex="-1"
+             aria-labelledby="subscriptionModalLabel"
+             aria-hidden="true"
+             data-bs-backdrop="static"  <!-- منع إغلاق الـ Modal بالنقر خارجها -->
+             data-bs-keyboard="false">  <!-- منع إغلاق الـ Modal بزر Escape من الكيبورد -->
             <div class="modal-dialog">
                 <div class="modal-content">
                     <div class="modal-header">
-                        <button type="button" class="btn-close" data-bs-dismiss="modal"
-                                aria-label="Close"></button>
+                        <!-- تمت إزالة زر الإغلاق (X) -->
+                        <!-- <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button> -->
                     </div>
                     <div class="modal-body">
                         <h5 class="modal-title">Unlock Premium Features</h5>
                         <p>Get exclusive access to advanced units and resources. Enhance your learning with our
                             Premium Plan!</p>
+                        <!-- زر الإجراء الوحيد الذي يسمح للمستخدم بإغلاق الـ Modal عبر التحويل لصفحة الاشتراك -->
                         <button class="btn btn-detail btn-primary"
-                                onclick="location.href='{{ route('subscription.details') }}'">See Details</button>
-                        <p class="mt-4"><strong>Note:</strong> if you have subscribed and still see this message,
+                                onclick="location.href='{{ route('subscription.details') }}'">
+                            See Details
+                        </button>
+                        <p class="mt-4">
+                            <strong>Note:</strong> if you have subscribed and still see this message,
                             please wait for up to one minute. The page will reload, and you will gain access to the
-                            units. The delay is due to payment processing by PayPal. Thank you for your patience!</p>
+                            units. The delay is due to payment processing by PayPal. Thank you for your patience!
+                        </p>
                     </div>
                 </div>
             </div>
         </div>
     @endif
 @endif
-
 
 {{-- Modals --}}
 <div class="modal fade" id="courseModal" tabindex="-1" aria-labelledby="courseModalLabel" aria-hidden="true">
@@ -340,19 +334,21 @@
         </div>
     </div>
 </div>
-
 @endsection
 
 @section('scripts')
 <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 <script>
     $(document).ready(function() {
+        // إذا لم يكن المستخدم مشتركاً، سنظهر المودال الإجباري "Subscription Modal"
         @if (Auth::user()->student->subscription_status !== 'subscribed' || $subscription->status !== 'active')
             @if (auth()->user()->getAgeGroup() !== '1-5')
                 $('#subscriptionModal').modal('show');
             @endif
         @endif
 
+        // عند الضغط على اسم الدورة (كورس) إذا كان المستخدم "ملتحق" يتم نقله مباشرة لصفحة الكورس
+        // وإلا سيظهر له المودال بعرض تفاصيل الكورس مع زر التحاق
         $('.course-link').click(function() {
             var courseId = $(this).data('course-id');
             var isEnrolled = $(this).data('enrolled');
@@ -363,9 +359,7 @@
                 $.ajax({
                     url: '{{ route('student.getCourseDetails') }}',
                     type: 'GET',
-                    data: {
-                        course_id: courseId
-                    },
+                    data: { course_id: courseId },
                     success: function(response) {
                         $('#courseTitle').text(response.course.title);
                         $('#courseDescription').text(response.course.description);
@@ -381,14 +375,13 @@
             }
         });
 
+        // عند الضغط على زر "Enroll in Unit" ضمن أي كورس
         $('.enroll-btn').click(function() {
             var courseId = $(this).data('course-id');
             $.ajax({
                 url: '{{ route('student.getCourseDetails') }}',
                 type: 'GET',
-                data: {
-                    course_id: courseId
-                },
+                data: { course_id: courseId },
                 success: function(response) {
                     $('#courseTitle').text(response.course.title);
                     $('#courseDescription').text(response.course.description);
@@ -403,6 +396,7 @@
             });
         });
 
+        // زر الالتحاق في المودال
         $('#enrollButton').click(function() {
             var courseId = $(this).data('course-id');
             $.ajax({
@@ -429,21 +423,22 @@
             });
         });
 
-        $(document).ready(function() {
-    $(document).on('click', '.video-link', function() {
-        var videoId = $(this).data('video-id');
-        var videoTitle = $(this).data('video-title');
+        // عند الضغط على الفيديو المجاني لعرضه في مودال اليوتيوب
+        $(document).on('click', '.video-link', function() {
+            var videoId = $(this).data('video-id');
+            var videoTitle = $(this).data('video-title');
 
-        $('#videoTitle').text(videoTitle);
-        $('#videoFrame').attr('src', 'https://www.youtube.com/embed/' + videoId);
-        $('#videoModal').modal('show');
-    });
+            $('#videoTitle').text(videoTitle);
+            $('#videoFrame').attr('src', 'https://www.youtube.com/embed/' + videoId);
+            $('#videoModal').modal('show');
+        });
 
-    $('#videoModal').on('hide.bs.modal', function() {
-        $('#videoFrame').attr('src', '');
-    });
-});
+        // عند إغلاق المودال الخاص بالفيديو، يجب إيقاف تشغيله
+        $('#videoModal').on('hide.bs.modal', function() {
+            $('#videoFrame').attr('src', '');
+        });
 
+        // تابع لاستدعاء الفيديوهات بالصفحات (إذا أردت إضافة Pagination AJAX)
         function fetchVideos(page) {
             $.ajax({
                 url: '{{ route('student.dashboard') }}',
@@ -457,6 +452,7 @@
             });
         }
 
+        // ضبط ارتفاع الكروت (في حال احتجت ذلك)
         function adjustCardHeights() {
             var maxHeight = 0;
             $('.card.card-item.youtube').each(function() {

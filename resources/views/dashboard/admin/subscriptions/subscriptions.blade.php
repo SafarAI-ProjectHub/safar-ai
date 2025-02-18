@@ -9,7 +9,7 @@
 @section('content')
     <div class="card">
         <div class="card-body">
-            <h5>Active Subscriptions List</h5>
+            <h5>Active YOLO / SOLO / TOLO Subscriptions</h5>
             <div class="d-flex justify-content-end align-items-center mb-3">
                 <label for="daterange" class="mr-2">Filter by Date:</label>
                 <input type="text" name="daterange" id="daterange" class="form-control">
@@ -20,6 +20,7 @@
                     <thead>
                         <tr>
                             <th>User</th>
+                            <th>Plan Type</th> {{-- جديد: يعرض 'subscription_type' مثلاً yolo/solo/tolo --}}
                             <th>Subscription ID</th>
                             <th>Status</th>
                             <th>Start Date</th>
@@ -49,9 +50,12 @@
                     $('#daterange span').html('All Dates');
                     $('#daterange').val('');
                 } else {
-                    $('#daterange span').html(start.format('MMMM D, YYYY') + ' - ' + end.format('MMMM D, YYYY'));
-                    $('#daterange').val(start.format('MM/DD/YYYY h:mm A') + ' - ' + end.format(
-                        'MM/DD/YYYY h:mm A'));
+                    $('#daterange span').html(
+                        start.format('MMMM D, YYYY') + ' - ' + end.format('MMMM D, YYYY')
+                    );
+                    $('#daterange').val(
+                        start.format('MM/DD/YYYY h:mm A') + ' - ' + end.format('MM/DD/YYYY h:mm A')
+                    );
                 }
                 table.ajax.reload();
             }
@@ -64,14 +68,14 @@
                 timePickerIncrement: 30,
                 ranges: {
                     'Today': [moment().startOf('day'), moment().endOf('day')],
-                    'Yesterday': [moment().subtract(1, 'days').startOf('day'), moment().subtract(1, 'days')
-                        .endOf('day')
-                    ],
+                    'Yesterday': [moment().subtract(1, 'days').startOf('day'), moment().subtract(1, 'days').endOf('day')],
                     'Last 7 Days': [moment().subtract(6, 'days').startOf('day'), moment().endOf('day')],
                     'Last 30 Days': [moment().subtract(29, 'days').startOf('day'), moment().endOf('day')],
                     'This Month': [moment().startOf('month'), moment().endOf('month')],
-                    'Last Month': [moment().subtract(1, 'month').startOf('month'), moment().subtract(1,
-                        'month').endOf('month')],
+                    'Last Month': [
+                        moment().subtract(1, 'month').startOf('month'),
+                        moment().subtract(1, 'month').endOf('month')
+                    ],
                     'All Dates': [moment().subtract(10, 'years'), moment()]
                 },
                 locale: {
@@ -89,33 +93,18 @@
                         d.daterange = $('#daterange').val();
                     }
                 },
-                columns: [{
-                        data: 'user_name',
-                        name: 'user_name'
-                    },
-                    {
-                        data: 'subscription_id',
-                        name: 'subscription_id'
-                    },
-                    {
-                        data: 'status',
-                        name: 'status'
-                    },
-                    {
-                        data: 'start_date',
-                        name: 'start_date'
-                    },
-                    {
-                        data: 'next_billing_time',
-                        name: 'next_billing_time'
-                    },
-                    {
-                        data: 'payment_status',
-                        name: 'payment_status'
-                    }
+                columns: [
+                    { data: 'user_name', name: 'user_name' },
+                    { data: 'subscription_type', name: 'subscription_type' }, // عمود جديد
+                    { data: 'subscription_id', name: 'subscription_id' },
+                    { data: 'status', name: 'status' },
+                    { data: 'start_date', name: 'start_date' },
+                    { data: 'next_billing_time', name: 'next_billing_time' },
+                    { data: 'payment_status', name: 'payment_status' }
                 ],
                 dom: 'Bfrtip',
-                buttons: [{
+                buttons: [
+                    {
                         extend: 'copy',
                         className: 'btn btn-outline-secondary buttons-copy buttons-html5'
                     },

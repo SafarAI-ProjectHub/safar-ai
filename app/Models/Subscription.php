@@ -42,16 +42,8 @@ class Subscription extends Model
         return $this->hasMany(Payment::class);
     }
 
-    // Accessor for subscription type
     public function getSubscriptionTypeAttribute($value)
     {
         return ucfirst($value);
     }
-
-    //$this -> paypal_plan_id
-    public function paypal_plan_id()
-    {
-        return $this->paypal_plan_id ? $this->paypal_plan_id : 'N/A';
-    }
-
 }

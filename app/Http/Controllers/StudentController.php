@@ -24,7 +24,7 @@ use Spatie\Permission\Models\Role;
 use App\Models\LevelTestChoice;
 use App\Models\YoutubeVideo;
 use App\Models\Block;
-use App\Models\Student; // [Newly Added] تأكد من استدعاء موديل Student
+use App\Models\Student;
 
 class StudentController extends Controller
 {
@@ -32,43 +32,41 @@ class StudentController extends Controller
     {
         $user = Auth::user();
 
-        // [Newly Added] تأكّد أن للمستخدم سجل في جدول students. 
-        // في حال كان المستخدم طالبًا، ولم يتم إنشاء سجل، ننشئ له سجل افتراضي.
+        // إذا لم يكن لديه سجل طالب من قبل, ننشئ له واحدًا
         if (!$user->student && $user->hasRole('Student')) {
             $newStudent = new Student();
-            $newStudent->user_id = $user->id;
-            // يمكنك ضبط قيمة افتراضية للمستوى إن أحببت
+            $newStudent->student_id = $user->id;
             $newStudent->english_proficiency_level = 1; 
             $newStudent->save();
-            // حدّث علاقة user->student في الذاكرة
             $user->refresh();
         }
 
         $ageGroup = $user->getAgeGroup();
 
+        // إذا عمره بين 1-5, نعّده مشترك مبدئيًا بدون اختبارات
         if ($ageGroup === '1-5') {
             $user->status = 'active';
             $user->save();
-            // تحقق هنا أيضًا من أن $user->student ليس null
             if ($user->student) {
                 $user->student->updateProficiencyLevel(1);
             }
         } else {
+            // التأكد من أنهى اختبار المستوى أم لا
             if ($user->hasRole('Student') && $user->status === 'pending') {
                 $completedLevelTest = LevelTestAssessment::where('user_id', Auth::id())->exists();
-
                 if (!$completedLevelTest) {
                     $levelTestQuestions = LevelTestQuestion::with('levelTest')
                         ->whereHas('levelTest', function ($query) use ($ageGroup) {
                             $query->where('exam_type', 'student')
-                                ->where('active', true)
-                                ->whereHas('ageGroup', function ($q) use ($ageGroup) {
-                                    $q->where('age_group', $ageGroup);
-                                });
+                                  ->where('active', true)
+                                  ->whereHas('ageGroup', function ($q) use ($ageGroup) {
+                                      $q->where('age_group', $ageGroup);
+                                  });
                         })
                         ->get();
 
                     if ($levelTestQuestions->isEmpty()) {
+                        // لا يوجد أسئلة => نفعّل الطالب مباشرة
                         $user->status = 'active';
                         $user->save();
                         if ($user->student) {
@@ -81,7 +79,7 @@ class StudentController extends Controller
             }
         }
 
-        $user = Auth::user();
+        // تكملة المنطق ...
         $dateOfBirth = $user->date_of_birth;
         $age = Carbon::parse($dateOfBirth)->age;
 
@@ -99,8 +97,6 @@ class StudentController extends Controller
             ->where('age_group', $ageGroup)
             ->first();
 
-        // لاحظ أننا نستخدم هنا $user->student->english_proficiency_level
-        // لذا تأكدنا مسبقًا أنه ليس null أعلاه، لكن أضفنا شرط احتياطي:
         $englishLevel = $user->student ? $user->student->english_proficiency_level : 1;
 
         if ($category) {
@@ -131,9 +127,14 @@ class StudentController extends Controller
         $enrolledCourseIds = Auth::user()->courses ? Auth::user()->courses->pluck('id')->toArray() : [];
         $planDetails = \App\Models\Subscription::where('is_active', 1)->first();
 
-        return view('dashboard.student.dashboard', compact('courses', 'planDetails', 'subscription', 'enrolledCourseIds', 'videos'));
+        return view('dashboard.student.dashboard', compact(
+            'courses',
+            'planDetails',
+            'subscription',
+            'enrolledCourseIds',
+            'videos'
+        ));
     }
-
     public function levelTest()
     {
         $completedLevelTest = LevelTestAssessment::where('user_id', Auth::id())->exists();
@@ -192,7 +193,7 @@ class StudentController extends Controller
     }
 
     /**
-     * الدالة myCourses الجديدة التي تعرض كل البلوكات (وبداخلها الكورسات)
+     * يعرض جميع البلوكات والكورسات والدروس في صفحة واحدة (myCourses.blade)
      */
     public function myCourses(Request $request)
     {
@@ -202,6 +203,7 @@ class StudentController extends Controller
         $unitId   = $request->get('unit_id');
         $lessonId = $request->get('lesson_id'); 
 
+        // عرض تفاصيل الدرس عند وجود lesson_id
         if ($lessonId) {
             $lesson = \App\Models\Unit::find($lessonId);
             if (!$lesson) {
@@ -217,6 +219,7 @@ class StudentController extends Controller
             ]);
         }
 
+        // عرض قائمة البلوكات عند عدم وجود أي من block_id, unit_id
         if (!$blockId && !$unitId) {
             return view('dashboard.student.myCourses', [
                 'stage'   => 'blocks',
@@ -227,6 +230,7 @@ class StudentController extends Controller
             ]);
         }
 
+        // عند وجود block_id فقط => عرض الوحدات (الكورسات في هذا البلوك)
         if ($blockId && !$unitId) {
             $selectedBlock = $blocksAll->where('id', $blockId)->first();
             if (!$selectedBlock) {
@@ -244,6 +248,7 @@ class StudentController extends Controller
             ]);
         }
 
+        // عند وجود unit_id => عرض الدروس
         if ($unitId) {
             $foundCourse = null;
             foreach ($blocksAll as $block) {
@@ -318,17 +323,20 @@ class StudentController extends Controller
 
     public function showMeeting($id)
     {
-        $userMeeting = UserMeeting::where('user_id', Auth::id())->where('meeting_id', $id)->with(['meeting', 'meeting.user'])->firstOrFail();
+        $userMeeting = UserMeeting::where('user_id', Auth::id())
+            ->where('meeting_id', $id)
+            ->with(['meeting', 'meeting.user'])
+            ->firstOrFail();
+
         return view('dashboard.student.meeting-details', compact('userMeeting'));
     }
 
     public function submit(Request $request)
     {
         $user = Auth::user();
-        // [Newly Added - وقائي] تأكّد من وجود سجل الطالب 
         if (!$user->student && $user->hasRole('Student')) {
             $newStudent = new Student();
-            $newStudent->user_id = $user->id;
+            $newStudent->student_id = $user->id;
             $newStudent->english_proficiency_level = 1;
             $newStudent->save();
             $user->refresh();
@@ -338,7 +346,6 @@ class StudentController extends Controller
         $assessments = [];
         $openAiRequests = [];
         $audioTranscriptions = [];
-        \Log::info("before foreach data" . json_encode($data));
 
         $questions = LevelTestQuestion::with('choices')->get()->keyBy('id');
 
@@ -411,7 +418,6 @@ class StudentController extends Controller
         }
 
         $aiResponse = $this->reviewWithAI($openAiRequests);
-        \Log::info("AI response: " . json_encode($aiResponse));
 
         foreach ($aiResponse['questions'] as $review) {
             $assessment = LevelTestAssessment::where('level_test_question_id', $review['question_id'])
@@ -427,7 +433,6 @@ class StudentController extends Controller
         $user->status = 'active';
         $user->save();
 
-        // هنا نستخدم $user->student بأمان أكثر لأننا أنشأناه أعلاه لو كان null
         if ($user->student) {
             $user->student->updateProficiencyLevel($aiResponse['english_proficiency_level']);
         }
@@ -437,8 +442,6 @@ class StudentController extends Controller
 
     private function transcribeAudio($audioPath)
     {
-        \Log::info("inside transcribeAudio");
-        \Log::info("Transcribing audio file at path: " . $audioPath);
         $extension = pathinfo($audioPath, PATHINFO_EXTENSION);
 
         if ($extension === 'webm' && is_string($audioPath) && file_exists($audioPath)) {
@@ -450,24 +453,20 @@ class StudentController extends Controller
                 ->inFormat(new \FFMpeg\Format\Audio\Wav)
                 ->save($wavPath);
 
-            \Log::info("Converted audio file path: " . $wavPath);
             $audioContent = new UploadedFile($wavPath, basename($wavPath));
         } else {
             $audioContent = new UploadedFile($audioPath, basename($audioPath));
         }
 
         if ($audioContent instanceof UploadedFile) {
-            \Log::info("File details - MimeType: " . $audioContent->getMimeType() . ", Size: " . $audioContent->getSize() . ", Original Name: " . $audioContent->getClientOriginalName() . ", Extension: " . $audioContent->getClientOriginalExtension());
             $response = OpenAI::audio()->translate([
                 'model' => 'whisper-1',
                 'file' => fopen($audioContent->getRealPath(), 'r'),
                 'language' => 'en',
                 'temperature' => 0,
             ]);
-            \Log::info("Transcription response: " . json_encode($response));
             return $response['text'];
         } else {
-            \Log::info("fail on line 338: ");
             dd("Invalid audio content provided.");
         }
     }
@@ -478,9 +477,9 @@ class StudentController extends Controller
         $age = Carbon::parse($user->date_of_birth)->age;
 
         $prompt = $this->generatePrompt($requests, $age);
-        \Log::info("prompt: " . $prompt);
+
         $response = OpenAI::chat()->create([
-            'model' => 'gpt-4o',
+            'model' => 'gpt-4o', // أو gpt-3.5-turbo
             'messages' => [
                 [
                     'role' => 'system',
@@ -491,14 +490,10 @@ class StudentController extends Controller
             'temperature' => 0.5,
         ]);
 
-        \Log::info("response: " . json_encode($response));
-
         $responseContent = $response->choices[0]->message->content;
         $jsonString = $this->extractJsonString($responseContent);
 
         $aiResponse = json_decode($jsonString, true);
-        \Log::info("aiResponse: " . json_encode($aiResponse));
-
         return $aiResponse;
     }
 
@@ -517,11 +512,11 @@ class StudentController extends Controller
         The following are responses from a non-native English speaking student aged $age. Please review and provide feedback in JSON format with the following fields: 
         - id (question id)
         - correct (0 or 1)
-        - review (brief comment on what the student should work on to improve: syntax, grammar, misunderstanding the question, etc.)
+        - review (brief comment on what the student should work on)
         
         Additionally, provide the overall English proficiency level from 1 to 6 based on the student's answers.
         
-        Here is the JSON structure you will receive:
+        Format example:
         {
           \"questions\": [
             {

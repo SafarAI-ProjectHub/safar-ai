@@ -37,17 +37,12 @@
             please make sure the script is accurate.
         </div>
 
-        @if ($course->completed)
-            <div class="alert alert-success index-0" role="alert">
-                This Unit is marked as completed. You can no longer add Lessons to it.
-            </div>
-        @else
-            <div class="d-flex justify-content-end mb-3">
-                <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#addUnitModal">
-                    Add New Lesson
-                </button>
-            </div>
-        @endif
+        {{-- لا نمنع إضافة دروس جديدة --}}
+        <div class="d-flex justify-content-end mb-3">
+            <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#addUnitModal">
+                Add New Lesson
+            </button>
+        </div>
 
         <div class="table-responsive">
             <table id="units-table" class="table table-striped table-bordered">
@@ -418,7 +413,6 @@
         </div>
     </div>
 </div>
-
 @endsection
 
 @section('scripts')
@@ -445,7 +439,7 @@
         let canvasEdit = null;
         let quillAdd, quillEdit;
 
-        // حساب نقاط نجمة (عدد=spines)
+        // حساب نقاط نجمة
         function starPolygonPoints(spines, outerR, innerR){
             let results = [];
             let angle = Math.PI / spines;
@@ -457,6 +451,7 @@
             }
             return results;
         }
+
         // شكل سهم (تقريبي)
         function arrowPoints() {
             return [
@@ -469,6 +464,7 @@
                 { x: 0,  y: 40 }
             ];
         }
+
         // شكل ماسة
         function diamondPoints(w=80, h=80) {
             return [
@@ -478,6 +474,7 @@
                 { x: -w/2, y: 0}
             ];
         }
+
         // شبه منحرف
         function trapezoidPoints(topW=50, bottomW=100, h=60) {
             let halfTop = topW/2, halfBottom= bottomW/2;
@@ -488,6 +485,7 @@
                 { x: -halfBottom, y: h }
             ];
         }
+
         // زكزاك
         function zigzagPoints(steps=5, w=100, h=50) {
             let points = [];
@@ -501,7 +499,7 @@
         }
 
         $(document).ready(function() {
-            // 1) Datatables
+            // 1) Datatable
             var table = $('#units-table').DataTable({
                 processing: true,
                 serverSide: true,
@@ -563,29 +561,34 @@
                     showAlert('danger','Error fetching script','bx-error');
                 });
             });
+
+            // تحديث السكربت
             $('#updateScriptForm').on('submit',function(e){
                 e.preventDefault();
+                let submitBtn = $(this).find('button[type="submit"]');
+                submitBtn.prop('disabled', true);
+
                 let uid = $(this).data('unit-id');
                 $.post('/units/'+uid+'/script', $(this).serialize())
                   .done(function(resp){
+                      submitBtn.prop('disabled', false);
                       $('#showScriptModal').modal('hide');
                       showAlert('success', resp.success, 'bx-check');
                       table.ajax.reload();
                   })
                   .fail(function(){
+                      submitBtn.prop('disabled', false);
                       showAlert('danger','Error updating script','bx-error');
                   });
             });
 
-            // 4) View Lesson (new)
+            // 4) View Lesson
             $('#units-table').on('click', '.view-lesson', function(){
                 var unitId = $(this).data('id');
-                // جلب بيانات الدرس وعرضها
                 $.ajax({
-                    url: '/units/'+unitId, // روت showUnit
+                    url: '/units/'+unitId,
                     method: 'GET',
                     success:function(resp){
-                        // الآن تعبئة محتوى المودال حسب نوع الدرس
                         let htmlContent = '';
                         htmlContent += '<h4>'+resp.title+'</h4>';
                         htmlContent += '<p><strong>Subtitle: </strong>'+ (resp.subtitle ? resp.subtitle : '') +'</p>';
@@ -606,7 +609,6 @@
                     }
                 });
             });
-
 
             // 5) Quill Editors
             let advancedModules = {
@@ -665,6 +667,7 @@
                 preserveObjectStacking:true
             });
             canvasAdd = canvas;
+
             // Double click => edit text
             canvasAdd.on('mouse:dblclick', function(opt){
                 if(opt.target && opt.target.type === 'textbox'){
@@ -734,6 +737,7 @@
                 let act = canvasAdd.getActiveObject();
                 if(act){ act.sendToBack(); canvasAdd.renderAll(); }
             });
+
             // إضافة نص
             $('#addTextBtn').click(function(){
                 let txt = $('#textString').val() || 'New Text';
@@ -743,23 +747,25 @@
                 canvasAdd.add(textbox).setActiveObject(textbox);
                 textbox.enterEditing();
             });
+
             // Insert Design
             $('#insertDesignBtn').click(function(){
                 let dataURL = canvasAdd.toDataURL('image/png');
                 let range = quillAdd.getSelection(true);
-                
+
                 $.ajax({
                     url: '/upload-canvas-image',
                     type: 'POST',
                     data: { imageBase64: dataURL },
                     headers: { 'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content') },
                     success: function(resp){
-                    quillAdd.insertEmbed(range.index, 'image', resp.url, Quill.sources.USER);
-                    quillAdd.setSelection(range.index+1, Quill.sources.SILENT);
+                        quillAdd.insertEmbed(range.index, 'image', resp.url, Quill.sources.USER);
+                        quillAdd.setSelection(range.index+1, Quill.sources.SILENT);
                     }
                 });
-                });
-            // Clear
+            });
+
+            // Clear Canvas
             $('#clearCanvasBtn').click(function(){
                 canvasAdd.clear();
             });
@@ -770,6 +776,7 @@
                 preserveObjectStacking:true
             });
             canvasEdit = canvas2;
+
             canvasEdit.on('mouse:dblclick', function(opt){
                 if(opt.target && opt.target.type === 'textbox'){
                     opt.target.enterEditing();
@@ -852,17 +859,16 @@
                 let range = quillEdit.getSelection(true);
 
                 $.ajax({
-                url: '/upload-canvas-image', 
-                type: 'POST',
-                data: { imageBase64: dataURL },
-                headers: { 'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content') },
-                success: function(resp){
-                    quillEdit.insertEmbed(range.index, 'image', resp.url, Quill.sources.USER);
-                    quillEdit.setSelection(range.index+1, Quill.sources.SILENT);
-                }
+                    url: '/upload-canvas-image',
+                    type: 'POST',
+                    data: { imageBase64: dataURL },
+                    headers: { 'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content') },
+                    success: function(resp){
+                        quillEdit.insertEmbed(range.index, 'image', resp.url, Quill.sources.USER);
+                        quillEdit.setSelection(range.index+1, Quill.sources.SILENT);
+                    }
                 });
             });
-
 
             // 9) FilePond
             FilePond.registerPlugin(
@@ -889,12 +895,14 @@
                     pondAdd.removeFiles();
                     quillAdd.setContents([]);
                     canvasAdd.clear();
-                    canvasAdd.setWidth(800); canvasAdd.setHeight(400);
+                    canvasAdd.setWidth(800); 
+                    canvasAdd.setHeight(400);
                 } else {
                     pondEdit.removeFiles();
                     quillEdit.setContents([]);
                     canvasEdit.clear();
-                    canvasEdit.setWidth(800); canvasEdit.setHeight(400);
+                    canvasEdit.setWidth(800); 
+                    canvasEdit.setHeight(400);
                 }
             }
             $('#addUnitModal, #editUnitModal').on('hidden.bs.modal', function(){
@@ -904,10 +912,13 @@
             // 11) إضافة درس
             $('#addUnitForm').on('submit', function(e){
                 e.preventDefault();
+                const submitButton = $(this).find('button[type="submit"]');
+                submitButton.prop('disabled', true);
+
                 let originalFormData = new FormData(this);
                 let newFormData = new FormData();
 
-                // انقل بقية الحقول عدا الفيديو وcontent
+                // انقل بقية الحقول عدا الفيديو و content
                 for(let pair of originalFormData.entries()){
                     if(pair[0]!=='video' && pair[0]!=='content'){
                         newFormData.append(pair[0], pair[1]);
@@ -928,12 +939,14 @@
                     processData:false,
                     contentType:false,
                     success:function(resp){
+                        submitButton.prop('disabled', false);
                         $('#addUnitModal').modal('hide');
                         showAlert('success','Lesson added successfully','bx-check');
                         clearModal('#addUnitModal');
                         table.ajax.reload();
                     },
                     error:function(resp){
+                        submitButton.prop('disabled', false);
                         showAlert('danger','Error adding lesson','bx-error');
                     }
                 });
@@ -942,6 +955,9 @@
             // 12) تعديل درس
             $('#editUnitForm').on('submit', function(e){
                 e.preventDefault();
+                const submitButton = $(this).find('button[type="submit"]');
+                submitButton.prop('disabled', true);
+
                 let originalFormData = new FormData(this);
                 let newFormData = new FormData();
 
@@ -965,12 +981,14 @@
                     processData:false,
                     contentType:false,
                     success:function(resp){
+                        submitButton.prop('disabled', false);
                         $('#editUnitModal').modal('hide');
                         showAlert('success','Lesson updated successfully','bx-check');
                         clearModal('#editUnitModal');
                         table.ajax.reload();
                     },
                     error:function(resp){
+                        submitButton.prop('disabled', false);
                         showAlert('danger','Error updating lesson','bx-error');
                     }
                 });
@@ -991,19 +1009,15 @@
                         if(data.content_type==='text'){
                             quillEdit.root.innerHTML= data.content;
                         } else if(data.content_type==='youtube'){
-                            // الدرس خزّن الvideoId في الحقل content
-                            // بينما رابط اليوتيوب في script
-                            // لعرضه للتعديل إن لزم
-                            // هنا نفترض أنك تريد أن تعرض script بداخل الحقل
                             $('#edit-youtube').val(data.script || '');
                         }
-                        // video => لا شيء مخصوص سوى ترك رفع فيديو جديد لو احتاج
+                        // اذا فيديو => رفع جديد لو أراد
                         $('#editUnitModal').modal('show');
                     }
                 });
             });
 
-            // تنبيه
+            // تنبيه (showAlert)
             function showAlert(type, message, icon){
                 let html= `
                 <div class="alert alert-${type} border-0 bg-${type} alert-dismissible fade show py-2 position-fixed top-0 end-0 m-3" role="alert" style="z-index:9999;">
@@ -1022,7 +1036,6 @@
                 $('body').append(html);
                 setTimeout(()=>{$('.alert').alert('close');},5000);
             }
-
         });
     </script>
 @endsection
