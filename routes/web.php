@@ -225,7 +225,10 @@ Route::middleware(['auth', 'role:Super Admin|Admin|Teacher'])->group(function ()
     // Route::get('courses/{courseId}/units/data', [AdminController::class, 'getUnits'])->name('admin.getUnits');
     Route::get('/admin/courses/{courseId}/units/data', [AdminController::class, 'getUnits'])
      ->name('admin.getUnits');
-     
+     // تعديل الوحدة (الدورة)
+Route::get('admin/courses/{id}/edit', [AdminController::class, 'editCourse'])->name('admin.courses.edit');
+Route::post('admin/courses/{id}/update', [AdminController::class, 'updateCourse'])->name('admin.courses.update');
+
     Route::post('units/store', [AdminController::class, 'storeUnit'])->name('admin.storeUnit');
     Route::get('units/{id}/edit', [AdminController::class, 'editUnit'])->name('admin.units.edit');
     Route::put('units/{id}', [AdminController::class, 'updateUnit'])->name('admin.units.update');

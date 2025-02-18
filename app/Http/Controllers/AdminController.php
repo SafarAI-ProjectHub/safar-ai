@@ -373,12 +373,15 @@ class AdminController extends Controller
                         $assignButton      = '<a href="#" class="btn btn-primary btn-sm assign-teacher-btn" data-course-id="' . $row->id . '"><i class="bx bx-user-plus"></i> ' . ($row->teacher ? 'Change Teacher' : 'Assign Teacher') . '</a>';
                         $showUnitsButton   = '<a href="' . url('courses') . '/' . $row->id . '/units" class="btn btn-primary btn-sm"><i class="bx bx-show-alt"></i> Show Lessons</a>';
                         $viewCourseButton  = '<a href="' . url('courses') . '/' . $row->id . '/show" class="btn btn-primary btn-sm"><i class="bx bx-detail"></i> View Unit</a>';
-                        $deleteCouresButton= '<a class="btn btn-sm btn-outline-dark btn-danger delete-btn p-2" data-id="' . $row->id . '"><i class="bx bx-trash"></i>Delete</a>';
+                        $deleteCourseButton= '<a class="btn btn-sm btn-outline-dark btn-danger delete-btn p-2" data-id="' . $row->id . '"><i class="bx bx-trash"></i>Delete</a>';
+                        $editCourseButton  = '<button class="btn btn-secondary btn-sm edit-btn" data-id="' . $row->id . '"><i class="bx bx-edit"></i>Edit</button>';
+
                         $actions = '<div class="d-flex justify-content-around gap-2">' 
                                 . $assignButton 
                                 . $showUnitsButton
                                 . $viewCourseButton
-                                . $deleteCouresButton
+                                . $editCourseButton
+                                . $deleteCourseButton
                                 . '</div>';
                     }
                     if (Auth::user()->hasRole('Teacher')) {
@@ -441,6 +444,55 @@ class AdminController extends Controller
         $course->save();
 
         return response()->json(['success' => 'Course added successfully']);
+    }
+
+    // جلب بيانات الوحدة (الدورة) لتحريرها (AJAX)
+    public function editCourse($id)
+    {
+        $course = Course::findOrFail($id);
+        return response()->json($course);
+    }
+
+    // تحديث بيانات الوحدة (الدورة)
+    public function updateCourse(Request $request, $id)
+    {
+        $course = Course::findOrFail($id);
+
+        $request->validate([
+            'title'       => 'required|string|max:255',
+            'description' => 'required|string',
+            'category_id' => 'required|exists:course_categories,id',
+            'level'       => 'required|integer|min:1|max:6',
+            'type'        => 'required|in:weekly,intensive',
+            'block_id'    => 'required|exists:blocks,id',
+            'image'       => 'nullable|image|mimes:jpeg,png,jpg,gif,svg|max:5120',
+        ]);
+
+        $course->title       = $request->title;
+        $course->description = $request->description;
+        $course->category_id = $request->category_id;
+        $course->level       = $request->level;
+        $course->type        = $request->type;
+        $course->block_id    = $request->block_id;
+
+        // إذا تم رفع صورة جديدة
+        if ($request->hasFile('image')) {
+            // حذف الصورة القديمة إن وُجدت
+            if ($course->image && Storage::disk('public')->exists(str_replace('storage/', '', $course->image))) {
+                Storage::disk('public')->delete(str_replace('storage/', '', $course->image));
+            }
+            $file = $request->file('image');
+            $filename = uniqid() . '.' . $file->getClientOriginalExtension();
+            $path = $file->storeAs('uploads', $filename, 'public');
+            $course->image = 'storage/' . $path;
+        } else {
+            // إذا لم تُرفع صورة جديدة، نترك القديمة
+            // أو يمكنك تخصيص سلوك آخر لو أحببت
+        }
+
+        $course->save();
+
+        return response()->json(['success' => true, 'message' => 'Course updated successfully']);
     }
 
     public function getTeachersForAssignment()
@@ -920,6 +972,7 @@ class AdminController extends Controller
 
         return response()->json(['success' => true]);
     }
+
 
     /*
      * -------------- Helpers --------------
