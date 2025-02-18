@@ -84,7 +84,12 @@
         .owl-nav {
             display: none;
         }
+        button{
+            border:none;
+        }
     </style>
+        <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/sweetalert2@11/dist/sweetalert2.min.css">
+
     {{-- <link rel="stylesheet" href="{{ asset('css/bootstrap.min.css') }}"> --}}
     <link rel="stylesheet" href="{{ asset('css/line-awesome.css') }}">
     <link rel="stylesheet" href="{{ asset('css/owl.carousel.min.css') }}">
@@ -108,12 +113,20 @@
                             AI</span></h1>
                     <h2 data-aos="fade-up" data-aos-delay="400"> Learn English with AI 🌟</h2>
                     <div data-aos="fade-up" data-aos-delay="600">
-                        <div class="text-center text-lg-start">
+                        <!-- <div class="text-center text-lg-start">
                             <a href="/register"
                                 class="btn-get-started scrollto d-inline-flex align-items-center justify-content-center align-self-center">
                                 <span>Get Started</span>
                                 <i class="bi bi-arrow-right"></i>
                             </a>
+                        </div> -->
+                        <div class="text-center text-lg-start">
+                            <button type="button"
+                                    class="btn-get-started scrollto d-inline-flex align-items-center justify-content-center align-self-center"
+                                    onclick="chooseRegistration()">
+                                <span>Get Started</span>
+                                <i class="bi bi-arrow-right"></i>
+                            </button>
                         </div>
                     </div>
                 </div>
@@ -1290,6 +1303,7 @@
     <script src="{{ asset('js/tooltipster.bundle.min.js') }}"></script>
     <script src="{{ asset('js/jquery.lazy.min.js') }}"></script>
     <script src="{{ asset('js/main.js') }}"></script>
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11/dist/sweetalert2.min.js"></script>
 
     <script>
         document.addEventListener('DOMContentLoaded', function() {
@@ -1302,5 +1316,25 @@
                 mirror: false, // Elements do not animate out while scrolling past them
             });
         });
+        // دالة لاختيار نوع التسجيل عبر SweetAlert
+        function chooseRegistration() {
+            Swal.fire({
+                title: 'Register as:',
+                text: 'Please choose how you want to sign up:',
+                icon: 'question',
+                showCancelButton: true,
+                confirmButtonText: 'Student',
+                cancelButtonText: 'Teacher',
+                reverseButtons: true
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    // تسجيل كطالب
+                    window.location.href = '/register';
+                } else if (result.dismiss === Swal.DismissReason.cancel) {
+                    // تسجيل كمدرس
+                    window.location.href = '/register-teacher';
+                }
+            });
+        }
     </script>
 @endsection
