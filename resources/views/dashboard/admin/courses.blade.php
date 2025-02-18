@@ -34,7 +34,7 @@
                             <th>Level</th>
                             <th>Type</th>
                             <th>Teacher</th>
-                            <th>Block</th> 
+                            <th>Block</th>
                             <th>Completed</th>
                             <th>Actions</th>
                         </tr>
@@ -45,59 +45,58 @@
     </div>
 
     @can('create courses')
-    <!-- Add Course Modal -->
-            <div class="modal fade" id="addCourseModal" tabindex="-1" aria-hidden="true">
-                <div class="modal-dialog modal-dialog-scrollable">
-                    <div class="modal-content">
-                        <form id="addCourseForm" enctype="multipart/form-data">
-                            @csrf
-                            <div class="modal-header">
-                                <h5 class="modal-title" id="addCourseModalLabel">Add New Unit</h5>
-                                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+        <!-- Add Course Modal -->
+        <div class="modal fade" id="addCourseModal" tabindex="-1" aria-hidden="true">
+            <div class="modal-dialog modal-dialog-scrollable">
+                <div class="modal-content">
+                    <form id="addCourseForm" enctype="multipart/form-data">
+                        @csrf
+                        <div class="modal-header">
+                            <h5 class="modal-title" id="addCourseModalLabel">Add New Unit</h5>
+                            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                        </div>
+                        <div class="modal-body">
+
+                            <div class="mb-3">
+                                <label for="title" class="form-label">Unit Title</label>
+                                <input type="text" class="form-control" id="title" name="title" required>
                             </div>
-                            <div class="modal-body">
 
-                                <div class="mb-3">
-                                    <label for="title" class="form-label">Unit Title</label>
-                                    <input type="text" class="form-control" id="title" name="title" required>
-                                </div>
+                            <div class="mb-3">
+                                <label for="description" class="form-label">Description</label>
+                                <textarea class="form-control" id="description" name="description" required></textarea>
+                            </div>
 
-                                <div class="mb-3">
-                                    <label for="description" class="form-label">Description</label>
-                                    <textarea class="form-control" id="description" name="description" required></textarea>
-                                </div>
+                            <div class="mb-3">
+                                <label for="category_id" class="form-label">Category</label>
+                                <select class="form-select" id="category_id" name="category_id" required>
+                                    <option value="" disabled selected>Select Category</option>
+                                    @foreach ($categories as $category)
+                                        <option value="{{ $category->id }}">{{ $category->age_group }}</option>
+                                    @endforeach
+                                </select>
+                            </div>
 
-                                <div class="mb-3">
-                                    <label for="category_id" class="form-label">Category</label>
-                                    <select class="form-select" id="category_id" name="category_id" required>
-                                        <option value="" disabled selected>Select Category</option>
-                                        @foreach ($categories as $category)
-                                            <option value="{{ $category->id }}">{{ $category->age_group }}</option>
-                                        @endforeach
-                                    </select>
-                                </div>
+                            <div class="mb-3">
+                                <label for="level" class="form-label">Level</label>
+                                <select class="form-select" id="level" name="level" required>
+                                    <option value="" disabled selected>Select Level</option>
+                                    @for ($i = 1; $i <= 6; $i++)
+                                        <option value="{{ $i }}">Level {{ $i }}</option>
+                                    @endfor
+                                </select>
+                            </div>
 
-                                <div class="mb-3">
-                                    <label for="level" class="form-label">Level</label>
-                                    <select class="form-select" id="level" name="level" required>
-                                        <option value="" disabled selected>Select Level</option>
-                                        @for ($i = 1; $i <= 6; $i++)
-                                            <option value="{{ $i }}">Level {{ $i }}</option>
-                                        @endfor
-                                    </select>
-                                </div>
+                            <div class="mb-3">
+                                <label for="type" class="form-label">Type</label>
+                                <select class="form-select" id="type" name="type" required>
+                                    <option value="" disabled selected>Select Type</option>
+                                    <option value="weekly">Weekly</option>
+                                    <option value="intensive">Intensive</option>
+                                </select>
+                            </div>
 
-                                <div class="mb-3">
-                                    <label for="type" class="form-label">Type</label>
-                                    <select class="form-select" id="type" name="type" required>
-                                        <option value="" disabled selected>Select Type</option>
-                                        <option value="weekly">Weekly</option>
-                                        <option value="intensive">Intensive</option>
-                                    </select>
-                                </div>
-
-                                <div class="mb-3">
-                                <label for="block_name" class="form-label">Block</label>
+                            <div class="mb-3">
                                 <label for="block_id" class="form-label">Block</label>
                                 <select class="form-select" id="block_id" name="block_id" required>
                                     <option value="" disabled selected>Select Block</option>
@@ -105,28 +104,23 @@
                                         <option value="{{ $block->id }}">{{ $block->name }}</option>
                                     @endforeach
                                 </select>
-
-
-
-
-                                </div>
-
-                                <div class="mb-3">
-                                    <label for="image" class="form-label">Upload Image</label>
-                                    <input type="file" class="filepond" name="image" data-allow-reorder="true"
-                                        data-max-file-size="5MB" data-max-files="1">
-                                </div>
                             </div>
-                            <div class="modal-footer">
-                                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
-                                <button type="submit" class="btn btn-primary">Add Unit</button>
+
+                            <div class="mb-3">
+                                <label for="image" class="form-label">Upload Image</label>
+                                <input type="file" class="filepond" name="image" data-allow-reorder="true"
+                                    data-max-file-size="5MB" data-max-files="1">
                             </div>
-                        </form>
-                    </div>
+                        </div>
+                        <div class="modal-footer">
+                            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                            <button type="submit" class="btn btn-primary">Add Unit</button>
+                        </div>
+                    </form>
                 </div>
-            </div> 
- @endcan
-
+            </div>
+        </div> 
+    @endcan
 
     @hasanyrole('Super Admin|Admin')
         <!-- Assign Teacher Modal -->
@@ -157,6 +151,88 @@
             </div>
         </div>
     @endhasanyrole
+
+    <!-- Edit Course Modal -->
+    <div class="modal fade" id="editCourseModal" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-scrollable">
+            <div class="modal-content">
+                <form id="editCourseForm" enctype="multipart/form-data">
+                    @csrf
+                    <div class="modal-header">
+                        <h5 class="modal-title">Edit Unit</h5>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                    </div>
+                    <div class="modal-body">
+                        <input type="hidden" id="editCourseId" name="course_id">
+
+                        <div class="mb-3">
+                            <label for="edit_title" class="form-label">Unit Title</label>
+                            <input type="text" class="form-control" id="edit_title" name="title" required>
+                        </div>
+
+                        <div class="mb-3">
+                            <label for="edit_description" class="form-label">Description</label>
+                            <textarea class="form-control" id="edit_description" name="description" required></textarea>
+                        </div>
+
+                        <div class="mb-3">
+                            <label for="edit_category_id" class="form-label">Category</label>
+                            <select class="form-select" id="edit_category_id" name="category_id" required>
+                                <option value="" disabled>Select Category</option>
+                                @foreach ($categories as $category)
+                                    <option value="{{ $category->id }}">{{ $category->age_group }}</option>
+                                @endforeach
+                            </select>
+                        </div>
+
+                        <div class="mb-3">
+                            <label for="edit_level" class="form-label">Level</label>
+                            <select class="form-select" id="edit_level" name="level" required>
+                                <option value="" disabled>Select Level</option>
+                                @for ($i = 1; $i <= 6; $i++)
+                                    <option value="{{ $i }}">Level {{ $i }}</option>
+                                @endfor
+                            </select>
+                        </div>
+
+                        <div class="mb-3">
+                            <label for="edit_type" class="form-label">Type</label>
+                            <select class="form-select" id="edit_type" name="type" required>
+                                <option value="" disabled>Select Type</option>
+                                <option value="weekly">Weekly</option>
+                                <option value="intensive">Intensive</option>
+                            </select>
+                        </div>
+
+                        <div class="mb-3">
+                            <label for="edit_block_id" class="form-label">Block</label>
+                            <select class="form-select" id="edit_block_id" name="block_id" required>
+                                <option value="" disabled>Select Block</option>
+                                @foreach($blocks as $block)
+                                    <option value="{{ $block->id }}">{{ $block->name }}</option>
+                                @endforeach
+                            </select>
+                        </div>
+
+                        <div class="mb-3">
+                            <label for="edit_image" class="form-label">Update Image (Optional)</label>
+                            <input type="file" class="filepond" id="edit_image" name="image" data-allow-reorder="true"
+                                data-max-file-size="5MB" data-max-files="1">
+                        </div>
+
+                        <!-- سنضيف حقل مخفي للاحتفاظ بمسار الصورة القديمة في حال لم يُرفع صورة جديدة -->
+                        <input type="hidden" id="current_image_path" name="current_image_path" value="">
+
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                        <button type="submit" class="btn btn-primary">Update Unit</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
     <input type="hidden" id="delete_source" value="{{ route('admin.courses.delete') }}">
 @endsection
 
@@ -170,327 +246,401 @@
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 
     <script>
-    $(document).ready(function() {
-        var table = $('#courses-table').DataTable({
-            processing: true,
-            serverSide: true,
-            ajax: '{{ route('admin.getCourses') }}',
-            columns: [
-                {
-                    data: 'id',
-                    name: 'id',
-                },
-                {
-                    data: 'title',
-                    name: 'title'
-                },
-                {
-                    data: 'description',
-                    name: 'description',
-                    render: function(data) {
-                        return data.length > 100 ? data.substring(0, 50) + '...' : data;
+        $(document).ready(function() {
+            var table = $('#courses-table').DataTable({
+                processing: true,
+                serverSide: true,
+                ajax: '{{ route('admin.getCourses') }}',
+                columns: [
+                    {
+                        data: 'id',
+                        name: 'id',
+                    },
+                    {
+                        data: 'title',
+                        name: 'title'
+                    },
+                    {
+                        data: 'description',
+                        name: 'description',
+                        render: function(data) {
+                            return data.length > 100 ? data.substring(0, 50) + '...' : data;
+                        }
+                    },
+                    {
+                        data: 'category',
+                        name: 'category'
+                    },
+                    {
+                        data: 'level',
+                        name: 'level'
+                    },
+                    {
+                        data: 'type',
+                        name: 'type'
+                    },
+                    {
+                        data: 'teacher',
+                        name: 'teacher',
+                        defaultContent: 'N/A'
+                    },
+                    {
+                        data: 'block_name',
+                        name: 'block_name',
+                        defaultContent: 'No Block'
+                    },
+                    {
+                        data: 'completed',
+                        name: 'completed',
+                        orderable: false,
+                        searchable: false,
+                        render: function(data, type, row) {
+                            return `<div class="form-check form-switch">
+                                    <input class="form-check-input toggle-complete" type="checkbox" data-id="${row.id}" ${data ? 'checked' : ''}>
+                                </div>`;
+                        }
+                    },
+                    {
+                        data: 'actions',
+                        name: 'actions',
+                        orderable: false,
+                        searchable: false
                     }
-                },
-                {
-                    data: 'category',
-                    name: 'category'
-                },
-                {
-                    data: 'level',
-                    name: 'level'
-                },
-                {
-                    data: 'type',
-                    name: 'type'
-                },
-                {
-                    data: 'teacher',
-                    name: 'teacher',
-                    defaultContent: 'N/A'
-                },
-                {
-                    data: 'block_name', 
-                    name: 'block_name',
-                    defaultContent: 'No Block'
-                },
-                {
-                    data: 'completed',
-                    name: 'completed',
-                    orderable: false,
-                    searchable: false,
-                    render: function(data, type, row) {
-                        return `<div class="form-check form-switch">
-                                <input class="form-check-input toggle-complete" type="checkbox" data-id="${row.id}" ${data ? 'checked' : ''}>
-                            </div>`;
+                ],
+                columnDefs: [{
+                    visible: false,
+                    targets: 0
+                }],
+                dom: 'Bfrtip',
+                buttons: [
+                    {
+                        extend: 'copy',
+                        className: 'btn btn-outline-secondary buttons-copy buttons-html5'
+                    },
+                    {
+                        extend: 'excel',
+                        className: 'btn btn-outline-secondary buttons-excel buttons-html5'
+                    },
+                    {
+                        extend: 'pdf',
+                        className: 'btn btn-outline-secondary buttons-pdf buttons-html5'
+                    },
+                    {
+                        extend: 'print',
+                        className: 'btn btn-outline-secondary buttons-print'
                     }
-                },
-                {
-                    data: 'actions',
-                    name: 'actions',
-                    orderable: false,
-                    searchable: false
-                }
-            ],
+                ],
+                lengthChange: false
+            });
 
-            columnDefs: [{
-                visible: false,
-                targets: 0
-            }],
-            dom: 'Bfrtip',
-            buttons: [
-                {
-                    extend: 'copy',
-                    className: 'btn btn-outline-secondary buttons-copy buttons-html5'
-                },
-                {
-                    extend: 'excel',
-                    className: 'btn btn-outline-secondary buttons-excel buttons-html5'
-                },
-                {
-                    extend: 'pdf',
-                    className: 'btn btn-outline-secondary buttons-pdf buttons-html5'
-                },
-                {
-                    extend: 'print',
-                    className: 'btn btn-outline-secondary buttons-print'
-                }
-            ],
-            lengthChange: false
-        });
+            // Handle toggle complete switch
+            $('#courses-table').on('change', '.toggle-complete', function() {
+                var courseId = $(this).data('id');
+                var completed = $(this).is(':checked') ? 1 : 0;
 
-        // Handle toggle complete switch
-        $('#courses-table').on('change', '.toggle-complete', function() {
-            var courseId = $(this).data('id');
-            var completed = $(this).is(':checked') ? 1 : 0;
-
-            $.ajax({
-                url: `/courses/${courseId}/toggle-complete`,
-                method: 'POST',
-                data: {
-                    _token: '{{ csrf_token() }}',
-                    completed: completed
-                },
-                success: function(response) {
-                    if (response.success) {
-                        table.ajax.reload(null, false);
-                        showAlert('success', 'Unit completion status updated successfully!', 'bxs-check-circle');
-                    } else {
+                $.ajax({
+                    url: `/courses/${courseId}/toggle-complete`,
+                    method: 'POST',
+                    data: {
+                        _token: '{{ csrf_token() }}',
+                        completed: completed
+                    },
+                    success: function(response) {
+                        if (response.success) {
+                            table.ajax.reload(null, false);
+                            showAlert('success', 'Unit completion status updated successfully!', 'bxs-check-circle');
+                        } else {
+                            showAlert('danger', 'Error updating Unit completion status', 'bxs-message-square-x');
+                        }
+                    },
+                    error: function() {
                         showAlert('danger', 'Error updating Unit completion status', 'bxs-message-square-x');
                     }
-                },
-                error: function() {
-                    showAlert('danger', 'Error updating Unit completion status', 'bxs-message-square-x');
-                }
+                });
             });
-        });
 
-        // Initialize tooltips
-        $('[data-toggle="tooltip"]').tooltip();
+            // Initialize tooltips
+            $('[data-toggle="tooltip"]').tooltip();
 
-        // FilePond initialization
-        FilePond.registerPlugin(FilePondPluginFileValidateSize, FilePondPluginImagePreview, FilePondPluginFileValidateType);
+            // FilePond initialization
+            FilePond.registerPlugin(FilePondPluginFileValidateSize, FilePondPluginImagePreview, FilePondPluginFileValidateType);
 
-        const pond = FilePond.create(document.querySelector('input[name="image"]'), {
-            allowFileTypeValidation: true,
-            acceptedFileTypes: ['image/*'],
-            fileValidateTypeLabelExpectedTypes: 'Expected file type: Image'
-        });
-
-        // Submit form for adding course/unit
-        $('#addCourseForm').on('submit', function(e) {
-            e.preventDefault();
-            var blockValue = $('#block_id').val(); 
-            console.log('Selected Block:', blockValue); 
-
-            var originalFormData = new FormData(this);
-            var newFormData = new FormData();
-
-            // Iterate over each entry in the original form data
-            for (var pair of originalFormData.entries()) {
-                if (pair[0] !== 'image') {
-                    newFormData.append(pair[0], pair[1]);
-                }
-            }
-
-            // Add the image file separately
-            var file = pond.getFile();
-            if (file) {
-                newFormData.append('image', file.file);
-            }
-
-            $.ajax({
-                url: '{{ route('admin.storeCourse') }}',
-                method: 'POST',
-                data: newFormData,
-                processData: false,
-                contentType: false,
-                success: function(response) {
-                    $('#addCourseModal').modal('hide');
-                    table.ajax.reload();
-                    showAlert('success', 'Unit added successfully!', 'bxs-check-circle');
-
-                    // Clear input fields
-                    $('#title').val('');
-                    $('#description').val('');
-                    $('#category_id').val('');
-                    $('#level').val('');
-                    $('#type').val('');
-
-                    // Clear FilePond
-                    pond.removeFiles();
-                },
-                error: function(response) {
-                    showAlert('danger', 'Error adding Unit', 'bxs-message-square-x');
-                }
+            const pondCreate = FilePond.create(document.querySelector('input[name="image"]'), {
+                allowFileTypeValidation: true,
+                acceptedFileTypes: ['image/*'],
+                fileValidateTypeLabelExpectedTypes: 'Expected file type: Image'
             });
-        });
 
-        // Assign Teacher
-        $(document).on('click', '.assign-teacher-btn', function() {
-            var courseId = $(this).data('course-id');
-            $('#assignCourseId').val(courseId);
+            // لإعادة استخدام FilePond في النموذج الثاني (edit)
+            let pondEdit;
+            // سنقوم بإنشائه ديناميكياً عند فتح المودال الخاص بالتعديل
 
-            $.ajax({
-                url: '{{ route('admin.getTeachersForAssignment') }}',
-                method: 'GET',
-                success: function(response) {
-                    var teacherSelect = $('#teacher_id');
-                    teacherSelect.empty();
-                    teacherSelect.append('<option value="" disabled selected>Select Teacher</option>');
-                    $.each(response, function(index, teacher) {
-                        teacherSelect.append('<option value="' + teacher.id + '">' +
-                            teacher.user.first_name + ' ' + teacher.user.last_name + ' - ' + teacher.user.email +
-                            '</option>');
-                    });
-                    $('#teacher_id').select2({
-                        theme: 'bootstrap4',
-                        dropdownParent: $('#assignTeacherModal'),
-                        placeholder: 'Search for a teacher',
-                        allowClear: true
-                    });
+            // Submit form for adding course/unit
+            $('#addCourseForm').on('submit', function(e) {
+                e.preventDefault();
+                var originalFormData = new FormData(this);
+                var newFormData = new FormData();
 
-                    // Pre-select the assigned teacher if available
-                    var selectedTeacherId = $('#assignCourseId').data('teacher-id');
-                    if (selectedTeacherId) {
-                        $('#teacher_id').val(selectedTeacherId).trigger('change');
+                // Iterate over each entry in the original form data
+                for (var pair of originalFormData.entries()) {
+                    if (pair[0] !== 'image') {
+                        newFormData.append(pair[0], pair[1]);
                     }
-
-                    $('#assignTeacherModal').modal('show');
-                },
-                error: function(response) {
-                    showAlert('danger', 'Error fetching teachers', 'bxs-message-square-x');
                 }
-            });
-        });
 
-        $('#assignTeacherForm').on('submit', function(e) {
-            e.preventDefault();
-            var formData = $(this).serialize();
-
-            $.ajax({
-                url: '{{ route('admin.assignTeacherToCourse') }}',
-                method: 'POST',
-                data: formData,
-                success: function(response) {
-                    $('#assignTeacherModal').modal('hide');
-                    table.ajax.reload();
-                    showAlert('success', 'Teacher assigned successfully!', 'bxs-check-circle');
-                },
-                error: function(response) {
-                    showAlert('danger', 'Error assigning teacher', 'bxs-message-square-x');
+                // Add the image file separately from pond
+                var file = pondCreate.getFile();
+                if (file) {
+                    newFormData.append('image', file.file);
                 }
+
+                $.ajax({
+                    url: '{{ route('admin.storeCourse') }}',
+                    method: 'POST',
+                    data: newFormData,
+                    processData: false,
+                    contentType: false,
+                    success: function(response) {
+                        $('#addCourseModal').modal('hide');
+                        table.ajax.reload();
+                        showAlert('success', 'Unit added successfully!', 'bxs-check-circle');
+
+                        // Clear input fields
+                        $('#title').val('');
+                        $('#description').val('');
+                        $('#category_id').val('');
+                        $('#level').val('');
+                        $('#type').val('');
+                        $('#block_id').val('');
+
+                        // Clear FilePond
+                        pondCreate.removeFiles();
+                    },
+                    error: function(response) {
+                        showAlert('danger', 'Error adding Unit', 'bxs-message-square-x');
+                    }
+                });
             });
-        });
 
-        // Clear modal on close
-        $('#addCourseModal').on('hidden.bs.modal', function() {
-            // Clear input fields
-            $('#title').val('');
-            $('#description').val('');
-            $('#category_id').val('');
-            $('#level').val('');
-            $('#type').val('');
+            // Button Assign Teacher
+            $(document).on('click', '.assign-teacher-btn', function() {
+                var courseId = $(this).data('course-id');
+                $('#assignCourseId').val(courseId);
 
-            // Clear FilePond
-            pond.removeFiles();
-        });
+                $.ajax({
+                    url: '{{ route('admin.getTeachersForAssignment') }}',
+                    method: 'GET',
+                    success: function(response) {
+                        var teacherSelect = $('#teacher_id');
+                        teacherSelect.empty();
+                        teacherSelect.append('<option value="" disabled selected>Select Teacher</option>');
+                        $.each(response, function(index, teacher) {
+                            teacherSelect.append('<option value="' + teacher.id + '">' +
+                                teacher.user.first_name + ' ' + teacher.user.last_name + ' - ' + teacher.user.email +
+                                '</option>');
+                        });
+                        $('#teacher_id').select2({
+                            theme: 'bootstrap4',
+                            dropdownParent: $('#assignTeacherModal'),
+                            placeholder: 'Search for a teacher',
+                            allowClear: true
+                        });
 
-        function showAlert(type, message, icon) {
-            var alertHtml = `
-                <div class="alert alert-${type} border-0 bg-${type} alert-dismissible fade show py-2 position-fixed top-0 end-0 m-3" role="alert">
-                    <div class="d-flex align-items-center">
-                        <div class="font-35 text-white">
-                            <i class="bx ${icon}"></i>
-                        </div>
-                        <div class="ms-3">
-                            <h6 class="mb-0 text-white">${type.charAt(0).toUpperCase() + type.slice(1)}</h6>
-                            <div class="text-white">${message}</div>
-                        </div>
-                    </div>
-                    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
-                </div>
-            `;
-            $('body').append(alertHtml);
-            setTimeout(function() {
-                $('.alert').alert('close');
-            }, 5000);
-        }
+                        $('#assignTeacherModal').modal('show');
+                    },
+                    error: function(response) {
+                        showAlert('danger', 'Error fetching teachers', 'bxs-message-square-x');
+                    }
+                });
+            });
 
-        // Delete course/unit
-        $(document).on('click', '.delete-btn', function() {
-            let id = $(this).data('id');
-            let url = $('#delete_source').val() + '/' + id;
+            // Submit form to assign teacher
+            $('#assignTeacherForm').on('submit', function(e) {
+                e.preventDefault();
+                var formData = $(this).serialize();
 
-            Swal.fire({
-                title: 'Are you sure?',
-                text: "You won't be able to revert this!",
-                icon: "warning",
-                showCancelButton: true,
-                confirmButtonColor: "#3085d6",
-                cancelButtonColor: "#d33",
-                confirmButtonText: "Yes, delete it!",
-                cancelButtonText: "Cancel"
-            }).then((result) => {
-                if (result.isConfirmed) {
-                    $.ajaxSetup({
-                        headers: {
-                            'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
+                $.ajax({
+                    url: '{{ route('admin.assignTeacherToCourse') }}',
+                    method: 'POST',
+                    data: formData,
+                    success: function(response) {
+                        $('#assignTeacherModal').modal('hide');
+                        table.ajax.reload();
+                        showAlert('success', 'Teacher assigned successfully!', 'bxs-check-circle');
+                    },
+                    error: function(response) {
+                        showAlert('danger', 'Error assigning teacher', 'bxs-message-square-x');
+                    }
+                });
+            });
+
+            // Clear modal on close (Add Course Modal)
+            $('#addCourseModal').on('hidden.bs.modal', function() {
+                // Clear input fields
+                $('#title').val('');
+                $('#description').val('');
+                $('#category_id').val('');
+                $('#level').val('');
+                $('#type').val('');
+                $('#block_id').val('');
+
+                // Clear FilePond
+                pondCreate.removeFiles();
+            });
+
+            // Show Edit Modal
+            $(document).on('click', '.edit-btn', function() {
+                var courseId = $(this).data('id');
+
+                // اجلب بيانات الوحدة (الكورس)
+                $.ajax({
+                    url: '/admin/courses/' + courseId + '/edit', // تأكد من وجود هذا الراوت في ملف الويب
+                    method: 'GET',
+                    success: function(response) {
+                        // املأ الحقول في المودال
+                        $('#editCourseId').val(response.id);
+                        $('#edit_title').val(response.title);
+                        $('#edit_description').val(response.description);
+                        $('#edit_category_id').val(response.category_id);
+                        $('#edit_level').val(response.level);
+                        $('#edit_type').val(response.type);
+                        $('#edit_block_id').val(response.block_id);
+                        $('#current_image_path').val(response.image || '');
+
+                        // تهيئة FilePond للمودال الخاص بالتعديل
+                        // إذا كان هنالك Pond من قبل (بسبب إعادة فتح المودال)، احذف السابق:
+                        if (pondEdit) {
+                            pondEdit.destroy();
                         }
-                    });
-                    $.ajax({
-                        url: url,
-                        method: 'DELETE',
-                        dataType: 'json',
-                        success: function(response) {
-                            if (response.success) {
-                                Swal.fire({
-                                    title: "Deleted!",
-                                    text: response.message,
-                                    icon: "success"
-                                }).then(() => {
-                                    $('#courses-table').DataTable().ajax.reload();
-                                });
-                            } else {
+                        // أنشئ واحداً جديداً
+                        pondEdit = FilePond.create(document.querySelector('#edit_image'), {
+                            allowFileTypeValidation: true,
+                            acceptedFileTypes: ['image/*'],
+                            fileValidateTypeLabelExpectedTypes: 'Expected file type: Image'
+                        });
+                        
+                        // اعرض المودال
+                        $('#editCourseModal').modal('show');
+                    },
+                    error: function(xhr) {
+                        showAlert('danger', 'Error fetching Unit data', 'bxs-message-square-x');
+                    }
+                });
+            });
+
+            // Submit form to update course
+            $('#editCourseForm').on('submit', function(e) {
+                e.preventDefault();
+                var courseId = $('#editCourseId').val();
+                var formData = new FormData(this);
+
+                // إزالة حقل الصورة من الفورم الأصلي، وإرفاقه من الـ FilePond
+                formData.delete('image'); 
+                var file = pondEdit ? pondEdit.getFile() : null;
+                if (file) {
+                    formData.append('image', file.file);
+                }
+
+                $.ajax({
+                    url: '/admin/courses/' + courseId + '/update', // تأكد من وجود هذا الراوت
+                    method: 'POST',
+                    data: formData,
+                    processData: false,
+                    contentType: false,
+                    success: function(response) {
+                        if (response.success) {
+                            $('#editCourseModal').modal('hide');
+                            table.ajax.reload();
+                            showAlert('success', 'Unit updated successfully!', 'bxs-check-circle');
+                        } else {
+                            showAlert('danger', 'Error updating Unit', 'bxs-message-square-x');
+                        }
+                    },
+                    error: function(xhr) {
+                        let msg = 'Error updating Unit';
+                        if (xhr.responseJSON && xhr.responseJSON.message) {
+                            msg = xhr.responseJSON.message;
+                        }
+                        showAlert('danger', msg, 'bxs-message-square-x');
+                    }
+                });
+            });
+
+            // Delete course/unit
+            $(document).on('click', '.delete-btn', function() {
+                let id = $(this).data('id');
+                let url = $('#delete_source').val() + '/' + id;
+
+                Swal.fire({
+                    title: 'Are you sure?',
+                    text: "You won't be able to revert this!",
+                    icon: "warning",
+                    showCancelButton: true,
+                    confirmButtonColor: "#3085d6",
+                    cancelButtonColor: "#d33",
+                    confirmButtonText: "Yes, delete it!",
+                    cancelButtonText: "Cancel"
+                }).then((result) => {
+                    if (result.isConfirmed) {
+                        $.ajaxSetup({
+                            headers: {
+                                'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
+                            }
+                        });
+                        $.ajax({
+                            url: url,
+                            method: 'DELETE',
+                            dataType: 'json',
+                            success: function(response) {
+                                if (response.success) {
+                                    Swal.fire({
+                                        title: "Deleted!",
+                                        text: response.message,
+                                        icon: "success"
+                                    }).then(() => {
+                                        $('#courses-table').DataTable().ajax.reload();
+                                    });
+                                } else {
+                                    Swal.fire({
+                                        title: "Error",
+                                        text: response.message,
+                                        icon: "error"
+                                    });
+                                }
+                            },
+                            error: function(xhr) {
                                 Swal.fire({
                                     title: "Error",
-                                    text: response.message,
+                                    text: xhr.responseJSON?.message || "An unknown error occurred",
                                     icon: "error"
                                 });
                             }
-                        },
-                        error: function(xhr) {
-                            Swal.fire({
-                                title: "Error",
-                                text: xhr.responseJSON?.message || "An unknown error occurred",
-                                icon: "error"
-                            });
-                        }
-                    });
-                }
+                        });
+                    }
+                });
             });
+
+            function showAlert(type, message, icon) {
+                var alertHtml = `
+                    <div class="alert alert-${type} border-0 bg-${type} alert-dismissible fade show py-2 position-fixed top-0 end-0 m-3" role="alert">
+                        <div class="d-flex align-items-center">
+                            <div class="font-35 text-white">
+                                <i class="bx ${icon}"></i>
+                            </div>
+                            <div class="ms-3">
+                                <h6 class="mb-0 text-white">${type.charAt(0).toUpperCase() + type.slice(1)}</h6>
+                                <div class="text-white">${message}</div>
+                            </div>
+                        </div>
+                        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                    </div>
+                `;
+                $('body').append(alertHtml);
+                setTimeout(function() {
+                    $('.alert').alert('close');
+                }, 5000);
+            }
+
         });
-
-    });
-</script>
-
+    </script>
 @endsection
