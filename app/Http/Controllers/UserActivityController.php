@@ -76,7 +76,7 @@ class UserActivityController extends Controller
                 $totalActiveTime = $logs->sum('total_active_time');
 
                 return [
-                    'teacher_id' => $teacher->teacher->id,
+                    'teacher_id' => $teacher->teacher ? $teacher->teacher->id : $teacher->id,
                     'teacher' => $teacher->full_name,
                     'email' => $teacher->email,
                     'active_time' => $this->formatActiveTime($totalActiveTime),
