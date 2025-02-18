@@ -84,6 +84,34 @@
         .owl-nav {
             display: none;
         }
+
+.slider-overlay {
+    position: relative;
+    background-size: cover;
+    background-position: center;
+    background-repeat: no-repeat;
+    height: 100vh;
+    display: flex;
+    align-items: center;
+}
+
+.slider-overlay::before {
+    content: "";
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(235, 200, 243, 0.16) !important; 
+    opacity: 0.6 !important;
+    z-index: 1;
+}
+
+.slider-overlay .hero-content {
+    position: relative;
+    z-index: 2; 
+}
+
     </style>
     {{-- <link rel="stylesheet" href="{{ asset('css/bootstrap.min.css') }}"> --}}
     <link rel="stylesheet" href="{{ asset('css/line-awesome.css') }}">
@@ -644,33 +672,32 @@
 
 
         <section class="hero-area">
-            <div class="hero-slider owl-carousel owl-theme aos-init aos-animate" data-aos="fade-up">
-                @foreach ($offers as $index => $offer)
-                    <div class="hero-slider-item"
-                        style="background-image: url('{{ asset('storage/' . $offer->background_image) }}');">
-                        <div class="container">
-                            <div class="hero-content text-{{ $offer->alignment }}">
-                                <div class="section-heading">
-                                    <h2 class="section__title text-white fs-65 lh-80 pb-3">{{ $offer->title }}</h2>
-                                    <p class="section__desc text-white pb-4">{{ $offer->description }}</p>
-                                </div><!-- end section-heading -->
-                                <div
-                                    class="hero-btn-box d-flex flex-wrap align-items-center pt-1 justify-content-{{ $offer->alignment }}">
-                                    @if ($offer->action_type === 'link')
-                                        <a href="{{ $offer->action_value }}" class="btn theme-btn mr-4 mb-4">Join
-                                            with Us <i class="la la-arrow-right icon ml-1"></i></a>
-                                    @elseif($offer->action_type === 'email')
-                                        <a href="mailto:{{ $offer->action_value }}"
-                                            class="btn theme-btn mr-4 mb-4">Contact Us <i
-                                                class="la la-envelope icon ml-1"></i></a>
-                                    @endif
-                                </div><!-- end hero-btn-box -->
-                            </div><!-- end hero-content -->
-                        </div><!-- end container -->
-                    </div><!-- end hero-slider-item -->
-                @endforeach
-            </div><!-- end hero-slider -->
-        </section><!-- end hero-area -->
+    <div class="hero-slider owl-carousel owl-theme aos-init aos-animate" data-aos="fade-up">
+        @foreach ($offers as $index => $offer)
+            <div class="hero-slider-item slider-overlay" 
+                 style="background-image: url('{{ asset('storage/' . $offer->background_image) }}');">
+                <div class="container">
+                    <div class="hero-content text-{{ $offer->alignment }}">
+                        <div class="section-heading">
+                            <h2 class="section__title text-white fs-65 lh-80 pb-3">{{ $offer->title }}</h2>
+                            <p class="section__desc text-white pb-4">{{ $offer->description }}</p>
+                        </div><!-- end section-heading -->
+
+                        <div class="hero-btn-box d-flex flex-wrap align-items-center pt-1 justify-content-{{ $offer->alignment }}">
+                            <!-- زر الانضمام مع تفعيل السويت أليرت -->
+                            <a href="javascript:void(0);" 
+                               class="btn theme-btn mr-4 mb-4 join-with-us-btn">
+                                Join with Us 
+                                <i class="la la-arrow-right icon ml-1"></i>
+                            </a>
+                        </div><!-- end hero-btn-box -->
+                    </div><!-- end hero-content -->
+                </div><!-- end container -->
+            </div><!-- end hero-slider-item -->
+        @endforeach
+    </div><!-- end hero-slider -->
+</section><!-- end hero-area -->
+
 
 
 
@@ -1277,6 +1304,8 @@
 @endsection
 
 @section('scripts')
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+
     <script src="{{ asset('js/jquery-3.4.1.min.js') }}"></script>
     <script src="{{ asset('js/bootstrap.bundle.min.js') }}"></script>
     <script src="{{ asset('js/bootstrap-select.min.js') }}"></script>
@@ -1294,12 +1323,36 @@
     <script>
         document.addEventListener('DOMContentLoaded', function() {
             AOS.init({
-                offset: 0, // Trigger animations as soon as elements come into view
-                delay: 0, // No delay before the animation starts
-                duration: 300, // Adjusted duration for smoother animations
-                easing: 'ease-in-out', // Smoother easing function
-                once: true, // Only animate once
-                mirror: false, // Elements do not animate out while scrolling past them
+                offset: 0,
+                delay: 0,
+                duration: 300,
+                easing: 'ease-in-out',
+                once: true,
+                mirror: false,
+            });
+        });
+
+        // حدث الضغط على زر "Join with Us"
+        $(document).on('click', '.join-with-us-btn', function(e) {
+            e.preventDefault(); 
+            Swal.fire({
+                title: 'Welcome to Safar AI!',
+                text: 'Please select your preferred path to proceed to registration.',
+                icon: 'info',
+                showDenyButton: true,
+                showCancelButton: true,
+                confirmButtonText: 'I am a Student',
+                denyButtonText: 'I am a Teacher',
+                cancelButtonText: 'Cancel'
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    // تحويل للمسار مع بارامتر plan=beginner (مثال)
+                    window.location.href = '/register?plan=beginner';
+                } else if (result.isDenied) {
+                    // تحويل للمسار مع بارامتر plan=advanced (مثال)
+                    window.location.href = '/register?plan=advanced';
+                }
+                // إذا ضغط Cancel لا يفعل شيئًا
             });
         });
     </script>
