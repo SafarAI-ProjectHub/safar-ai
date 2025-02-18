@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Services\PayPalService;
 use App\Models\Subscription;
+use App\Models\UserSubscription;
 use Illuminate\Http\Request;
 use Yajra\DataTables\DataTables;
 use Illuminate\Support\Facades\Auth;
@@ -23,40 +24,65 @@ class AdminSubscriptionController extends Controller
      */
     public function index(Request $request)
     {
+        // إذا كان الطلب Ajax (من DataTables)
         if ($request->ajax()) {
-            // اجلب الاشتراكات مع علاقة المستخدم
-            $subscriptions = Subscription::with('user')->get();
+            // نجلب سجلات user_subscriptions مع علاقتي subscription, user
+            $userSubscriptions = UserSubscription::with(['subscription','user'])->get();
 
-            return DataTables::of($subscriptions)
-                // عمود adminName لإظهار اسم المستخدم أو 'N/A'
-                ->addColumn('adminName', function ($subscription) {
-                    if ($subscription->user && $subscription->user->full_name) {
-                        return $subscription->user->full_name;
-                    }
-                    return 'N/A';
+            return DataTables::of($userSubscriptions)
+
+                ->addColumn('user_name', function($row) {
+                    return optional($row->user)->full_name ?? 'N/A';
                 })
-                // تعديل عمود is_active ليعرض سويتش
-                ->editColumn('is_active', function ($subscription) {
-                    return '<div class="form-check form-switch d-flex justify-content-center">
-                                <input class="form-check-input activate-subscription" type="checkbox"
-                                       data-id="' . $subscription->id . '"
-                                       ' . ($subscription->is_active ? 'checked' : '') . '>
-                            </div>';
+
+                ->addColumn('subscription_id', function($row) {
+                    return $row->subscription_id ?? 'N/A';
                 })
-                ->rawColumns(['is_active']) // حتى يتم تفسيرها كـHTML
+
+                ->addColumn('status', function($row) {
+                    return $row->status ?? 'N/A';
+                })
+
+                ->addColumn('start_date', function($row) {
+                    return optional($row->start_date)->format('Y-m-d H:i') ?? 'N/A';
+                })
+
+                ->addColumn('next_billing_time', function($row) {
+                    return optional($row->next_billing_time)->format('Y-m-d H:i') ?? 'N/A';
+                })
+
+                ->addColumn('payment_status', function($row) {
+                    return $row->payment_status ?? 'N/A';
+                })
+
+                ->addColumn('product_name', function($row) {
+                    return optional($row->subscription)->product_name ?? 'N/A';
+                })
+                ->addColumn('subscription_type', function($row) {
+                    return optional($row->subscription)->subscription_type ?? 'N/A';
+                })
+                ->addColumn('description', function($row) {
+                    return optional($row->subscription)->description ?? 'N/A';
+                })
+                ->addColumn('price', function($row) {
+                    return optional($row->subscription)->price ?? 'N/A';
+                })
+                ->addColumn('features', function($row) {
+                    $features = optional($row->subscription)->features;
+                    return $features ? json_decode($features) : [];
+                })
+
                 ->make(true);
         }
 
-        // عند الفتح العادي للصفحة
         return view('dashboard.admin.subscriptions.index');
     }
 
     /**
-     * إنشاء اشتراك جديد.
+     * إنشاء اشتراك جديد في جدول subscriptions (تعريف خطة).
      */
     public function store(Request $request)
     {
-        // تحقق من القيم الواردة
         $request->validate([
             'name'              => 'required|string|max:255',
             'description'       => 'required|string',
@@ -65,15 +91,14 @@ class AdminSubscriptionController extends Controller
             'subscription_type' => 'required|string|in:yolo,solo,tolo',
         ]);
 
-        // جهّز الـfeatures كمصفوفة
+        // جهّز الـ features كمصفوفة
         $featuresArray = $this->processFeatures($request->features);
 
-        // إذا السعر = 0، نعتبره اشتراك مجاني ولا ننشئ منتج/خطة في باي بال
         if ($request->price == 0) {
             Subscription::create([
                 'product_name'      => $request->name,
-                'paypal_plan_id'    => null,  // لا حاجة لخطة باي بال
-                'paypal_product_id' => null,  // لا حاجة لمنتج باي بال
+                'paypal_plan_id'    => null, // لا حاجة لخطة باي بال
+                'paypal_product_id' => null, // لا حاجة لمنتج باي بال
                 'subscription_type' => $request->subscription_type,
                 'price'             => 0,
                 'user_id'           => Auth::id(),
@@ -87,7 +112,6 @@ class AdminSubscriptionController extends Controller
             ]);
 
         } else {
-            // السعر > 0 -> إنشاء المنتج في PayPal
             $productResponse = $this->paypalService->createProduct(
                 $request->name,
                 $request->description
@@ -99,7 +123,7 @@ class AdminSubscriptionController extends Controller
                 ], 500);
             }
 
-            // أنشئ الخطة في PayPal
+            // أنشئ الخطة في باي بال
             $planResponse = $this->paypalService->createPlan(
                 $productResponse['id'],
                 $request->name,
@@ -114,7 +138,7 @@ class AdminSubscriptionController extends Controller
                 ], 500);
             }
 
-            // احفظ في قاعدة البيانات
+            // حفظ في قاعدة البيانات
             Subscription::create([
                 'product_name'      => $request->name,
                 'paypal_plan_id'    => $planResponse['id'],
@@ -134,7 +158,7 @@ class AdminSubscriptionController extends Controller
     }
 
     /**
-     * تفعيل/تعطيل الاشتراك.
+     * تفعيل/تعطيل الاشتراك (تعريف الخطة) في جدول subscriptions.
      */
     public function toggleActive($id)
     {
@@ -142,7 +166,7 @@ class AdminSubscriptionController extends Controller
         $subscriptionType = $subscription->subscription_type;
 
         if ($subscription->is_active) {
-            // لو تريد منع تعطيل آخر اشتراك من نفس النوع
+            // منع تعطيل آخر اشتراك من نفس النوع
             $activeSubscriptionCount = Subscription::where('is_active', true)
                 ->where('subscription_type', $subscriptionType)
                 ->count();
@@ -171,14 +195,13 @@ class AdminSubscriptionController extends Controller
     }
 
     /**
-     * تفكيك الـfeatures إلى مصفوفة أسطر.
+     * تفكيك الـ features إلى مصفوفة أسطر.
      */
     private function processFeatures($features)
     {
         if (!$features) {
             return [];
         }
-        // split by new line
         return preg_split('/\r\n|\r|\n/', $features);
     }
 }
