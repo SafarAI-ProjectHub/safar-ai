@@ -229,7 +229,7 @@
                                 <td><span
                                         class="badge {{ $subscription->status == 'active' ? 'bg-success' : 'bg-danger' }}">{{ $subscription->status }}</span>
                                 </td>
-                                <!-- <td>${{ number_format($subscription->payments->sum('amount'), 2) }}</td> -->
+                                <td>${{ number_format($subscription->payments->sum('amount'), 2) }}</td>
                                 <td>
                                     @if ($subscription->latestPayment)
                                         <span
