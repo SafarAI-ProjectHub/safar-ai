@@ -84,35 +84,12 @@
         .owl-nav {
             display: none;
         }
-
-.slider-overlay {
-    position: relative;
-    background-size: cover;
-    background-position: center;
-    background-repeat: no-repeat;
-    height: 100vh;
-    display: flex;
-    align-items: center;
-}
-
-.slider-overlay::before {
-    content: "";
-    position: absolute;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
-    background: rgba(235, 200, 243, 0.16) !important; 
-    opacity: 0.6 !important;
-    z-index: 1;
-}
-
-.slider-overlay .hero-content {
-    position: relative;
-    z-index: 2; 
-}
-
+        button{
+            border:none;
+        }
     </style>
+        <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/sweetalert2@11/dist/sweetalert2.min.css">
+
     {{-- <link rel="stylesheet" href="{{ asset('css/bootstrap.min.css') }}"> --}}
     <link rel="stylesheet" href="{{ asset('css/line-awesome.css') }}">
     <link rel="stylesheet" href="{{ asset('css/owl.carousel.min.css') }}">
@@ -136,12 +113,20 @@
                             AI</span></h1>
                     <h2 data-aos="fade-up" data-aos-delay="400"> Learn English with AI 🌟</h2>
                     <div data-aos="fade-up" data-aos-delay="600">
-                        <div class="text-center text-lg-start">
+                        <!-- <div class="text-center text-lg-start">
                             <a href="/register"
                                 class="btn-get-started scrollto d-inline-flex align-items-center justify-content-center align-self-center">
                                 <span>Get Started</span>
                                 <i class="bi bi-arrow-right"></i>
                             </a>
+                        </div> -->
+                        <div class="text-center text-lg-start">
+                            <button type="button"
+                                    class="btn-get-started scrollto d-inline-flex align-items-center justify-content-center align-self-center"
+                                    onclick="chooseRegistration()">
+                                <span>Get Started</span>
+                                <i class="bi bi-arrow-right"></i>
+                            </button>
                         </div>
                     </div>
                 </div>
@@ -1319,41 +1304,38 @@
     <script src="{{ asset('js/tooltipster.bundle.min.js') }}"></script>
     <script src="{{ asset('js/jquery.lazy.min.js') }}"></script>
     <script src="{{ asset('js/main.js') }}"></script>
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11/dist/sweetalert2.min.js"></script>
 
     <script>
         document.addEventListener('DOMContentLoaded', function() {
             AOS.init({
-                offset: 0,
-                delay: 0,
-                duration: 300,
-                easing: 'ease-in-out',
-                once: true,
-                mirror: false,
+                offset: 0, // Trigger animations as soon as elements come into view
+                delay: 0, // No delay before the animation starts
+                duration: 300, // Adjusted duration for smoother animations
+                easing: 'ease-in-out', // Smoother easing function
+                once: true, // Only animate once
+                mirror: false, // Elements do not animate out while scrolling past them
             });
         });
-
-        // حدث الضغط على زر "Join with Us"
-        $(document).on('click', '.join-with-us-btn', function(e) {
-            e.preventDefault(); 
+        // دالة لاختيار نوع التسجيل عبر SweetAlert
+        function chooseRegistration() {
             Swal.fire({
-                title: 'Welcome to Safar AI!',
-                text: 'Please select your preferred path to proceed to registration.',
-                icon: 'info',
-                showDenyButton: true,
+                title: 'Register as:',
+                text: 'Please choose how you want to sign up:',
+                icon: 'question',
                 showCancelButton: true,
-                confirmButtonText: 'I am a Student',
-                denyButtonText: 'I am a Teacher',
-                cancelButtonText: 'Cancel'
+                confirmButtonText: 'Student',
+                cancelButtonText: 'Teacher',
+                reverseButtons: true
             }).then((result) => {
                 if (result.isConfirmed) {
-                    // تحويل للمسار مع بارامتر plan=beginner (مثال)
-                    window.location.href = '/register?plan=beginner';
-                } else if (result.isDenied) {
-                    // تحويل للمسار مع بارامتر plan=advanced (مثال)
-                    window.location.href = '/register?plan=advanced';
+                    // تسجيل كطالب
+                    window.location.href = '/register';
+                } else if (result.dismiss === Swal.DismissReason.cancel) {
+                    // تسجيل كمدرس
+                    window.location.href = '/register-teacher';
                 }
-                // إذا ضغط Cancel لا يفعل شيئًا
             });
-        });
+        }
     </script>
 @endsection
