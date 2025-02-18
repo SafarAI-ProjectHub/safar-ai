@@ -41,6 +41,7 @@
         </div>
     </form>
 </section>
+
 <script>
     $(document).ready(function() {
         $('#update-password-form').on('submit', function(event) {
@@ -54,17 +55,16 @@
             var formData = $(this).serialize(); 
 
             $.ajax({
-                url: $(this).attr('action'), 
-                method: 'POST',
+                url: $(this).attr('action'),
+                method: 'POST', 
                 data: formData,
                 success: function(response) {
-
-                    $('#status_message').show();
+                    $('#status_message').text('Saved.').show();
                 },
                 error: function(xhr) {
-
-                    if (xhr.status === 422) { 
+                    if (xhr.status === 422) {
                         var errors = xhr.responseJSON.errors;
+
                         if (errors.current_password) {
                             $('#current_password_error').text(errors.current_password[0]);
                         }
@@ -82,4 +82,3 @@
         });
     });
 </script>
-
