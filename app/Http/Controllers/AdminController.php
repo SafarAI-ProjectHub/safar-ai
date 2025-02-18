@@ -39,6 +39,7 @@ class AdminController extends Controller
     /*
      * -------------- ADMIN MANAGEMENT --------------
      */
+
     public function listAdmin(Request $request)
     {
         if ($request->ajax()) {
@@ -46,7 +47,16 @@ class AdminController extends Controller
                 $query->where('name', 'Admin');
             })->whereDoesntHave('roles', function ($query) {
                 $query->where('name', 'Super Admin');
-            })->select(['id', 'first_name', 'last_name', 'email', 'phone_number', 'date_of_birth', 'country_location', 'status'])->get();
+            })->select([
+                'id', 
+                'first_name', 
+                'last_name', 
+                'email', 
+                'phone_number', 
+                'date_of_birth', 
+                'country_location', 
+                'status'
+            ])->get();
 
             return DataTables::of($admins)
                 ->addColumn('action', function ($admin) {
@@ -56,7 +66,9 @@ class AdminController extends Controller
                             </div>';
                 })
                 ->editColumn('date_of_birth', function ($admin) {
-                    return $admin->date_of_birth ? with(new Carbon($admin->date_of_birth))->format('Y-m-d') : '';
+                    return $admin->date_of_birth 
+                        ? with(new Carbon($admin->date_of_birth))->format('Y-m-d') 
+                        : '';
                 })
                 ->rawColumns(['action'])
                 ->make(true);
@@ -73,13 +85,13 @@ class AdminController extends Controller
     public function storeAdmin(Request $request)
     {
         $validator = Validator::make($request->all(), [
-            'first_name' => 'required|string|max:255',
-            'last_name'  => 'required|string|max:255',
-            'email'      => 'required|string|email|max:255|unique:users',
-            'phone_number'=> 'required|string|max:15',
+            'first_name'   => 'required|string|max:255',
+            'last_name'    => 'required|string|max:255',
+            'email'        => 'required|string|email|max:255|unique:users',
+            'phone_number' => 'required|string|max:15',
             'date_of_birth'=> 'required|date',
-            'country_code'=> 'required|string|max:5',
-            'password'   => 'required|string|min:8|confirmed',
+            'country_code' => 'required|string|max:5',
+            'password'     => 'required|string|min:8|confirmed',
         ]);
 
         if ($validator->fails()) {
@@ -87,14 +99,15 @@ class AdminController extends Controller
         }
 
         $user = User::create([
-            'first_name'        => $request->first_name,
-            'last_name'         => $request->last_name,
-            'email'             => $request->email,
-            'phone_number'      => $request->country_code . $request->phone_number,
-            'date_of_birth'     => $request->date_of_birth,
-            'password'          => Hash::make($request->password),
-            'country_location'  => $request->country_location,
-            'status'            => 'active',
+            'first_name'       => $request->first_name,
+            'last_name'        => $request->last_name,
+            'email'            => $request->email,
+            'phone_number'     => $request->country_code . $request->phone_number,
+            'date_of_birth'    => $request->date_of_birth,
+            'password'         => Hash::make($request->password),
+            'country_location' => $request->country_location,
+            // عند الإنشاء الافتراضي ممكن تختار أي حالة تريدها
+            'status'           => 'active', 
         ]);
 
         $user->assignRole('Admin');
@@ -105,19 +118,25 @@ class AdminController extends Controller
     public function editAdmin($id)
     {
         $user = User::findOrFail($id);
-        return view('dashboard.admin.edit_admin', compact('user'));
+
+        // جلب جميع القيم المميزة (distinct) من عمود status في جدول users
+        // وذلك لجعل القائمة المنسدلة ديناميكية
+        $statuses = User::select('status')->distinct()->pluck('status');
+
+        return view('dashboard.admin.edit_admin', compact('user', 'statuses'));
     }
 
     public function updateAdmin(Request $request, $id)
     {
         $validator = Validator::make($request->all(), [
-            'first_name'    => 'required|string|max:255',
-            'last_name'     => 'required|string|max:255',
-            'email'         => 'required|string|email|max:255|unique:users,email,' . $id,
-            'phone_number'  => 'required|string|max:15',
-            'date_of_birth' => 'required|date',
-            'country_code'  => 'required|string|max:5',
-            'password'      => 'nullable|string|min:8|confirmed',
+            'first_name'   => 'required|string|max:255',
+            'last_name'    => 'required|string|max:255',
+            'email'        => 'required|string|email|max:255|unique:users,email,' . $id,
+            'phone_number' => 'required|string|max:15',
+            'date_of_birth'=> 'required|date',
+            'country_code' => 'required|string|max:5',
+            'status'       => 'required|string',  // تحقق من أن status مطلوب
+            'password'     => 'nullable|string|min:8|confirmed',
         ]);
 
         if ($validator->fails()) {
@@ -125,13 +144,16 @@ class AdminController extends Controller
         }
 
         $user = User::findOrFail($id);
+
         $user->update([
-            'first_name'        => $request->first_name,
-            'last_name'         => $request->last_name,
-            'email'             => $request->email,
-            'phone_number'      => $request->country_code . $request->phone_number,
-            'date_of_birth'     => $request->date_of_birth,
-            'country_location'  => $request->country_location,
+            'first_name'       => $request->first_name,
+            'last_name'        => $request->last_name,
+            'email'            => $request->email,
+            'phone_number'     => $request->country_code . $request->phone_number,
+            'date_of_birth'    => $request->date_of_birth,
+            'country_location' => $request->country_location,
+            // حفظ الحالة المختارة من الـSelect
+            'status'           => $request->status,
         ]);
 
         if ($request->password) {
@@ -153,6 +175,8 @@ class AdminController extends Controller
         $user->delete();
         return response()->json(['message' => 'Admin deleted successfully']);
     }
+
+
 
 
     /*
