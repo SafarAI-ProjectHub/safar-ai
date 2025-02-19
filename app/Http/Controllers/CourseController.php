@@ -15,7 +15,6 @@ use Illuminate\Support\Facades\DB;
 use Carbon\Carbon;
 use Illuminate\Support\Facades\Auth;
 
-
 class CourseController extends Controller
 {
     public function showcourse($courseId)
@@ -26,6 +25,7 @@ class CourseController extends Controller
 
         $course = Course::with('units')->findOrFail($courseId);
         $unitsIds = $course->units->pluck('id')->toArray();
+
         if (Auth::user()->hasRole('Student')) {
             if (!Auth::user()->courses->contains($courseId)) {
                 abort(403, 'You are not enrolled in this course');
@@ -46,13 +46,12 @@ class CourseController extends Controller
             }, $completedUnitIds);
 
             $completedUnitIds = array_values($completedUnitIds);
-
             $completedUnitCount = count($completedUnitIds);
-
         } else {
             $completedUnitIds = [];
             $completedUnitCount = 0;
         }
+
         $reviewsCount = Rate::where('course_id', $courseId)->count();
         $reviews = Rate::where('course_id', $courseId)
             ->orderBy('created_at', 'desc')
@@ -62,32 +61,45 @@ class CourseController extends Controller
             $reviewsRate = 0;
         }
 
-
-        return view('dashboard.admin.show_course', compact('course', 'unitnumber', 'numberstd', 'completedUnitIds', 'completedUnitCount', 'reviews', 'reviewsCount', 'reviewsRate'));
+        return view('dashboard.admin.show_course', compact(
+            'course',
+            'unitnumber',
+            'numberstd',
+            'completedUnitIds',
+            'completedUnitCount',
+            'reviews',
+            'reviewsCount',
+            'reviewsRate'
+        ));
     }
 
     public function updateUnitCompletion(Request $request)
     {
         $studentId = Auth::user()->student->id;
-        $unitId = $request->input('unit_id');
-        $completed = $request->input('completed');
-
-
-        StudentUnit::updateOrInsert(
-            ['student_id' => $studentId, 'unit_id' => $unitId],
+        $lessonId = $request->input('lesson_id', 0);
+    
+        $completed = $request->input('completed', 1);
+    
+        $lesson = \App\Models\Unit::find($lessonId);
+        if (!$lesson) {
+            return redirect('my-courses')->with('error', 'Lesson not found.');
+        }
+    
+        \App\Models\StudentUnit::updateOrInsert(
+            ['student_id' => $studentId, 'unit_id' => $lessonId],
             [
                 'completed' => $completed,
-                'updated_at' => Carbon::now(), // Set the current timestamp for updated_at
-                'created_at' => DB::raw('IFNULL(created_at, "' . Carbon::now() . '")') // Only set created_at if it's a new record
+                'updated_at' => now(),
+                'created_at' => \DB::raw('IFNULL(created_at, "'.now().'")')
             ]
         );
-
-        return response()->json(['success' => true]);
+    
+        $courseId = $lesson->course_id;
+        return redirect("my-courses?unit_id={$courseId}")->with('success', 'Lesson marked as completed.');
     }
-
+    
     public function rateCourse(Request $request)
     {
-
         $courseId = $request->input('course_id');
         $rating = $request->input('rating');
         $comment = $request->input('comment');
@@ -95,10 +107,14 @@ class CourseController extends Controller
 
         Rate::updateOrInsert(
             ['user_id' => $userId, 'course_id' => $courseId],
-            ['rate' => $rating, 'comment' => $comment, 'updated_at' => Carbon::now(), 'created_at' => DB::raw('IFNULL(created_at, "' . Carbon::now() . '")')]
+            [
+                'rate' => $rating,
+                'comment' => $comment,
+                'updated_at' => Carbon::now(),
+                'created_at' => DB::raw('IFNULL(created_at, "' . Carbon::now() . '")')
+            ]
         );
 
         return response()->json(['success' => true]);
     }
-
 }
