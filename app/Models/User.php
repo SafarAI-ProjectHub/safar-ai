@@ -116,9 +116,9 @@ class User extends Authenticatable
     // Student's relation 
     public function student()
     {
-        return $this->hasOne(Student::class, 'student_id');
+        return $this->hasOne(Student::class, 'student_id', 'id');
     }
-
+    
     //teacher's relation
     public function teacher()
     {
@@ -217,5 +217,7 @@ class User extends Authenticatable
     {
         return $this->hasMany(UserActivityLog::class);
     }
+
+    
 
 }

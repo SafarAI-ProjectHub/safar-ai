@@ -60,4 +60,9 @@ class Student extends Model
         return $this->belongsToMany(Unit::class, 'student_units')->withPivot('completed')->withTimestamps();
     }
 
+    public function studentUnits()
+    {
+        return $this->hasMany(StudentUnit::class, 'student_id');
+    }
+
 }
