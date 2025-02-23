@@ -43,7 +43,7 @@ class StudentController extends Controller
 
         $ageGroup = $user->getAgeGroup();
 
-        // إذا عمره بين 1-5, نعّده مشترك مبدئيًا بدون اختبارات
+        // إذا عمره بين 1-5, نعّده مشترك مبدئيًا
         if ($ageGroup === '1-5') {
             $user->status = 'active';
             $user->save();
@@ -79,7 +79,7 @@ class StudentController extends Controller
             }
         }
 
-        // تكملة المنطق ...
+        // متابعة المنطق
         $dateOfBirth = $user->date_of_birth;
         $age = Carbon::parse($dateOfBirth)->age;
 
@@ -135,6 +135,7 @@ class StudentController extends Controller
             'videos'
         ));
     }
+
     public function levelTest()
     {
         $completedLevelTest = LevelTestAssessment::where('user_id', Auth::id())->exists();
@@ -203,7 +204,7 @@ class StudentController extends Controller
         $unitId   = $request->get('unit_id');
         $lessonId = $request->get('lesson_id'); 
 
-        // عرض تفاصيل الدرس عند وجود lesson_id
+        // عند وجود lesson_id => نعرض تفاصيل الدرس
         if ($lessonId) {
             $lesson = \App\Models\Unit::find($lessonId);
             if (!$lesson) {
@@ -219,7 +220,7 @@ class StudentController extends Controller
             ]);
         }
 
-        // عرض قائمة البلوكات عند عدم وجود أي من block_id, unit_id
+        // عرض قائمة البلوكات إذا لم يوجد block_id ولا unit_id
         if (!$blockId && !$unitId) {
             return view('dashboard.student.myCourses', [
                 'stage'   => 'blocks',
@@ -230,7 +231,7 @@ class StudentController extends Controller
             ]);
         }
 
-        // عند وجود block_id فقط => عرض الوحدات (الكورسات في هذا البلوك)
+        // عند وجود block_id فقط => عرض الوحدات (الكورسات) في هذا الـBlock
         if ($blockId && !$unitId) {
             $selectedBlock = $blocksAll->where('id', $blockId)->first();
             if (!$selectedBlock) {
@@ -265,12 +266,34 @@ class StudentController extends Controller
 
             $lessons = $foundCourse->units ?? collect();
 
+            // [جلب حالة كل درس: هل هو مكتمل أم لا من جدول student_units]
+            if (Auth::user()->hasRole('Student') && Auth::user()->student) {
+                $studentId = Auth::user()->student->id;
+
+                foreach ($lessons as $lesson) {
+                    $lesson->is_completed = DB::table('student_units')
+                        ->where('student_id', $studentId)
+                        ->where('unit_id', $lesson->id)
+                        ->value('completed'); // 1 أو 0 أو null
+                }
+            }
+
+            // [حساب نسبة الإنجاز]
+            $completedLessons = $lessons->filter(function($lesson){
+                return $lesson->is_completed == 1;
+            })->count();
+            $totalLessons = $lessons->count();
+            $progress = $totalLessons > 0
+                ? round(($completedLessons / $totalLessons) * 100)
+                : 0;
+
             return view('dashboard.student.myCourses', [
-                'stage'   => 'lessons',
-                'blocks'  => collect(),
-                'courses' => collect(),
-                'units'   => collect(),
-                'lessons' => $lessons,
+                'stage'    => 'lessons',
+                'blocks'   => collect(),
+                'courses'  => collect(),
+                'units'    => collect(),
+                'lessons'  => $lessons,
+                'progress' => $progress, // تمرير النسبة للفيو
             ]);
         }
     }
@@ -300,9 +323,14 @@ class StudentController extends Controller
                 ->editColumn('meeting.duration', function ($row) {
                     $hours = intdiv($row->meeting->duration, 60);
                     $minutes = $row->meeting->duration % 60;
-                    return $hours > 0
-                        ? ($hours . ' hour' . ($hours > 1 ? 's' : '') . ($minutes > 0 ? ' ' . $minutes . ' minute' . ($minutes > 1 ? 's' : '') : ''))
-                        : $row->meeting->duration . ' minute' . ($row->meeting->duration > 1 ? 's' : '');
+                    if ($hours > 0) {
+                        $str = $hours . ' hour' . ($hours > 1 ? 's' : '');
+                        if ($minutes > 0) {
+                            $str .= ' ' . $minutes . ' minute' . ($minutes > 1 ? 's' : '');
+                        }
+                        return $str;
+                    }
+                    return $row->meeting->duration . ' minute' . ($row->meeting->duration > 1 ? 's' : '');
                 })
                 ->addColumn('teacher_name', function ($row) {
                     return $row->meeting->user->full_name;

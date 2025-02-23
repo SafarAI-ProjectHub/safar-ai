@@ -1,8 +1,6 @@
-{{-- نستخدم لوحة التحكم الرئيسية --}}
 @extends('layouts_dashboard.main')
 
 @section('styles')
-    {{-- استيراد ملفات الـ CSS الأساسية --}}
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-icons/1.8.1/font/bootstrap-icons.min.css">
     <link rel="stylesheet" href="{{ asset('css/bootstrap.min.css') }}">
     <link rel="stylesheet" href="{{ asset('css/line-awesome.css') }}">
@@ -13,30 +11,17 @@
     <link rel="stylesheet" href="{{ asset('css/tooltipster.bundle.css') }}">
     <link rel="stylesheet" href="{{ asset('css/style.css') }}">
 
-    {{-- استيراد خطين إضافيين من جوجل --}}
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Emilys+Candy&family=Send+Flowers&display=swap" rel="stylesheet">
 
     <style>
-        /* 
-            إعدادات أساسية للصفحة:
-            - إلغاء أي هوامش خارجية
-            - تحديد خلفية فاتحة
-            - تحديد الحد الأدنى لطول الصفحة
-        */
         html, body {
             margin: 0 !important;
             padding: 0 !important;
             background-color: #f8f9fa !important;
             min-height: 100vh !important;
         }
-
-        /*
-            عنصر lesson-wrapper يعتبر الحاوية الأساسية لصفحات الكتل (Blocks),
-            والوحدات (Units), والدروس (Lessons).
-            يتم تغيير التصميم بحسب المرحلة (stage) لاحقًا.
-        */
         .lesson-wrapper {
             width: 100%;
             max-width: 100%;
@@ -49,17 +34,12 @@
             padding: 2rem;
         }
 
-        /*
-            عندما نكون في مرحلة "تفاصيل الدرس" (lesson_details)، 
-            نضيف تنسيقات خاصة لعمل خلفية جميلة وزوايا مزخرفة وظهور اللوغو في الأعلى
-        */
         @if($stage === 'lesson_details')
             .lesson-wrapper {
                 max-width: 800px;
                 box-shadow: 0 2px 8px rgba(0,0,0,0.2);
                 overflow: hidden; 
             }
-
             .svg-corner {
                 position: absolute;
                 width: 400px;
@@ -87,7 +67,6 @@
                 right: 1px;
                 transform: rotate(180deg);
             }
-
             .lesson-logo {
                 text-align: center;
                 margin: 1.5rem 0 0.5rem; 
@@ -97,10 +76,6 @@
             .lesson-logo img {
                 width: 120px; 
             }
-
-            /*
-                العنوان بخط جميل يتم عرضه في المنتصف عند عرض تفاصيل الدرس
-            */
             .fancy-title {
                 font-family: "Playfair Display", serif;
                 font-optical-sizing: auto;
@@ -112,10 +87,6 @@
             }
         @endif
 
-        /*
-            تصميم خاص للدوائر التي تظهر في مرحلة عرض الكتل (blocks).
-            يتم استخدام تأثير الـgradient والهوفر عند تمرير الفأرة.
-        */
         .block-circle {
             position: relative;
             width: 180px;
@@ -158,9 +129,6 @@
             text-shadow: 0 0 10px rgba(0, 0, 0, 0.5);
         }
 
-        /*
-            تصميم البطاقات العادية المستخدمة في عرض الوحدات (Units)
-        */
         .card.card-item {
             height: 100%;
             border: none;
@@ -174,9 +142,6 @@
             text-overflow: ellipsis;
         }
 
-        /*
-            تصميم خاص لبطاقات الدروس (lesson-card) في مرحلة عرض الدروس (lessons).
-        */
         .lesson-card {
             position: relative;
             background: rgba(255, 255, 255, 0.3);
@@ -232,11 +197,6 @@
         .lesson-card .btn-primary:hover {
             background-color: #a0007d;
         }
-
-        /*
-            تنسيق نص محتوى الدرس (lesson_details) 
-            مع تحديد توسيط الهامش وتكبير الخط وحجم النص ليكون أكثر قابلية للقراءة.
-        */
         .lesson-body-text {
             text-align: left;
             font-size: 1.1rem;
@@ -330,10 +290,36 @@
                     </div>
                 @else
                     @foreach ($courses as $course)
+                        @php
+                            // جلب الدروس التابعة لهذا الكورس
+                            // إن كانت العلاقة اسمها ->units
+                            $lessons = $course->units ?? collect();
+                            $totalLessons = $lessons->count();
+
+                            $studentId = Auth::check() && Auth::user()->student
+                                         ? Auth::user()->student->id
+                                         : null;
+
+                            $completedCount = 0;
+                            if ($studentId && $totalLessons > 0) {
+                                $lessonIds = $lessons->pluck('id')->toArray();
+                                // نبحث في student_units عن الدروس المكتملة
+                                $completedCount = DB::table('student_units')
+                                    ->where('student_id', $studentId)
+                                    ->whereIn('unit_id', $lessonIds)
+                                    ->where('completed', 1)
+                                    ->count();
+                            }
+
+                            // نسبة الإنجاز
+                            $progress = $totalLessons > 0
+                                ? round(($completedCount / $totalLessons) * 100)
+                                : 0;
+                        @endphp
+
                         <div class="col-lg-4 responsive-column-half mb-4">
                             <div class="card card-item">
                                 <div class="card-image">
-                                    {{-- الضغط على الصورة يحيل المستخدم لصفحة الدروس الخاصة بهذا الكورس --}}
                                     <a href="{{ route('student.myCourses', ['unit_id' => $course->id]) }}" class="d-block">
                                         <img class="card-img-top lazy"
                                              src="{{ $course->image }}"
@@ -347,21 +333,37 @@
                                             {{ $course->title }}
                                         </a>
                                     </h5>
+
                                     <p class="card-text description lh-22 pt-2">
-                                        {{-- قص الوصف حتى 100 حرف مع إظهار نقاط في النهاية إذا كان أطول --}}
                                         @if (strlen($course->description) > 100)
                                             {{ substr($course->description, 0, 100) }}...
                                         @else
                                             {{ $course->description }}
                                         @endif
                                     </p>
+
                                     <p class="card-text lh-22 pt-2">
-                                        {{-- إظهار اسم المعلم إذا كان موجوداً --}}
                                         {{ $course->teacher ? $course->teacher->user->full_name : 'No teacher assigned yet' }}
                                     </p>
+
+                                    {{-- شريط التقدم --}}
+                                    <div class="mb-3">
+                                        <label>Progress:</label>
+                                        <div class="progress" style="height: 20px; background-color: #e0e0e0;">
+                                            <div class="progress-bar"
+                                                 role="progressbar"
+                                                 style="width: {{ $progress }}%; background-color: #d455df;"
+                                                 aria-valuenow="{{ $progress }}"
+                                                 aria-valuemin="0"
+                                                 aria-valuemax="100">
+                                                 {{ $progress }}%
+                                            </div>
+                                        </div>
+                                    </div>
+
                                     <a href="{{ route('student.myCourses', ['unit_id' => $course->id]) }}"
                                        class="btn btn-primary mt-auto d-block">
-                                        View Lessons
+                                       View Lessons
                                     </a>
                                 </div>
                             </div>
@@ -373,7 +375,33 @@
 
         {{-- ############################################ LESSONS ############################################ --}}
         @if($stage === 'lessons')
+            @php
+                $completedLessons = $lessons->filter(function($l){ 
+                    return isset($l->is_completed) && $l->is_completed; 
+                })->count();
+                $totalLessons = $lessons->count();
+                $progress = $totalLessons > 0 
+                    ? round(($completedLessons / $totalLessons) * 100) 
+                    : 0;
+            @endphp
+
             <div class="row">
+                <div class="col-md-12 mb-4">
+                    <div class="d-flex align-items-center">
+                        <span class="me-2">Progress:</span>
+                        <div class="progress flex-grow-1" style="height: 20px;">
+                            <div class="progress-bar" 
+                                 role="progressbar" 
+                                 style="width: {{ $progress }}%;" 
+                                 aria-valuenow="{{ $progress }}" 
+                                 aria-valuemin="0" 
+                                 aria-valuemax="100">
+                                {{ $progress }}%
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
                 @if ($lessons->isEmpty())
                     <div class="col-md-12 text-center">
                         <h3>No Lessons found.</h3>
@@ -383,8 +411,11 @@
                         <div class="col-md-4 mb-4">
                             <div class="card lesson-card">
                                 <div class="card-body d-flex flex-column">
-                                    <h5 class="card-title">
+                                    <h5 class="card-title d-flex align-items-center">
                                         {{ $lesson->title ?? 'Lesson Title' }}
+                                        @if(isset($lesson->is_completed) && $lesson->is_completed)
+                                            <i class="bi bi-check-circle-fill text-success ms-2"></i>
+                                        @endif
                                     </h5>
                                     <p>{!! $lesson->subtitle !!}</p>
                                     <a href="{{ route('student.myCourses', ['lesson_id' => $lesson->id]) }}"
@@ -402,18 +433,13 @@
         {{-- ###################################### LESSON DETAILS ###################################### --}}
         @if($stage === 'lesson_details')
             <div class="lesson-body-text">
-                {{-- في حالة كان المحتوى نصاً (Text) يتم طباعته بشكل مباشر --}}
                 @if($lesson->content_type === 'text')
                     {!! $lesson->content !!}
-
-                {{-- في حالة كان المحتوى فيديو مرفوع للسيستم يتم عرضه عبر عنصر الفيديو --}}
                 @elseif($lesson->content_type === 'video')
                     <video controls style="max-width: 100%; border: 2px solid #ddd; border-radius: 5px;">
                         <source src="{{ asset($lesson->content) }}" type="video/mp4">
                         Your browser does not support the video tag.
                     </video>
-
-                {{-- في حالة كان المحتوى فيديو يوتيوب يتم تضمينه عبر iframe --}}
                 @elseif($lesson->content_type === 'youtube')
                     <div style="position: relative; padding-bottom: 56.25%; height: 0; overflow: hidden;">
                         <iframe style="position: absolute; top: 0; left: 0; width: 100%; height: 100%;"
@@ -422,8 +448,20 @@
                         </iframe>
                     </div>
                 @else
-                    {{-- في حال لم يكن هناك نوع محدد أو لم يتم تعريفه --}}
                     {!! nl2br(e($lesson->content ?? 'No content')) !!}
+                @endif
+            </div>
+
+            <div class="mt-4 text-center">
+                @if(!isset($lesson->is_completed) || !$lesson->is_completed)
+                    <form action="{{ route('student.markLessonCompleted', ['lesson_id' => $lesson->id]) }}" method="POST">
+                        @csrf
+                        <button type="submit" class="btn btn-success">
+                            Mark Lesson as Completed
+                        </button>
+                    </form>
+                @else
+                    <p class="text-success">You have already completed this lesson!</p>
                 @endif
             </div>
         @endif
@@ -432,7 +470,6 @@
 
 
 @section('scripts')
-    {{-- تضمين ملفات الجافاسكربت الأساسية --}}
     <script src="{{ asset('js/bootstrap.bundle.min.js') }}"></script>
     <script src="{{ asset('js/bootstrap-select.min.js') }}"></script>
     <script src="{{ asset('js/owl.carousel.min.js') }}"></script>
@@ -448,10 +485,6 @@
     <script src="{{ asset('js/main.js') }}"></script>
 
     <script>
-        /*
-            دالة لضبط ارتفاع جميع البطاقات من نفس النوع بحيث تكون متساوية
-            في حال احتجنا ذلك في أي مرحلة لاحقة.
-        */
         function adjustCardHeights() {
             var maxHeight = 0;
             $('.card.card-item.youtube').each(function() {
@@ -463,9 +496,6 @@
             $('.card.card-item.youtube').height(maxHeight);
         }
 
-        /*
-            عند تحميل الصفحة بالكامل، نستدعي الدالة لضبط الارتفاعات.
-        */
         $(window).on('load', function() {
             adjustCardHeights();
         });
