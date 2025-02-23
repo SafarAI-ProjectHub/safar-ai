@@ -25,8 +25,7 @@
                           <img src="assets/img/logo1.png" alt="">
                           <span><span style="color:#C45ACD">Safar</span> AI</span>
                       </a>
-                      <p>Cras fermentum odio eu feugiat lide par naso tierra. Justo eget nada terra videa magna derita
-                          valies darta donna mare fermentum iaculis eu non diam phasellus.</p>
+                      <p>Safar AI opens the doors to languages with exceptional intelligence, letting you learn in an innovative and fast way, as if you’re traveling through words!</p>
                       <div class="social-links mt-3">
                           <a href="#" class="twitter"><i class="bi bi-twitter"></i></a>
                           <a href="https://www.facebook.com/people/Safar-AI/61570366034528/" class="facebook"><i class="bi bi-facebook"></i></a>
