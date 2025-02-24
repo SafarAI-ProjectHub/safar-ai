@@ -199,7 +199,7 @@
                     <div class="mb-3" id="video-content" style="display:none;">
                         <label for="video" class="form-label">Upload Video</label>
                         <input type="file" class="filepond" name="video" data-allow-reorder="true"
-                               data-max-file-size="100MB" data-max-files="1">
+                               data-max-file-size="200MB" data-max-files="1">
                     </div>
 
                     <!-- Youtube Content -->
@@ -380,7 +380,7 @@
                     <div class="mb-3" id="edit-video-content" style="display:none;">
                         <label for="edit-video" class="form-label">Upload Video</label>
                         <input id="edit-video" type="file" class="filepond" name="video" multiple
-                               data-allow-reorder="true" data-max-file-size="100MB" data-max-files="1">
+                               data-allow-reorder="true" data-max-file-size="200MB" data-max-files="1">
                     </div>
 
                     <!-- Edit: Youtube Content -->
@@ -451,7 +451,6 @@
             }
             return results;
         }
-
         // شكل سهم (تقريبي)
         function arrowPoints() {
             return [
@@ -464,7 +463,6 @@
                 { x: 0,  y: 40 }
             ];
         }
-
         // شكل ماسة
         function diamondPoints(w=80, h=80) {
             return [
@@ -474,7 +472,6 @@
                 { x: -w/2, y: 0}
             ];
         }
-
         // شبه منحرف
         function trapezoidPoints(topW=50, bottomW=100, h=60) {
             let halfTop = topW/2, halfBottom= bottomW/2;
@@ -485,7 +482,6 @@
                 { x: -halfBottom, y: h }
             ];
         }
-
         // زكزاك
         function zigzagPoints(steps=5, w=100, h=50) {
             let points = [];
@@ -539,11 +535,13 @@
                         url: '/courses/units/delete/' + unitId,
                         type: 'DELETE',
                         data: { _token: $('meta[name="csrf-token"]').attr('content') },
-                        success: function() {
+                        success: function(resp) {
+                            console.log("Delete success:", resp);
                             table.ajax.reload(null, false);
                             Swal.fire("Success", "Lesson deleted", "success");
                         },
                         error: function(xhr) {
+                            console.log("Delete error:", xhr.status, xhr.responseText, xhr.responseJSON);
                             Swal.fire("Error", "Error: " + xhr.responseText, "error");
                         }
                     });
@@ -553,13 +551,17 @@
             // 3) Show Script
             $('#units-table').on('click', '.show-script', function(){
                 var unitId = $(this).data('id');
-                $.get('/units/' + unitId + '/script', function(resp){
-                    $('#script').val(resp.script);
-                    $('#updateScriptForm').data('unit-id', unitId);
-                    $('#showScriptModal').modal('show');
-                }).fail(function(){
-                    showAlert('danger','Error fetching script','bx-error');
-                });
+                $.get('/units/' + unitId + '/script')
+                  .done(function(resp){
+                      console.log("Script fetched:", resp);
+                      $('#script').val(resp.script);
+                      $('#updateScriptForm').data('unit-id', unitId);
+                      $('#showScriptModal').modal('show');
+                  })
+                  .fail(function(xhr){
+                      console.log("Script fetch error:", xhr.status, xhr.responseText, xhr.responseJSON);
+                      showAlert('danger','Error fetching script','bx-error');
+                  });
             });
 
             // تحديث السكربت
@@ -571,12 +573,14 @@
                 let uid = $(this).data('unit-id');
                 $.post('/units/'+uid+'/script', $(this).serialize())
                   .done(function(resp){
+                      console.log("Script updated:", resp);
                       submitBtn.prop('disabled', false);
                       $('#showScriptModal').modal('hide');
                       showAlert('success', resp.success, 'bx-check');
                       table.ajax.reload();
                   })
-                  .fail(function(){
+                  .fail(function(xhr){
+                      console.log("Script update error:", xhr.status, xhr.responseText, xhr.responseJSON);
                       submitBtn.prop('disabled', false);
                       showAlert('danger','Error updating script','bx-error');
                   });
@@ -589,6 +593,7 @@
                     url: '/units/'+unitId,
                     method: 'GET',
                     success:function(resp){
+                        console.log("View lesson success:", resp);
                         let htmlContent = '';
                         htmlContent += '<h4>'+resp.title+'</h4>';
                         htmlContent += '<p><strong>Subtitle: </strong>'+ (resp.subtitle ? resp.subtitle : '') +'</p>';
@@ -604,7 +609,8 @@
                         $('#viewLessonBody').html(htmlContent);
                         $('#viewLessonModal').modal('show');
                     },
-                    error:function(err){
+                    error:function(xhr){
+                        console.log("View lesson error:", xhr.status, xhr.responseText, xhr.responseJSON);
                         Swal.fire("Error", "Cannot fetch lesson data", "error");
                     }
                 });
@@ -667,7 +673,6 @@
                 preserveObjectStacking:true
             });
             canvasAdd = canvas;
-
             // Double click => edit text
             canvasAdd.on('mouse:dblclick', function(opt){
                 if(opt.target && opt.target.type === 'textbox'){
@@ -683,7 +688,6 @@
                 canvasAdd.renderAll();
             });
 
-            // إضافة الأشكال
             $('#addShapeBtn').click(function(){
                 let shapeType = $('#shapeType').val();
                 let fill = $('#shapeFill').val();
@@ -737,8 +741,6 @@
                 let act = canvasAdd.getActiveObject();
                 if(act){ act.sendToBack(); canvasAdd.renderAll(); }
             });
-
-            // إضافة نص
             $('#addTextBtn').click(function(){
                 let txt = $('#textString').val() || 'New Text';
                 let color = $('#textColor').val();
@@ -747,25 +749,24 @@
                 canvasAdd.add(textbox).setActiveObject(textbox);
                 textbox.enterEditing();
             });
-
-            // Insert Design
             $('#insertDesignBtn').click(function(){
                 let dataURL = canvasAdd.toDataURL('image/png');
                 let range = quillAdd.getSelection(true);
-
                 $.ajax({
                     url: '/upload-canvas-image',
                     type: 'POST',
                     data: { imageBase64: dataURL },
                     headers: { 'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content') },
                     success: function(resp){
+                        console.log("Canvas image upload success:", resp);
                         quillAdd.insertEmbed(range.index, 'image', resp.url, Quill.sources.USER);
                         quillAdd.setSelection(range.index+1, Quill.sources.SILENT);
+                    },
+                    error: function(xhr){
+                        console.log("Canvas image upload error:", xhr.status, xhr.responseText, xhr.responseJSON);
                     }
                 });
             });
-
-            // Clear Canvas
             $('#clearCanvasBtn').click(function(){
                 canvasAdd.clear();
             });
@@ -776,13 +777,11 @@
                 preserveObjectStacking:true
             });
             canvasEdit = canvas2;
-
             canvasEdit.on('mouse:dblclick', function(opt){
                 if(opt.target && opt.target.type === 'textbox'){
                     opt.target.enterEditing();
                 }
             });
-
             $('#editApplySizeBtn').click(function(){
                 let w = parseInt($('#editDesignWidth').val()||'800');
                 let h = parseInt($('#editDesignHeight').val()||'400');
@@ -790,7 +789,6 @@
                 canvasEdit.setHeight(h);
                 canvasEdit.renderAll();
             });
-
             $('#editAddShapeBtn').click(function(){
                 let shapeType = $('#editShapeType').val();
                 let fill = $('#editShapeFill').val();
@@ -857,15 +855,18 @@
             $('#editInsertDesignBtn').click(function(){
                 let dataURL = canvasEdit.toDataURL('image/png');
                 let range = quillEdit.getSelection(true);
-
                 $.ajax({
                     url: '/upload-canvas-image',
                     type: 'POST',
                     data: { imageBase64: dataURL },
                     headers: { 'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content') },
                     success: function(resp){
+                        console.log("Edit canvas image upload success:", resp);
                         quillEdit.insertEmbed(range.index, 'image', resp.url, Quill.sources.USER);
                         quillEdit.setSelection(range.index+1, Quill.sources.SILENT);
+                    },
+                    error: function(xhr){
+                        console.log("Edit canvas image upload error:", xhr.status, xhr.responseText, xhr.responseJSON);
                     }
                 });
             });
@@ -927,7 +928,7 @@
                 // الفيديو
                 let file = pondAdd.getFile();
                 if(file){
-                    newFormData.append('video', file.file);
+                    newFormData.append('video', file?.file || '');
                 }
                 // محتوى quill
                 newFormData.append('content', quillAdd.root.innerHTML);
@@ -939,15 +940,28 @@
                     processData:false,
                     contentType:false,
                     success:function(resp){
+                        console.log("Add lesson success:", resp);
                         submitButton.prop('disabled', false);
                         $('#addUnitModal').modal('hide');
                         showAlert('success','Lesson added successfully','bx-check');
                         clearModal('#addUnitModal');
                         table.ajax.reload();
                     },
-                    error:function(resp){
+                    error:function(xhr){
+                        console.log("Add lesson error:", xhr.status, xhr.responseText, xhr.responseJSON);
                         submitButton.prop('disabled', false);
-                        showAlert('danger','Error adding lesson','bx-error');
+
+                        // في حال كانت أخطاء فاليديشن
+                        if(xhr.responseJSON && xhr.responseJSON.errors){
+                            console.log("Validation errors:", xhr.responseJSON.errors);
+                            let errorMsg = "";
+                            for(let field in xhr.responseJSON.errors){
+                                errorMsg += xhr.responseJSON.errors[field].join("<br>") + "<br>";
+                            }
+                            showAlert('danger', errorMsg, 'bx-error');
+                        } else {
+                            showAlert('danger','Error adding lesson','bx-error');
+                        }
                     }
                 });
             });
@@ -968,7 +982,7 @@
                 }
                 let file2= pondEdit.getFile();
                 if(file2){
-                    newFormData.append('video', file2.file);
+                    newFormData.append('video', file2?.file || '');
                 }
                 // quill
                 newFormData.append('content', quillEdit.root.innerHTML);
@@ -981,15 +995,28 @@
                     processData:false,
                     contentType:false,
                     success:function(resp){
+                        console.log("Edit lesson success:", resp);
                         submitButton.prop('disabled', false);
                         $('#editUnitModal').modal('hide');
                         showAlert('success','Lesson updated successfully','bx-check');
                         clearModal('#editUnitModal');
                         table.ajax.reload();
                     },
-                    error:function(resp){
+                    error:function(xhr){
+                        console.log("Edit lesson error:", xhr.status, xhr.responseText, xhr.responseJSON);
                         submitButton.prop('disabled', false);
-                        showAlert('danger','Error updating lesson','bx-error');
+
+                        // في حال كانت أخطاء فاليديشن
+                        if(xhr.responseJSON && xhr.responseJSON.errors){
+                            console.log("Validation errors:", xhr.responseJSON.errors);
+                            let errorMsg = "";
+                            for(let field in xhr.responseJSON.errors){
+                                errorMsg += xhr.responseJSON.errors[field].join("<br>") + "<br>";
+                            }
+                            showAlert('danger', errorMsg, 'bx-error');
+                        } else {
+                            showAlert('danger','Error updating lesson','bx-error');
+                        }
                     }
                 });
             });
@@ -1001,6 +1028,7 @@
                     url:'/units/'+unitId+'/edit',
                     method:'GET',
                     success:function(data){
+                        console.log("Edit fetch success:", data);
                         $('#edit-unit-id').val(data.id);
                         $('#edit-title').val(data.title);
                         $('#edit-subtitle').val(data.subtitle);
@@ -1013,6 +1041,10 @@
                         }
                         // اذا فيديو => رفع جديد لو أراد
                         $('#editUnitModal').modal('show');
+                    },
+                    error:function(xhr){
+                        console.log("Edit fetch error:", xhr.status, xhr.responseText, xhr.responseJSON);
+                        Swal.fire("Error", "Cannot fetch lesson data", "error");
                     }
                 });
             });
