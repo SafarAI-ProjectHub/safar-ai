@@ -25,13 +25,16 @@
         .lesson-wrapper {
             width: 100%;
             max-width: 100%;
-            height: 130vh;
+            height: auto;
+            min-height: calc(100vh + 155px);    
             margin: 2rem auto;
             background-color: #fff;
             border-radius: 10px;
             box-shadow: none;
             position: relative;
             padding: 2rem;
+            overflow: hidden;
+            padding-bottom: 155px;
         }
 
         @if($stage === 'lesson_details')

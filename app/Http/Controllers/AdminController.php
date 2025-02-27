@@ -597,7 +597,7 @@ class AdminController extends Controller
             'subtitle'     => 'nullable|string|max:255',
             'content_type' => 'required|in:video,text,youtube',
             'content'      => 'required_if:content_type,text',
-            'video'        => 'nullable|file|mimes:mp4,mov,ogg,qt|max:20000',
+            'video' => 'required_if:content_type,video|file|mimes:mp4,mov,ogg,qt,webm|max:204800',
             'youtube'      => 'nullable|string',
         ]);
 
@@ -675,7 +675,7 @@ class AdminController extends Controller
             'subtitle'     => 'nullable|string|max:255',
             'content_type' => 'required|in:video,text,youtube',
             'content'      => 'required_if:content_type,text,youtube',
-            'video'        => 'nullable|file|mimes:mp4,mov,ogg,qt|max:20000',
+            'video'        => 'nullable|file|mimes:mp4,mov,ogg,qt|max:204800',
         ]);
 
         $unit = Unit::findOrFail($id);
@@ -1003,9 +1003,26 @@ class AdminController extends Controller
      */
     private function extractVideoId($url)
     {
-        parse_str(parse_url($url, PHP_URL_QUERY), $queryParams);
-        return $queryParams['v'] ?? null;
+        $parsed = parse_url($url);
+    
+        // 1) لو الرابط فيه query فيها v=...
+        parse_str($parsed['query'] ?? '', $query);
+        if (isset($query['v'])) {
+            return $query['v'];
+        }
+    
+        // 2) لو الرابط على شكل youtu.be/xxxxxxxx
+        // نأخذ آخر جزء من الـpath
+        if (strpos($parsed['host'] ?? '', 'youtu.be') !== false) {
+            // قد يكون path = /7p5jQwzCf0Y
+            // نزيل الـ '/' إن وجد
+            $path = trim($parsed['path'] ?? '', '/');
+            return $path; 
+        }
+    
+        return null; // فشل
     }
+    
 
     private function checkUrl($videoId)
     {
