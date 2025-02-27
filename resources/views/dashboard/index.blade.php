@@ -262,9 +262,11 @@
                                 Geographic Distribution
                             </h6>
                         </div>
-
                     </div>
+                    
                 </div>
+
+            
                 <div class="card-body">
                     <div class="row">
                         <div class="col-lg-7 col-xl-8 border-end">
@@ -296,7 +298,7 @@
 
         <div class="col-12 col-lg-5 col-xl-4 d-flex">
             <div class="card w-100 radius-10">
-                <div class="card-body">
+                <div class="card-body">            
                     <div class="card radius-10 border shadow-none mt-4">
                         <div class="card-body">
                             <div class="d-flex align-items-center">
@@ -307,6 +309,7 @@
                                     <h4 class="my-1">
                                         {{ $data['total_courses'] }}
                                     </h4>
+                                    
                                     <p class="mb-0 font-13">
                                         +{{ number_format($data['wow_enrolled_users'], 2) }}%
                                         from
@@ -366,7 +369,8 @@
                 </div>
             </div>
         </div>
-    </div><!--end row-->
+    </div>
+    <!--end row-->
 
     <div class="row row-cols-1 row-cols-lg-12">
 
