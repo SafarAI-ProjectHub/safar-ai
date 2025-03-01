@@ -28,6 +28,21 @@ class AuthenticatedSessionController extends Controller
 
         $request->session()->regenerate();
 
+        // التحقق من حالة الحساب بعد تسجيل الدخول
+        if (Auth::user()->status === 'pending') {
+            Auth::logout();
+            return redirect()->route('login')->withErrors([
+                'email' => 'Your account is pending. You cannot log in yet.',
+            ]);
+        }
+
+        if (Auth::user()->status === 'inactive') {
+            Auth::logout();
+            return redirect()->route('login')->withErrors([
+                'email' => 'Your account is inactive. Please contact support.',
+            ]);
+        }
+
         return $this->authenticated($request, Auth::user());
     }
 
