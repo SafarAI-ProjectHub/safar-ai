@@ -12,20 +12,19 @@ class ContactController extends Controller
     {
         // Validate the request
         $request->validate([
-            'name' => 'required|string|max:255',
-            'email' => 'required|email|max:255',
+            'name'    => 'required|string|max:255',
+            'email'   => 'required|email|max:255',
             'subject' => 'required|string|max:255',
             'message' => 'required|string',
         ]);
 
         // Create a new contact form entry
         ContactForm::create([
-            'name' => $request->input('name'),
-            'email' => $request->input('email'),
+            'name'    => $request->input('name'),
+            'email'   => $request->input('email'),
             'subject' => $request->input('subject'),
             'message' => $request->input('message'),
         ]);
-
 
         return response('OK', 200);
     }
@@ -41,26 +40,35 @@ class ContactController extends Controller
         $contactForms = ContactForm::query()->orderBy('created_at', 'DESC');
 
         if ($request->has('resolved') && $request->resolved == 'all') {
-            $contactForms;
+            // لا نضيف شرط
         } elseif ($request->has('resolved')) {
             $contactForms->where('resolved', $request->resolved);
         }
 
         return DataTables::of($contactForms)
             ->addColumn('action', function ($contactForm) {
-                if ($contactForm->resolved)
-                    return '<dev class="btn-group d-flex justify-content-around">
-                         
-                        <button class="btn btn-danger btn-sm delete-contact" data-id="' . $contactForm->id . '">Delete</button>
-                    </dev>
+                if ($contactForm->resolved) {
+                    return '
+                        <div class="btn-group d-flex justify-content-around">
+                            <button class="btn btn-danger btn-sm delete-contact" data-id="' . $contactForm->id . '">
+                                Delete
+                            </button>
+                        </div>
                     ';
-                else {
-                    return '<dev class="btn-group d-flex justify-content-around">
-                    <a href="mailto:' . $contactForm->email . '?subject=Re:' . $contactForm->subject . '" class="btn btn-primary btn-sm">Respond</a>
-                    <button class="btn btn-success btn-sm handle-contact" data-id="' . $contactForm->id . '">Mark as Resolved</button>
-                    <button class="btn btn-danger btn-sm delete-contact" data-id="' . $contactForm->id . '">Delete</button>
-                    </dev>
-                ';
+                } else {
+                    return '
+                        <div class="btn-group d-flex justify-content-around">
+                            <a href="mailto:' . $contactForm->email . '?subject=Re:' . $contactForm->subject . '" class="btn btn-primary btn-sm">
+                                Respond
+                            </a>
+                            <button class="btn btn-success btn-sm handle-contact" data-id="' . $contactForm->id . '">
+                                Mark as Resolved
+                            </button>
+                            <button class="btn btn-danger btn-sm delete-contact" data-id="' . $contactForm->id . '">
+                                Delete
+                            </button>
+                        </div>
+                    ';
                 }
             })
             ->make(true);
@@ -68,11 +76,11 @@ class ContactController extends Controller
 
     public function markAsResolved($id)
     {
-        if (!ContactForm::find($id)) {
+        $contactForm = ContactForm::find($id);
+        if (!$contactForm) {
             return response()->json(['message' => 'Contact form not found.'], 404);
         }
 
-        $contactForm = ContactForm::findOrFail($id);
         $contactForm->resolved = true;
         $contactForm->save();
 
@@ -81,11 +89,12 @@ class ContactController extends Controller
 
     public function destroy($id)
     {
-        if (!ContactForm::find($id)) {
+        $contactForm = ContactForm::find($id);
+        if (!$contactForm) {
             return response()->json(['message' => 'Contact form not found.'], 404);
         }
 
-        ContactForm::destroy($id);
+        $contactForm->delete();
         return response()->json(['message' => 'Contact form deleted.'], 200);
     }
 }

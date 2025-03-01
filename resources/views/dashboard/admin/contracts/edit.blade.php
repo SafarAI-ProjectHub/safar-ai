@@ -1,14 +1,16 @@
 @extends('layouts_dashboard.main')
 
 @section('styles')
+    {{-- الروابط الافتراضية لـChatify: تحوي ملفات الـCSS الخاصة بعرض المحادثة --}}
+    @include('Chatify::layouts.headLinks')
+
     <style>
         .chat-container {
             margin-top: 20px;
             border: 1px solid #ddd;
             padding: 20px;
             background-color: #fff;
-            height: 500px;
-            /* Adjust height as needed */
+            height: 500px; /* يمكنك ضبط الارتفاع حسب الحاجة */
         }
 
         .chat-header {
@@ -21,7 +23,6 @@
 
         .chat-body {
             height: calc(100% - 60px);
-            /* Adjust according to header/footer height */
             overflow-y: auto;
         }
 
@@ -31,8 +32,14 @@
         }
 
         .wrapper {
-
             z-index: 15;
+        }
+
+        /* إصلاح عرض الصور في منطقة الشات */
+        .chat-container img {
+            max-width: 100%;
+            height: auto;
+            display: block;
         }
     </style>
 @endsection
@@ -50,11 +57,10 @@
             <hr class="border border-primary border-3 opacity-75">
 
             <h3>Notes</h3> <!-- Notes for the admins -->
-            <p>1. You have <a href="#chat">a chat</a> option below to discuss the contract with the teacher. You can edit
-                the contract
-                based on these discussions.</p>
-            <p>2. The teacher will be able to download the contract after signing it. Please ensure not to edit the
-                contract unless you have discussed the changes with the teacher to avoid any confusion.</p>
+            <p>1. You have <a href="#chat">a chat</a> option below to discuss the contract with the teacher.
+               You can edit the contract based on these discussions.</p>
+            <p>2. The teacher will be able to download the contract after signing it. Please ensure not to edit
+               the contract unless you have discussed the changes with the teacher to avoid any confusion.</p>
         </div>
     </div>
     <div class="card p-3">
@@ -65,23 +71,27 @@
                 @csrf
                 @method('PUT')
                 <input type="hidden" name="contract_id" value="{{ $contract->id }}">
+
                 <div class="mb-3">
                     <label for="other_party_name" class="form-label">Teacher Name</label>
                     <input type="text" class="form-control" name="other_party_name"
-                        value="{{ $contract->other_party_name }}" required>
+                           value="{{ $contract->other_party_name }}" required>
                 </div>
                 <div class="mb-3">
                     <label for="salary" class="form-label">Salary</label>
-                    <input type="number" class="form-control" name="salary" value="{{ $contract->salary }}" required>
+                    <input type="number" class="form-control" name="salary"
+                           value="{{ $contract->salary }}" required>
                 </div>
                 <div class="mb-3">
                     <label for="salary_period" class="form-label">Salary Period</label>
                     <select name="salary_period" class="form-control" required>
-                        <option value="hour" {{ $contract->salary_period == 'hour' ? 'selected' : '' }}>Hour</option>
-                        <option value="week" {{ $contract->salary_period == 'week' ? 'selected' : '' }}>Week</option>
+                        <option value="hour"  {{ $contract->salary_period == 'hour'  ? 'selected' : '' }}>Hour</option>
+                        <option value="week"  {{ $contract->salary_period == 'week'  ? 'selected' : '' }}>Week</option>
                         <option value="month" {{ $contract->salary_period == 'month' ? 'selected' : '' }}>Month</option>
                     </select>
                 </div>
+
+                {{-- مثال على الحقول القابلة للتحرير باستخدام محرر Quill --}}
                 <div class="mb-3">
                     <label for="contract_agreement" class="form-label">Contract Agreement</label>
                     <div id="contract_agreement_editor" class="editor">{!! $contract->contract_agreement !!}</div>
@@ -112,31 +122,40 @@
                     <div id="legal_terms_editor" class="editor">{!! $contract->legal_terms !!}</div>
                     <textarea name="legal_terms" class="form-control d-none"></textarea>
                 </div>
+
                 <button type="submit" class="btn btn-primary mb-3">Update Contract</button>
             </form>
         </div>
     </div>
+
     <input type="hidden" id="contract_id" value="{{ $contract->id }}">
 
     <div class="chat-container" id="chat">
+        {{-- تضمين صفحة المحادثة من حزمة Chatify --}}
         @include('Chatify::pages.app')
     </div>
 @endsection
 
 @section('scripts')
+    {{-- روابط الجافاسكربت الخاصة بـChatify --}}
+    @include('Chatify::layouts.footerLinks')
+
     <link href="https://cdn.quilljs.com/1.3.6/quill.snow.css" rel="stylesheet">
     <script src="https://cdn.quilljs.com/1.3.6/quill.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@10"></script>
+
     <script>
         $(document).ready(function() {
-            username = getMessengerId();
+            // عرض اسم المعلّم أو المستخدم في واجهة الشات
             @php
                 $username = $contract->teacher->full_name;
-                $userImage = asset($contract->teacher->profile_image ? $contract->teacher->profile_image : asset('assets/images/avatars/profile-Img.png'));
-
+                $userImage = asset($contract->teacher->profile_image
+                            ? $contract->teacher->profile_image
+                            : 'assets/images/avatars/profile-Img.png');
             @endphp
+
             $('.name-user').text('{{ $username }}');
-            // class="avatar av-s header-avatar"
+
             var editors = {};
             $('.editor').each(function() {
                 var editorId = $(this).attr('id');
@@ -144,42 +163,25 @@
                     theme: 'snow',
                     modules: {
                         toolbar: [
-                            [{
-                                'font': []
-                            }],
-                            [{
-                                'size': ['small', false, 'large', 'huge']
-                            }],
-                            [{
-                                'header': [1, 2, 3, 4, 5, 6, false]
-                            }],
+                            [{'font': []}],
+                            [{'size': ['small', false, 'large', 'huge']}],
+                            [{'header': [1, 2, 3, 4, 5, 6, false]}],
                             ['bold', 'italic', 'underline', 'strike'],
-                            [{
-                                'align': []
-                            }],
-                            [{
-                                'list': 'ordered'
-                            }, {
-                                'list': 'bullet'
-                            }],
-                            [{
-                                'indent': '-1'
-                            }, {
-                                'indent': '+1'
-                            }],
-                            [{
-                                'color': []
-                            }, {
-                                'background': []
-                            }],
+                            [{'align': []}],
+                            [{'list': 'ordered'}, {'list': 'bullet'}],
+                            [{'indent': '-1'}, {'indent': '+1'}],
+                            [{'color': []}, {'background': []}],
                             ['link'],
                             ['clean']
                         ]
                     }
                 });
             });
+
             $('#edit-contract-form').on('submit', function(e) {
                 e.preventDefault();
+
+                // ننسخ محتوى كل Quill Editor في الـ<textarea> المرتبطة به
                 $('.editor').each(function() {
                     var editorId = $(this).attr('id');
                     var htmlContent = editors[editorId].root.innerHTML;
@@ -192,31 +194,30 @@
                     method: 'PUT',
                     data: $(this).serialize(),
                     success: function(response) {
-                        // alert('Contract updated successfully.');
-                        swal.fire({
+                        Swal.fire({
                             title: 'Success!',
                             text: 'Contract updated successfully.',
                             icon: 'success',
                             confirmButtonText: 'OK'
+                        }).then(() => {
+                            window.location.href = '{{ route('contracts.index') }}';
                         });
-                        window.location.href = '{{ route('contracts.index') }}';
                     },
                     error: function(response) {
-                        // alert('Error updating contract.');
                         if (response.responseJSON.errors) {
                             var errors = response.responseJSON.errors;
                             var errorMessage = '';
                             for (var key in errors) {
                                 errorMessage += errors[key][0] + '\n';
                             }
-                            swal.fire({
+                            Swal.fire({
                                 title: 'Error!',
                                 text: errorMessage,
                                 icon: 'error',
                                 confirmButtonText: 'OK'
                             });
                         } else {
-                            swal.fire({
+                            Swal.fire({
                                 title: 'Error!',
                                 text: 'Error updating contract.',
                                 icon: 'error',
@@ -227,19 +228,21 @@
                 });
             });
 
+            // تعيين هوية المرسل/المستلم للدردشة
             setMessengerId({{ $contract->teacher->id }});
             console.log('Teacher ID: ' + getMessengerId());
 
-            // Fetch messages on page load
+            // جلب الرسائل عند تحميل الصفحة
             fetchMessages(getMessengerId(), true);
 
-            // Send message form submission
+            // إرسال رسالة عند الضغط على زر الإرسال
             $("#message-form").on("submit", (e) => {
                 e.preventDefault();
                 sendMessage();
             });
         });
-        // set interval and fetch messages
+
+        // تحديث الرسائل كل 5 ثوانٍ
         setInterval(() => {
             fetchMessages();
         }, 5000);
