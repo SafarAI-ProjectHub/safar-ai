@@ -95,9 +95,11 @@ class AdminController extends Controller
         ]);
 
         if ($validator->fails()) {
+            // نعيد رد JSON ليتماشى مع الـAJAX
             return response()->json(['errors' => $validator->errors()], 422);
         }
 
+        // إنشاء المستخدم + Role=Admin
         $user = User::create([
             'first_name'       => $request->first_name,
             'last_name'        => $request->last_name,
@@ -106,12 +108,13 @@ class AdminController extends Controller
             'date_of_birth'    => $request->date_of_birth,
             'password'         => Hash::make($request->password),
             'country_location' => $request->country_location,
-            'status'           => 'active', // يمكنك تغييره حسب الحاجة
+            'status'           => 'active',
         ]);
 
         $user->assignRole('Admin');
 
-        return response()->json(['message' => 'Admin created successfully']);
+        // نرسل JSON يضم الرسالة
+        return response()->json(['message' => 'Admin created successfully!']);
     }
 
     public function editAdmin($id)
@@ -410,11 +413,11 @@ class AdminController extends Controller
                 ->addColumn('actions', function ($row) {
                     $actions = '';
                     if (Auth::user()->hasAnyRole(['Super Admin', 'Admin'])) {
-                        $assignButton      = '<a href="#" class="btn btn-primary btn-sm assign-teacher-btn" data-course-id="' . $row->id . '"><i class="bx bx-user-plus"></i> ' . ($row->teacher ? 'Change Teacher' : 'Assign Teacher') . '</a>';
-                        $showUnitsButton   = '<a href="' . url('courses') . '/' . $row->id . '/units" class="btn btn-primary btn-sm"><i class="bx bx-show-alt"></i> Show Lessons</a>';
-                        $viewCourseButton  = '<a href="' . url('courses') . '/' . $row->id . '/show" class="btn btn-primary btn-sm"><i class="bx bx-detail"></i> View Unit</a>';
-                        $deleteCourseButton= '<a class="btn btn-sm btn-outline-dark btn-danger delete-btn p-2" data-id="' . $row->id . '"><i class="bx bx-trash"></i>Delete</a>';
-                        $editCourseButton  = '<button class="btn btn-secondary btn-sm edit-btn" data-id="' . $row->id . '"><i class="bx bx-edit"></i>Edit</button>';
+                        $assignButton       = '<a href="#" class="btn btn-primary btn-sm assign-teacher-btn" data-course-id="' . $row->id . '"><i class="bx bx-user-plus"></i> ' . ($row->teacher ? 'Change Teacher' : 'Assign Teacher') . '</a>';
+                        $showUnitsButton    = '<a href="' . url('courses') . '/' . $row->id . '/units" class="btn btn-primary btn-sm"><i class="bx bx-show-alt"></i> Show Lessons</a>';
+                        $viewCourseButton   = '<a href="' . url('courses') . '/' . $row->id . '/show" class="btn btn-primary btn-sm"><i class="bx bx-detail"></i> View Unit</a>';
+                        $deleteCourseButton = '<a class="btn btn-sm btn-outline-dark btn-danger delete-btn p-2" data-id="' . $row->id . '"><i class="bx bx-trash"></i>Delete</a>';
+                        $editCourseButton   = '<button class="btn btn-secondary btn-sm edit-btn" data-id="' . $row->id . '"><i class="bx bx-edit"></i>Edit</button>';
 
                         $actions = '<div class="d-flex justify-content-around gap-2">' 
                                 . $assignButton 
@@ -486,14 +489,14 @@ class AdminController extends Controller
         return response()->json(['success' => 'Course added successfully']);
     }
 
-    // جلب بيانات الوحدة (الدورة) لتحريرها (AJAX)
+    // جلب بيانات الدورة لتحريرها
     public function editCourse($id)
     {
         $course = Course::findOrFail($id);
         return response()->json($course);
     }
 
-    // تحديث بيانات الوحدة (الدورة)
+    // تحديث بيانات الدورة
     public function updateCourse(Request $request, $id)
     {
         $course = Course::findOrFail($id);
@@ -599,7 +602,7 @@ class AdminController extends Controller
         return view('dashboard.admin.units', compact('course'));
     }
 
-    // (Add) Lesson
+    // إضافة درس (Unit)
     public function storeUnit(Request $request)
     {
         \Log::info('Store Unit Request:', $request->all());
@@ -645,7 +648,7 @@ class AdminController extends Controller
         return response()->json(['success' => 'Lesson added successfully']);
     }
 
-    // (Read) for DataTables
+    // جلب الوحدات (الدروس) عبر DataTables
     public function getUnits($courseId)
     {
         $units = Unit::where('course_id', $courseId)
@@ -666,21 +669,21 @@ class AdminController extends Controller
             ->make(true);
     }
 
-    // (Show single lesson) - AJAX
+    // عرض درس واحد - للعرض في المودال
     public function showUnit($id)
     {
         $unit = Unit::findOrFail($id);
         return response()->json($unit);
     }
 
-    // (Edit) - AJAX Get
+    // جلب البيانات للتحرير
     public function editUnit($id)
     {
         $unit = Unit::findOrFail($id);
         return response()->json($unit);
     }
 
-    // (Update) Lesson
+    // تحديث بيانات الدرس (Unit)
     public function updateUnit(Request $request, $id)
     {
         $request->validate([
@@ -699,11 +702,11 @@ class AdminController extends Controller
         if ($request->content_type == 'text') {
             $unit->content = $request->content;
         } elseif ($request->content_type == 'video' && $request->hasFile('video')) {
-            // حذف القديم إن وجد
+            // حذف الفيديو القديم إن وجد
             if ($unit->content && Storage::disk('public')->exists(str_replace('storage/', '', $unit->content))) {
                 Storage::disk('public')->delete(str_replace('storage/', '', $unit->content));
             }
-            // رفع الجديد
+            // رفع الفيديو الجديد
             $file = $request->file('video');
             $filename = uniqid() . '.' . $file->getClientOriginalExtension();
             $path = $file->storeAs('uploads', $filename, 'public');
@@ -720,20 +723,20 @@ class AdminController extends Controller
 
         $unit->save();
 
-        // إعادة معالجة بالـ AI
+        // إعادة معالجته بالـ AI
         ProcessUnitAI::dispatch($unit->id, $this->videoToAudioService);
 
         return response()->json(['success' => 'Lesson updated successfully']);
     }
 
-    // (Delete) Lesson
+    // حذف درس (Unit) بكافة الارتباطات
     public function destroyUnit(Request $request, $id)
     {
         try {
             $unit = Unit::with(['quizzes.assessments'])->findOrFail($id);
             $unitsIds = [$unit->id];
 
-            // حذف أي Quiz/Assessments تابعة
+            // حذف الـQuiz/Assessments التابعة
             foreach ($unit->quizzes as $quiz) {
                 foreach ($quiz->assessments as $assessment) {
                     foreach ($assessment->userResponses as $response) {
@@ -753,7 +756,7 @@ class AdminController extends Controller
         }
     }
 
-    // get and update script
+    // جلب وتحديث نص الـScript
     public function getScript($id)
     {
         $unit = Unit::findOrFail($id);
