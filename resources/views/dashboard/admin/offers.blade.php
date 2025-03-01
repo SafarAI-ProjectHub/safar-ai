@@ -3,6 +3,10 @@
 @section('styles')
     <link href="https://unpkg.com/filepond/dist/filepond.css" rel="stylesheet">
     <link href="{{ asset('assets/plugins/select2/css/select2.min.css') }}" rel="stylesheet" />
+
+    {{-- إضافة رابط مكتبة SweetAlert2 CSS إن لم تكن مضافة مسبقًا --}}
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/sweetalert2@11/dist/sweetalert2.min.css">
+
     <style>
         .modal-body {
             max-height: calc(100vh - 200px);
@@ -187,42 +191,34 @@
 @endsection
 
 @section('scripts')
+    {{-- مكتبة SweetAlert2 JS إن لم تكن مضافة مسبقًا --}}
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+
     <script src="https://unpkg.com/filepond/dist/filepond.js"></script>
     <script src="https://unpkg.com/filepond-plugin-file-validate-size/dist/filepond-plugin-file-validate-size.js"></script>
     <script src="https://unpkg.com/filepond-plugin-image-preview/dist/filepond-plugin-image-preview.js"></script>
     <script src="https://unpkg.com/filepond-plugin-file-validate-type/dist/filepond-plugin-file-validate-type.js"></script>
     <script src="{{ asset('assets/plugins/select2/js/select2.min.js') }}"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/moment.js/2.29.1/moment.min.js"></script>
+
     <script>
         $(document).ready(function() {
             var table = $('#offers-table').DataTable({
                 processing: true,
                 serverSide: true,
                 ajax: '{{ route('offers.index') }}',
-                columns: [{
-                        data: 'name',
-                        name: 'name'
-                    },
-                    {
-                        data: 'title',
-                        name: 'title'
-                    },
+                columns: [
+                    { data: 'name', name: 'name' },
+                    { data: 'title', name: 'title' },
                     {
                         data: 'description',
                         name: 'description',
-                        render: function(data, type, row) {
-
+                        render: function(data) {
                             return data.length > 50 ? data.substr(0, 50) + '...' : data;
                         }
                     },
-                    {
-                        data: 'action_type',
-                        name: 'action_type'
-                    },
-                    {
-                        data: 'action_value',
-                        name: 'action_value'
-                    },
+                    { data: 'action_type', name: 'action_type' },
+                    { data: 'action_value', name: 'action_value' },
                     {
                         data: 'is_active',
                         name: 'is_active',
@@ -237,7 +233,7 @@
                     {
                         data: 'start_date',
                         name: 'start_date',
-                        render: function(data, type, row) {
+                        render: function(data) {
                             if (data === null) {
                                 return 'No start date';
                             }
@@ -247,24 +243,16 @@
                     {
                         data: 'end_date',
                         name: 'end_date',
-                        render: function(data, type, row) {
+                        render: function(data) {
                             if (data === null) {
                                 return 'No end date';
                             }
                             return moment(data).format('YYYY-MM-DD');
                         }
                     },
-                    {
-                        data: 'actions',
-                        name: 'actions',
-                        orderable: false,
-                        searchable: false
-                    }
+                    { data: 'actions', name: 'actions', orderable: false, searchable: false }
                 ]
             });
-
-            // Initialize tooltips
-            $('[data-toggle="tooltip"]').tooltip();
 
             // Initialize FilePond
             FilePond.registerPlugin(FilePondPluginFileValidateSize, FilePondPluginFileValidateType);
@@ -281,21 +269,42 @@
                 fileValidateTypeLabelExpectedTypes: 'Expected file type: Image'
             });
 
+            // دالة عرض SweetAlert (نجاح أو خطأ) بشكل مبسط
+            function showAlertS(type, message) {
+                let icon = (type === 'success') ? 'success' : 'error';
+                Swal.fire({
+                    icon: icon,
+                    title: (type.charAt(0).toUpperCase() + type.slice(1)),
+                    text: message,
+                    showConfirmButton: false,
+                    timer: 3000
+                });
+            }
 
-            // Validate dates
+            // Validate dates (لا يزال تنبيه عادي، بالإمكان تحويله لسويت أليرت لو أردت)
             function validateDates(startDateInput, endDateInput) {
                 var startDate = moment(startDateInput.val());
                 var endDate = moment(endDateInput.val());
                 var today = moment().startOf('day');
 
                 if (startDate.isBefore(today)) {
-                    alert('Start date must be at least today.');
+                    Swal.fire({
+                        icon: 'warning',
+                        title: 'Invalid Date',
+                        text: 'Start date must be at least today.',
+                        confirmButtonText: 'OK'
+                    });
                     startDateInput.val('');
                     return false;
                 }
 
                 if (endDate.isValid() && endDate.isSameOrBefore(startDate)) {
-                    alert('End date must be at least one day after the start date.');
+                    Swal.fire({
+                        icon: 'warning',
+                        title: 'Invalid Date',
+                        text: 'End date must be at least one day after the start date.',
+                        confirmButtonText: 'OK'
+                    });
                     endDateInput.val(startDate.add(1, 'days').format('YYYY-MM-DD'));
                     return false;
                 }
@@ -306,32 +315,43 @@
             // Attach date validation
             $('#start_date, #edit_start_date').on('change', function() {
                 var startDateInput = $(this);
-                var endDateInput = startDateInput.attr('id') === 'start_date' ? $('#end_date') : $(
-                    '#edit_end_date');
+                var endDateInput = (startDateInput.attr('id') === 'start_date')
+                    ? $('#end_date')
+                    : $('#edit_end_date');
                 validateDates(startDateInput, endDateInput);
             });
 
             $('#end_date, #edit_end_date').on('change', function() {
                 var endDateInput = $(this);
-                var startDateInput = endDateInput.attr('id') === 'end_date' ? $('#start_date') : $(
-                    '#edit_start_date');
+                var startDateInput = (endDateInput.attr('id') === 'end_date')
+                    ? $('#start_date')
+                    : $('#edit_start_date');
                 validateDates(startDateInput, endDateInput);
             });
+
             // Handle add offer form submission
             $('#addOfferForm').on('submit', function(e) {
                 e.preventDefault();
                 var formData = new FormData(this);
                 var newform = new FormData();
+
                 formData.forEach((value, key) => {
                     if (key !== 'background_image') {
                         newform.append(key, value);
                     }
                 });
+
+                // التحقق من رفع صورة
                 if (createpond.getFiles().length > 0) {
                     var file = createpond.getFile().file;
                     newform.append('background_image', file);
                 } else {
-                    alert('Please select a background image');
+                    Swal.fire({
+                        icon: 'warning',
+                        title: 'No Image Selected',
+                        text: 'Please select a background image.',
+                        confirmButtonText: 'OK'
+                    });
                     return;
                 }
 
@@ -341,14 +361,18 @@
                     data: newform,
                     processData: false,
                     contentType: false,
-                    success: function(response) {
+                    success: function() {
                         $('#addOfferModal').modal('hide');
                         table.ajax.reload();
-                        showAlertS('success', 'Offer added successfully!', 'bxs-check-circle');
+                        showAlertS('success', 'Offer added successfully!');
                     },
-                    error: function(response) {
-                        showAlertS('danger', 'Error : '.response.message,
-                            'bxs-message-square-x');
+                    error: function(xhr) {
+                        $('#addOfferModal').modal('hide');
+                        if (xhr.responseJSON && xhr.responseJSON.message) {
+                            showAlertS('danger', 'Error: ' + xhr.responseJSON.message);
+                        } else {
+                            showAlertS('danger', 'Error adding offer');
+                        }
                     }
                 });
             });
@@ -367,9 +391,8 @@
                         $('#edit_action_type').val(response.action_type);
                         $('#edit_action_value').val(response.action_value);
                         $('#edit_is_active').prop('checked', response.is_active);
-                        $('#edit_start_date').val(moment(response.start_date).format(
-                            'YYYY-MM-DD'));
-                        $('#edit_end_date').val(moment(response.end_date).format('YYYY-MM-DD'));
+                        $('#edit_start_date').val(response.start_date ? moment(response.start_date).format('YYYY-MM-DD') : '');
+                        $('#edit_end_date').val(response.end_date ? moment(response.end_date).format('YYYY-MM-DD') : '');
                         $('#edit_alignment').val(response.alignment);
                         $('#editOfferModal').modal('show');
                     }
@@ -388,33 +411,31 @@
                         newform.append(key, value);
                     }
                 });
+
+                // في حال تم رفع صورة جديدة
                 if (editpond.getFiles().length > 0) {
                     var file = editpond.getFile().file;
                     newform.append('background_image', file);
                 }
 
-                newform.append('_token', $('meta[name="csrf-token"]').attr('content'));
-
                 $.ajax({
                     url: '/admin/offers/' + id + '/update',
                     method: 'POST',
                     data: newform,
-                    ajaxSetup: {
-                        headers: {
-                            'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
-                        }
-                    },
                     processData: false,
                     contentType: false,
-                    success: function(response) {
+                    success: function() {
                         $('#editOfferModal').modal('hide');
                         table.ajax.reload();
-                        showAlertS('success', 'Offer updated successfully!',
-                            'bxs-check-circle');
+                        showAlertS('success', 'Offer updated successfully!');
                     },
-                    error: function(response) {
-                        showAlertS('danger', 'Error :'.response.message,
-                            'bxs-message-square-x');
+                    error: function(xhr) {
+                        $('#editOfferModal').modal('hide');
+                        if (xhr.responseJSON && xhr.responseJSON.message) {
+                            showAlertS('danger', 'Error: ' + xhr.responseJSON.message);
+                        } else {
+                            showAlertS('danger', 'Error updating offer');
+                        }
                     }
                 });
             });
@@ -422,24 +443,35 @@
             // Handle delete offer button click
             $('#offers-table').on('click', '.delete-offer', function() {
                 var id = $(this).data('id');
-                if (confirm('Are you sure you want to delete this offer?')) {
-                    $.ajax({
-                        url: '/admin/offers/' + id,
-                        method: 'DELETE',
-                        data: {
-                            _token: '{{ csrf_token() }}'
-                        },
-                        success: function(response) {
-                            table.ajax.reload();
-                            showAlertS('success', 'Offer deleted successfully!',
-                                'bxs-check-circle');
-                        },
-                        error: function(response) {
-                            showAlertS('danger', 'Error deleting offer',
-                                'bxs-message-square-x');
-                        }
-                    });
-                }
+
+                // استخدام SweetAlert2 للتأكيد
+                Swal.fire({
+                    title: 'Are you sure?',
+                    text: 'You will not be able to recover this offer!',
+                    icon: 'warning',
+                    showCancelButton: true,
+                    confirmButtonColor: '#d33',
+                    cancelButtonColor: '#3085d6',
+                    confirmButtonText: 'Yes, delete it!',
+                    cancelButtonText: 'Cancel'
+                }).then((result) => {
+                    if (result.isConfirmed) {
+                        $.ajax({
+                            url: '/admin/offers/' + id,
+                            method: 'DELETE',
+                            data: {
+                                _token: '{{ csrf_token() }}'
+                            },
+                            success: function() {
+                                table.ajax.reload();
+                                showAlertS('success', 'Offer deleted successfully!');
+                            },
+                            error: function() {
+                                showAlertS('danger', 'Error deleting offer');
+                            }
+                        });
+                    }
+                });
             });
 
             // Handle toggle offer status button click
@@ -454,14 +486,12 @@
                         _token: '{{ csrf_token() }}',
                         is_active: isActive
                     },
-                    success: function(response) {
+                    success: function() {
                         table.ajax.reload();
-                        showAlertS('success', 'Offer status updated successfully!',
-                            'bxs-check-circle');
+                        showAlertS('success', 'Offer status updated successfully!');
                     },
-                    error: function(response) {
-                        showAlertS('danger', 'Error updating offer status',
-                            'bxs-message-square-x');
+                    error: function() {
+                        showAlertS('danger', 'Error updating offer status');
                     }
                 });
             });
@@ -469,8 +499,9 @@
             // Change placeholder based on action type
             $('#action_type, #edit_action_type').change(function() {
                 var selectedType = $(this).val();
-                var actionValueField = $(this).attr('id') === 'action_type' ? '#action_value' :
-                    '#edit_action_value';
+                var actionValueField = $(this).attr('id') === 'action_type'
+                    ? '#action_value'
+                    : '#edit_action_value';
 
                 if (selectedType === 'email') {
                     $(actionValueField).attr('placeholder', 'Enter email address');
@@ -480,27 +511,6 @@
                     $(actionValueField).attr('placeholder', '');
                 }
             });
-
-            function showAlertS(type, message, icon) {
-                var alertHtml = `
-                    <div class="alert alert-${type} border-0 bg-${type} alert-dismissible fade show py-2 position-fixed top-0 end-0 m-3" role="alert">
-                        <div class="d-flex align-items-center">
-                            <div class="font-35 text-white">
-                                <i class="bx ${icon}"></i>
-                            </div>
-                            <div class="ms-3">
-                                <h6 class="mb-0 text-white">${type.charAt(0).toUpperCase() + type.slice(1)}</h6>
-                                <div class="text-white">${message}</div>
-                            </div>
-                        </div>
-                        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
-                    </div>
-                `;
-                $('body').append(alertHtml);
-                setTimeout(function() {
-                    $('.alert').alert('close');
-                }, 5000);
-            }
         });
     </script>
 @endsection
