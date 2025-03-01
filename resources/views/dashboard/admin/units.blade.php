@@ -527,25 +527,36 @@
             });
             table.buttons().container().appendTo('#units-table_wrapper .col-md-6:eq(0)');
 
-            // 2) Delete
+            // 2) Delete (باستخدام SweetAlert2)
             $('#units-table').on('click', '.delete-unit', function() {
                 var unitId = $(this).data('id');
-                if(confirm('Are you sure you want to delete this Lesson?')){
-                    $.ajax({
-                        url: '/courses/units/delete/' + unitId,
-                        type: 'DELETE',
-                        data: { _token: $('meta[name="csrf-token"]').attr('content') },
-                        success: function(resp) {
-                            console.log("Delete success:", resp);
-                            table.ajax.reload(null, false);
-                            Swal.fire("Success", "Lesson deleted", "success");
-                        },
-                        error: function(xhr) {
-                            console.log("Delete error:", xhr.status, xhr.responseText, xhr.responseJSON);
-                            Swal.fire("Error", "Error: " + xhr.responseText, "error");
-                        }
-                    });
-                }
+
+                // إظهار SweetAlert بدلاً من confirm الافتراضي
+                Swal.fire({
+                    title: 'Are you sure?',
+                    text: "You are about to delete this Lesson!",
+                    icon: 'warning',
+                    showCancelButton: true,
+                    confirmButtonText: 'Yes, delete it!',
+                    cancelButtonText: 'No, cancel!',
+                }).then((result) => {
+                    if (result.isConfirmed) {
+                        $.ajax({
+                            url: '/courses/units/delete/' + unitId,
+                            type: 'DELETE',
+                            data: { _token: $('meta[name="csrf-token"]').attr('content') },
+                            success: function(resp) {
+                                console.log("Delete success:", resp);
+                                table.ajax.reload(null, false);
+                                Swal.fire("Success", "Lesson deleted", "success");
+                            },
+                            error: function(xhr) {
+                                console.log("Delete error:", xhr.status, xhr.responseText, xhr.responseJSON);
+                                Swal.fire("Error", "Error: " + xhr.responseText, "error");
+                            }
+                        });
+                    }
+                });
             });
 
             // 3) Show Script
@@ -896,13 +907,13 @@
                     pondAdd.removeFiles();
                     quillAdd.setContents([]);
                     canvasAdd.clear();
-                    canvasAdd.setWidth(800); 
+                    canvasAdd.setWidth(800);
                     canvasAdd.setHeight(400);
                 } else {
                     pondEdit.removeFiles();
                     quillEdit.setContents([]);
                     canvasEdit.clear();
-                    canvasEdit.setWidth(800); 
+                    canvasEdit.setWidth(800);
                     canvasEdit.setHeight(400);
                 }
             }
