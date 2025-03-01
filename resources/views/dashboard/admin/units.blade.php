@@ -951,7 +951,6 @@
                         console.log("Add lesson error:", xhr.status, xhr.responseText, xhr.responseJSON);
                         submitButton.prop('disabled', false);
 
-                        // في حال كانت أخطاء فاليديشن
                         if(xhr.responseJSON && xhr.responseJSON.errors){
                             console.log("Validation errors:", xhr.responseJSON.errors);
                             let errorMsg = "";
@@ -1006,7 +1005,6 @@
                         console.log("Edit lesson error:", xhr.status, xhr.responseText, xhr.responseJSON);
                         submitButton.prop('disabled', false);
 
-                        // في حال كانت أخطاء فاليديشن
                         if(xhr.responseJSON && xhr.responseJSON.errors){
                             console.log("Validation errors:", xhr.responseJSON.errors);
                             let errorMsg = "";
@@ -1021,7 +1019,6 @@
                 });
             });
 
-            // عند النقر على Edit
             $(document).on('click','.edit-unit', function(){
                 let unitId= $(this).data('id');
                 $.ajax({

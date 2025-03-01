@@ -5,7 +5,6 @@
 
     <!-- يمكنك تخصيص نسخة SweetAlert2 أو إضافة CSS مخصص إذا رغبت -->
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/sweetalert2@11/dist/sweetalert2.min.css">
-
 @endsection
 
 @section('content')
@@ -77,18 +76,25 @@
                     <div class="text-danger"></div>
                 </div>
 
-                <!-- Password -->
+                <!-- Password (لـ Admin الذي نعدّله) -->
                 <div class="form-group mb-4">
                     <label for="password">Password</label>
                     <input type="password" class="form-control" id="password" name="password">
                     <div id="password_error" class="text-danger"></div>
                 </div>
 
-                <!-- Confirm Password -->
+                <!-- Confirm Password (لـ Admin الذي نعدّله) -->
                 <div class="form-group mb-4">
                     <label for="password_confirmation">Confirm Password</label>
                     <input type="password" class="form-control" id="password_confirmation" name="password_confirmation">
                     <div id="confirm_password_error" class="text-danger"></div>
+                </div>
+
+                <!-- Super Admin Password (للتأكيد) -->
+                <div class="form-group mb-4">
+                    <label for="super_admin_password">Super Admin Password</label>
+                    <input type="password" class="form-control" id="super_admin_password" name="super_admin_password" required>
+                    <div id="super_admin_password_error" class="text-danger"></div>
                 </div>
 
                 <!-- Submit Button -->
@@ -116,6 +122,7 @@
             const phoneError = $("#phone_error");
             const passwordError = $("#password_error");
             const confirmPasswordError = $("#confirm_password_error");
+            const superAdminPasswordError = $("#super_admin_password_error");
 
             const iti = window.intlTelInput(phoneInputField, {
                 initialCountry: "auto",
@@ -158,7 +165,7 @@
             function validatePasswords() {
                 const password = $("#password").val();
                 const confirmPassword = $("#password_confirmation").val();
-                if (password.length < 8 && password.length > 0) {
+                if (password.length > 0 && password.length < 8) {
                     passwordError.text("Password must be at least 8 characters.");
                     return false;
                 }
@@ -189,7 +196,6 @@
                         type: 'POST',
                         data: $("#admin-form").serialize(),
                         success: function(response) {
-                            // استدعاء SweetAlert عند النجاح
                             Swal.fire({
                                 icon: 'success',
                                 title: 'success',
@@ -197,7 +203,6 @@
                                 showConfirmButton: false,
                                 timer: 1500
                             }).then(() => {
-                                // إعادة توجيه بعد إغلاق التنبيه
                                 window.location.href = "{{ route('admin.list') }}";
                             });
                         },
@@ -213,6 +218,7 @@
                             $("#status").next('.text-danger').text('');
                             passwordError.text('');
                             confirmPasswordError.text('');
+                            superAdminPasswordError.text('');
 
                             if (errors) {
                                 if (errors.first_name) {
@@ -235,6 +241,9 @@
                                 }
                                 if (errors.password) {
                                     passwordError.text(errors.password[0]);
+                                }
+                                if (errors.super_admin_password) {
+                                    superAdminPasswordError.text(errors.super_admin_password[0]);
                                 }
                             }
                         }
