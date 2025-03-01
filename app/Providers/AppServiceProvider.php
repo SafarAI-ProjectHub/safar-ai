@@ -20,6 +20,13 @@ class AppServiceProvider extends ServiceProvider
      */
     public function boot(): void
     {
-        Paginator::useBootstrap();
+        // إذا كانت 'app.url' == 'fallback' فهذا يعني أن APP_URL فارغة.
+        if (config('app.url') === 'fallback') {
+            // إن كنت تريدين في السيرفر استخدام HTTPS دومًا:
+            // URL::forceScheme('https');
+    
+            // التقط الدومين الحالي من الطلب:
+            config(['app.url' => url('')]);
+        }
     }
 }

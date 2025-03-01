@@ -1,6 +1,9 @@
 @extends('layouts_dashboard.main')
 
 @section('styles')
+    {{-- الروابط الافتراضية لـChatify: تحوي ملفات الـCSS الخاصة بعرض المحادثة --}}
+    @include('Chatify::layouts.headLinks')
+
     <style>
         body {
             font-family: Arial, sans-serif;
@@ -132,28 +135,10 @@
             font-weight: bold;
         }
 
-        .contract-section {
-            margin-bottom: 20px;
-        }
-
-        .contract-section h2 {
-            font-size: 24px;
-            margin-bottom: 10px;
-            color: #444;
-            border-bottom: 1px solid #333;
-            padding-bottom: 5px;
-        }
-
-        .contract-section p {
-            margin: 10px 0;
-            line-height: 1.6;
-        }
-
         .signature-section {
             margin-top: 40px;
             display: flex;
             justify-content: space-between;
-            /* margin: 0 40px; */
         }
 
         .date-div {
@@ -177,23 +162,10 @@
             color: #444;
         }
 
-        footer {
-            text-align: center;
-            border-top: 2px solid #333;
-            padding-top: 10px;
-            margin-top: 20px;
-        }
-
         p#contract-date {
             border-bottom: 1px solid black;
             width: fit-content;
             text-align: left;
-        }
-
-        footer p {
-            margin: 0;
-            font-size: 14px;
-            color: #777;
         }
 
         p.date-p {
@@ -205,8 +177,7 @@
             border: 1px solid #ddd;
             padding: 20px;
             background-color: #fff;
-            height: 500px;
-            /* Adjust height as needed */
+            height: 500px; /* يمكنك ضبط الارتفاع حسب الحاجة */
         }
 
         .chat-header {
@@ -218,14 +189,20 @@
         }
 
         .chat-body {
-            height: calc(100% - 60px);
-            /* Adjust according to header/footer height */
+            height: calc(100% - 60px); 
             overflow-y: auto;
         }
 
         .chat-footer {
             padding: 10px;
             border-top: 1px solid #ddd;
+        }
+
+        /* إصلاح عرض الصور في منطقة الشات */
+        .chat-container img {
+            max-width: 100%;
+            height: auto;
+            display: block;
         }
 
         .wrapper {
@@ -239,8 +216,8 @@
         <div class="card">
             <div class="card-header">
                 <h3>Notes</h3>
-                <p>1. If you have any questions or need any changes, please contact the admin using <a href="#chat">the
-                        chat</a> below.</p>
+                <p>1. If you have any questions or need any changes, please contact the admin using
+                    <a href="#chat">the chat</a> below.</p>
 
                 @if ($contract && !$contract->signature && $contract->teacher_id == auth()->user()->id)
                     <p>2. Please read the contract carefully before signing.</p>
@@ -255,8 +232,9 @@
                 <div class="card-header">
                     <h3>Download Contract</h3>
                 </div>
-                <a href="{{ route('contracts.downloadPDF', $contract->id) }}" class="btn btn-success">Download Contract as
-                    PDF</a>
+                <a href="{{ route('contracts.downloadPDF', $contract->id) }}" class="btn btn-success">
+                    Download Contract as PDF
+                </a>
             </div>
         @endif
 
@@ -272,10 +250,12 @@
             </div>
             <section class="contract-section">
                 <h2>Contract Agreement</h2>
-                <p>This Contract is made and entered into on <span
-                        id="contract-date-span">{{ $contract->contract_date }}</span>, by and between
-                    {{ env('Company_Name') }} ("Company") and <span
-                        id="teacher-name">{{ $contract->teacher->full_name }}</span> ("Teacher").</p>
+                <p>
+                    This Contract is made and entered into on
+                    <span id="contract-date-span">{{ $contract->contract_date }}</span>, by and between
+                    {{ env('Company_Name') }} ("Company") and
+                    <span id="teacher-name">{{ $contract->teacher->full_name }}</span> ("Teacher").
+                </p>
             </section>
             <section class="contract-section">
                 <h2>Employee Duties</h2>
@@ -292,8 +272,11 @@
             <section class="contract-section">
                 <h2>Compensation</h2>
                 <p id="compensation">{!! $contract->compensation !!}</p>
-                <p><strong>Salary:</strong> <span id="salary">{{ $contract->salary }}</span> per <span
-                        id="salary-period">{{ $contract->salary_period }}</span></p>
+                <p>
+                    <strong>Salary:</strong>
+                    <span id="salary">{{ $contract->salary }}</span> per
+                    <span id="salary-period">{{ $contract->salary_period }}</span>
+                </p>
             </section>
             <section class="contract-section">
                 <h2>Legal Terms</h2>
@@ -301,18 +284,25 @@
             </section>
             <div class="signature-section">
                 <div>
-                    <p class="signature-line"><strong> Employee Signature :</strong><br>
-                        <span
-                            class="signature signature-value">{{ $contract->signature ? $contract->signature : 'NOT SIGNED' }}</span>
+                    <p class="signature-line">
+                        <strong> Employee Signature :</strong><br>
+                        <span class="signature signature-value">
+                            {{ $contract->signature ? $contract->signature : 'NOT SIGNED' }}
+                        </span>
                     </p>
                 </div>
                 <div class="date-div">
-                    <p class="signature-line date"><strong>Date:</strong><br> <span
-                            class="signature date-value">{{ $contract->contract_date }}</span></p>
+                    <p class="signature-line date">
+                        <strong>Date:</strong><br>
+                        <span class="signature date-value">{{ $contract->contract_date }}</span>
+                    </p>
                 </div>
             </div>
             <footer>
-                <p>{{ env('Company_Name') }} | Contact: {{ env('Email_Adrees') }} | Phone: {{ env('phone_number') }}</p>
+                <p>
+                    {{ env('Company_Name') }} | Contact: {{ env('Email_Adrees') }} |
+                    Phone: {{ env('phone_number') }}
+                </p>
             </footer>
             @if (!$contract->signature)
                 <div class="form-group">
@@ -327,27 +317,30 @@
             <p>Your contract has not been created yet. Please wait for the admin to create the contract.</p>
         </div>
     @endif
+
     @if ($contract && $contract->teacher_id == auth()->user()->id)
         <div class="chat-container" id="chat">
+            {{-- تضمين صفحة المحادثة من حزمة Chatify --}}
             @include('Chatify::pages.app')
         </div>
     @endif
 @endsection
 
 @section('scripts')
+    {{-- روابط الجافاسكربت الخاصة بـChatify --}}
+    @include('Chatify::layouts.footerLinks')
+
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/sweetalert2@10/dist/sweetalert2.min.css">
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@10"></script>
+
     <script>
         $(document).ready(function() {
             @if ($contract && $contract->teacher_id == auth()->user()->id)
-                setMessengerId({{ $admin->id }});
+                setMessengerId({{ $admin->id }});  // اجعل الـadmin هو المستلم
                 fetchMessages(getMessengerId(), true);
             @endif
 
-
-            // Fetch messages on page load
             @if ($contract && !$contract->signature)
-
                 $('#sign-contract-button').on('click', function() {
                     var signature = $('#signature').val();
                     if (!signature) {
@@ -373,7 +366,8 @@
                     });
                 });
             @endif
-            // Send message form submission
+
+            // إرسال رسالة في الشات
             @if ($contract && $contract->teacher_id == auth()->user()->id)
                 $("#message-form").on("submit", (e) => {
                     e.preventDefault();
