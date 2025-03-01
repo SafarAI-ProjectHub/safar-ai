@@ -106,8 +106,7 @@ class AdminController extends Controller
             'date_of_birth'    => $request->date_of_birth,
             'password'         => Hash::make($request->password),
             'country_location' => $request->country_location,
-            // عند الإنشاء الافتراضي ممكن تختار أي حالة تريدها
-            'status'           => 'active', 
+            'status'           => 'active', // يمكنك تغييره حسب الحاجة
         ]);
 
         $user->assignRole('Admin');
@@ -120,7 +119,6 @@ class AdminController extends Controller
         $user = User::findOrFail($id);
 
         // جلب جميع القيم المميزة (distinct) من عمود status في جدول users
-        // وذلك لجعل القائمة المنسدلة ديناميكية
         $statuses = User::select('status')->distinct()->pluck('status');
 
         return view('dashboard.admin.edit_admin', compact('user', 'statuses'));
@@ -128,23 +126,45 @@ class AdminController extends Controller
 
     public function updateAdmin(Request $request, $id)
     {
+        // التحقق من كون المستخدم الحالي Super Admin
+        if (!Auth::user()->hasRole('Super Admin')) {
+            return response()->json([
+                'errors' => [
+                    'message' => ['You do not have permission to perform this action.']
+                ]
+            ], 403);
+        }
+
+        // التحقق من البيانات المرسلة
         $validator = Validator::make($request->all(), [
-            'first_name'   => 'required|string|max:255',
-            'last_name'    => 'required|string|max:255',
-            'email'        => 'required|string|email|max:255|unique:users,email,' . $id,
-            'phone_number' => 'required|string|max:15',
-            'date_of_birth'=> 'required|date',
-            'country_code' => 'required|string|max:5',
-            'status'       => 'required|string',  // تحقق من أن status مطلوب
-            'password'     => 'nullable|string|min:8|confirmed',
+            'super_admin_password' => 'required',  // حقل كلمة مرور الـSuper Admin
+            'first_name'           => 'required|string|max:255',
+            'last_name'            => 'required|string|max:255',
+            'email'                => 'required|string|email|max:255|unique:users,email,' . $id,
+            'phone_number'         => 'required|string|max:15',
+            'date_of_birth'        => 'required|date',
+            'country_code'         => 'required|string|max:5',
+            'status'               => 'required|string',
+            'password'             => 'nullable|string|min:8|confirmed',
         ]);
 
         if ($validator->fails()) {
             return response()->json(['errors' => $validator->errors()], 422);
         }
 
+        // التحقق من صحة كلمة مرور الـSuper Admin
+        if (!Hash::check($request->super_admin_password, Auth::user()->password)) {
+            return response()->json([
+                'errors' => [
+                    'super_admin_password' => ['Super Admin password is incorrect.']
+                ]
+            ], 422);
+        }
+
+        // جلب المستخدم (الـAdmin) المراد تعديله
         $user = User::findOrFail($id);
 
+        // تحديث البيانات الأساسية
         $user->update([
             'first_name'       => $request->first_name,
             'last_name'        => $request->last_name,
@@ -152,10 +172,10 @@ class AdminController extends Controller
             'phone_number'     => $request->country_code . $request->phone_number,
             'date_of_birth'    => $request->date_of_birth,
             'country_location' => $request->country_location,
-            // حفظ الحالة المختارة من الـSelect
             'status'           => $request->status,
         ]);
 
+        // إن وُجدت كلمة مرور جديدة للـAdmin نفسه
         if ($request->password) {
             $user->update(['password' => Hash::make($request->password)]);
         }
@@ -175,9 +195,6 @@ class AdminController extends Controller
         $user->delete();
         return response()->json(['message' => 'Admin deleted successfully']);
     }
-
-
-
 
     /*
      * -------------- TEACHERS --------------
@@ -302,11 +319,11 @@ class AdminController extends Controller
     public function updateTeacher(Request $request, $id)
     {
         $validator = Validator::make($request->all(), [
-            'first_name'        => 'required|string|max:255',
-            'last_name'         => 'required|string|max:255',
-            'email'             => 'required|string|email|max:255',
-            'phone_number'      => 'required|string|max:20',
-            'country_location'  => 'required|string|max:255',
+            'first_name'       => 'required|string|max:255',
+            'last_name'        => 'required|string|max:255',
+            'email'            => 'required|string|email|max:255',
+            'phone_number'     => 'required|string|max:20',
+            'country_location' => 'required|string|max:255',
         ]);
 
         if ($validator->fails()) {
@@ -346,7 +363,6 @@ class AdminController extends Controller
             return response()->json(['error' => 'Error deleting teacher', 'message' => $e->getMessage()], 422);
         }
     }
-
 
     /*
      * -------------- COURSES --------------
@@ -501,7 +517,7 @@ class AdminController extends Controller
 
         // إذا تم رفع صورة جديدة
         if ($request->hasFile('image')) {
-            // حذف الصورة القديمة إن وُجدت
+            // حذف الصورة القديمة إن وجدت
             if ($course->image && Storage::disk('public')->exists(str_replace('storage/', '', $course->image))) {
                 Storage::disk('public')->delete(str_replace('storage/', '', $course->image));
             }
@@ -509,9 +525,6 @@ class AdminController extends Controller
             $filename = uniqid() . '.' . $file->getClientOriginalExtension();
             $path = $file->storeAs('uploads', $filename, 'public');
             $course->image = 'storage/' . $path;
-        } else {
-            // إذا لم تُرفع صورة جديدة، نترك القديمة
-            // أو يمكنك تخصيص سلوك آخر لو أحببت
         }
 
         $course->save();
@@ -597,7 +610,7 @@ class AdminController extends Controller
             'subtitle'     => 'nullable|string|max:255',
             'content_type' => 'required|in:video,text,youtube',
             'content'      => 'required_if:content_type,text',
-            'video' => 'required_if:content_type,video|file|mimes:mp4,mov,ogg,qt,webm|max:204800',
+            'video'        => 'required_if:content_type,video|file|mimes:mp4,mov,ogg,qt,webm|max:204800',
             'youtube'      => 'nullable|string',
         ]);
 
@@ -826,15 +839,15 @@ class AdminController extends Controller
             'last_name'  => 'required|string|max:255',
             'email'      => [
                 'required',
-                'regex:/^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/',
+                'regex:/^[a-zA-Z0-9._%+\-]+@[a-zA-Z0-9.\-]+\.[a-zA-Z]{2,}$/',
                 'unique:users,email,' . $student->user->id
             ],
-            'phone_number'            => 'required|string|max:15',
-            'country_location'        => 'required|string|max:255',
-            'country_code'            => 'required|string|max:5',
-            'english_proficiency_level' => 'required|string|max:255',
-            'subscription_status'     => 'required|string|max:255',
-            'status'                  => 'required|string|max:255',
+            'phone_number'               => 'required|string|max:15',
+            'country_location'           => 'required|string|max:255',
+            'country_code'               => 'required|string|max:5',
+            'english_proficiency_level'  => 'required|string|max:255',
+            'subscription_status'        => 'required|string|max:255',
+            'status'                     => 'required|string|max:255',
         ]);
 
         if ($validator->fails()) {
@@ -877,7 +890,6 @@ class AdminController extends Controller
 
         return response()->json(['message' => 'Student deleted successfully']);
     }
-
 
     /*
      * -------------- TEACHER LEVEL TEST ASSESSMENTS --------------
@@ -1012,17 +1024,13 @@ class AdminController extends Controller
         }
     
         // 2) لو الرابط على شكل youtu.be/xxxxxxxx
-        // نأخذ آخر جزء من الـpath
-        if (strpos($parsed['host'] ?? '', 'youtu.be') !== false) {
-            // قد يكون path = /7p5jQwzCf0Y
-            // نزيل الـ '/' إن وجد
+        if (isset($parsed['host']) && strpos($parsed['host'], 'youtu.be') !== false) {
             $path = trim($parsed['path'] ?? '', '/');
-            return $path; 
+            return $path;
         }
     
         return null; // فشل
     }
-    
 
     private function checkUrl($videoId)
     {
