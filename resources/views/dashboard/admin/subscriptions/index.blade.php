@@ -81,37 +81,20 @@
 <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 <script>
     $(document).ready(function() {
+
+        // تحضير DataTable
         var table = $('#subscriptions-table').DataTable({
             processing: true,
             serverSide: true,
-            ajax: '{{ route("admin.subscriptions.index") }}', 
+            ajax: '{{ route("admin.subscriptions.index") }}',
             columns: [
-                {
-                    data: 'adminName',
-                    name: 'adminName',
-                    defaultContent: 'N/A',
-                },
-                {
-                    data: 'product_name',
-                    name: 'product_name'
-                },
-                {
-                    data: 'description',
-                    name: 'description'
-                },
-                {
-                    data: 'price',
-                    name: 'price'
-                },
-                {
-                    data: 'subscription_type',
-                    name: 'subscription_type'
-                },
-                {
-                    data: 'is_active',
-                    name: 'is_active'
-                }
-                
+                // يجب أن تتطابق أسماء البيانات مع أعمدة الـController
+                { data: 'adminName',          name: 'adminName',          defaultContent: 'N/A' },
+                { data: 'product_name',       name: 'product_name' },
+                { data: 'description',        name: 'description' },
+                { data: 'price',              name: 'price' },
+                { data: 'subscription_type',  name: 'subscription_type' },
+                { data: 'is_active',          name: 'is_active' },
             ],
             dom: 'Bfrtip',
             buttons: [

@@ -26,51 +26,33 @@ class AdminSubscriptionController extends Controller
     {
         // إذا كان الطلب Ajax (من DataTables)
         if ($request->ajax()) {
-            // نجلب سجلات user_subscriptions مع علاقتي subscription, user
-            $userSubscriptions = UserSubscription::with(['subscription','user'])->get();
+            // نجلب سجلات subscriptions مع علاقة user (الشخص الذي أنشأ الخطة مثلاً)
+            // مع ملاحظة أنّ عمود user_id موجود في جدول subscriptions
+            $subscriptions = Subscription::with('user')->select('subscriptions.*');
 
-            return DataTables::of($userSubscriptions)
+            return DataTables::of($subscriptions)
 
-                ->addColumn('user_name', function($row) {
-                    return optional($row->user)->full_name ?? 'N/A';
-                })
-
-                ->addColumn('subscription_id', function($row) {
-                    return $row->subscription_id ?? 'N/A';
+                // العمود الأول (اسم الأدمن أو الشخص الذي أضاف الاشتراك)
+                ->addColumn('adminName', function($row) {
+                    return $row->user ? $row->user->full_name : 'N/A';
                 })
 
-                ->addColumn('status', function($row) {
-                    return $row->status ?? 'N/A';
+                // بقية الحقول يمكن قراءتها مباشرةً لأننا جلبنا subscription.* في select
+                // فبإمكان DataTables الوصول إلى (product_name, description, price, subscription_type) مباشرة
+                // أما عمود is_active فيحتاج منا لتكوينه يدوياً من أجل زر التبديل
+                ->addColumn('is_active', function($row) {
+                    $checked = $row->is_active ? 'checked' : '';
+                    // نعيد HTML يحتوي على سويتش التفعيل
+                    return '
+                        <div class="form-check form-switch">
+                            <input type="checkbox" class="form-check-input activate-subscription" 
+                                   data-id="'.$row->id.'" '.$checked.'>
+                        </div>
+                    ';
                 })
 
-                ->addColumn('start_date', function($row) {
-                    return optional($row->start_date)->format('Y-m-d H:i') ?? 'N/A';
-                })
-
-                ->addColumn('next_billing_time', function($row) {
-                    return optional($row->next_billing_time)->format('Y-m-d H:i') ?? 'N/A';
-                })
-
-                ->addColumn('payment_status', function($row) {
-                    return $row->payment_status ?? 'N/A';
-                })
-
-                ->addColumn('product_name', function($row) {
-                    return optional($row->subscription)->product_name ?? 'N/A';
-                })
-                ->addColumn('subscription_type', function($row) {
-                    return optional($row->subscription)->subscription_type ?? 'N/A';
-                })
-                ->addColumn('description', function($row) {
-                    return optional($row->subscription)->description ?? 'N/A';
-                })
-                ->addColumn('price', function($row) {
-                    return optional($row->subscription)->price ?? 'N/A';
-                })
-                ->addColumn('features', function($row) {
-                    $features = optional($row->subscription)->features;
-                    return $features ? json_decode($features) : [];
-                })
+                // نحتاج للسماح بعرض الحقل is_active على شكل HTML
+                ->rawColumns(['is_active'])
 
                 ->make(true);
         }
@@ -86,7 +68,7 @@ class AdminSubscriptionController extends Controller
         $request->validate([
             'name'              => 'required|string|max:255',
             'description'       => 'required|string',
-            'price'             => 'required|numeric|min:0',  // السماح بالسعر صفر أو أكثر
+            'price'             => 'required|numeric|min:0',
             'features'          => 'nullable|string',
             'subscription_type' => 'required|string|in:yolo,solo,tolo',
         ]);
@@ -94,11 +76,12 @@ class AdminSubscriptionController extends Controller
         // جهّز الـ features كمصفوفة
         $featuresArray = $this->processFeatures($request->features);
 
+        // إذا السعر صفر، ننشئ الخطة دون أن ننشئ منتج/خطة في باي بال
         if ($request->price == 0) {
             Subscription::create([
                 'product_name'      => $request->name,
-                'paypal_plan_id'    => null, // لا حاجة لخطة باي بال
-                'paypal_product_id' => null, // لا حاجة لمنتج باي بال
+                'paypal_plan_id'    => null,
+                'paypal_product_id' => null,
                 'subscription_type' => $request->subscription_type,
                 'price'             => 0,
                 'user_id'           => Auth::id(),
@@ -112,6 +95,7 @@ class AdminSubscriptionController extends Controller
             ]);
 
         } else {
+            // في حال كان السعر أكبر من الصفر نستخدم PayPalService
             $productResponse = $this->paypalService->createProduct(
                 $request->name,
                 $request->description
