@@ -97,14 +97,6 @@
                             <label for="background_image" class="form-label">Background Image</label>
                             <input type="file" class="filepond" id="background_image" name="background_image">
                         </div>
-                        <div class="mb-3">
-                            <label for="alignment" class="form-label">Alignment</label>
-                            <select class="form-select" id="alignment" name="alignment" required>
-                                <option value="left">Left</option>
-                                <option value="right">Right</option>
-                                <option value="center">Center</option>
-                            </select>
-                        </div>
                     </div>
                     <div class="modal-footer">
                         <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
@@ -149,8 +141,7 @@
                         </div>
                         <div class="mb-3">
                             <label for="edit_action_value" class="form-label">Call to Action Value</label>
-                            <input type="text" class="form-control" id="edit_action_value" name="action_value"
-                                required>
+                            <input type="text" class="form-control" id="edit_action_value" name="action_value" required>
                         </div>
                         <div class="mb-3">
                             <label for="edit_is_active" class="form-label">Active Status</label>
@@ -170,14 +161,6 @@
                         <div class="mb-3">
                             <label for="edit_background_image" class="form-label">Background Image</label>
                             <input type="file" class="filepond" id="edit_background_image" name="background_image">
-                        </div>
-                        <div class="mb-3">
-                            <label for="edit_alignment" class="form-label">Alignment</label>
-                            <select class="form-select" id="edit_alignment" name="alignment" required>
-                                <option value="left">Left</option>
-                                <option value="right">Right</option>
-                                <option value="center">Center</option>
-                            </select>
                         </div>
                     </div>
                     <div class="modal-footer">
@@ -281,7 +264,7 @@
                 });
             }
 
-            // Validate dates (لا يزال تنبيه عادي، بالإمكان تحويله لسويت أليرت لو أردت)
+            // Validate dates
             function validateDates(startDateInput, endDateInput) {
                 var startDate = moment(startDateInput.val());
                 var endDate = moment(endDateInput.val());
@@ -393,7 +376,6 @@
                         $('#edit_is_active').prop('checked', response.is_active);
                         $('#edit_start_date').val(response.start_date ? moment(response.start_date).format('YYYY-MM-DD') : '');
                         $('#edit_end_date').val(response.end_date ? moment(response.end_date).format('YYYY-MM-DD') : '');
-                        $('#edit_alignment').val(response.alignment);
                         $('#editOfferModal').modal('show');
                     }
                 });
