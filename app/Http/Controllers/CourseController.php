@@ -10,6 +10,9 @@ use App\Models\Unit;       // موديل الوحدة/الدرس
 use App\Models\StudentUnit; // الجدول الوسيط
 use Carbon\Carbon;
 
+/** نحتاج هذا الـuse لاستخدام دوال المساعدة في التعامل مع النصوص */
+use Illuminate\Support\Str;
+
 class CourseController extends Controller
 {
     /**
@@ -73,6 +76,19 @@ class CourseController extends Controller
                     ->where('unit_id', $lesson->id)
                     ->value('completed');
                 $lesson->is_completed = ($completedVal == 1) ? 1 : 0;
+            }
+
+            // في حال كان الدرس من نوع youtube، نتحقق إن كان المخزن رابط كامل أم ID فقط
+            if ($lesson && $lesson->content_type === 'youtube') {
+                // مثال: https://www.youtube.com/watch?v=xxxx
+                if (Str::contains($lesson->content, 'watch?v=')) {
+                    $lesson->content = Str::after($lesson->content, 'watch?v=');
+                }
+                // مثال: https://youtu.be/xxxx
+                elseif (Str::contains($lesson->content, 'youtu.be/')) {
+                    $lesson->content = Str::after($lesson->content, 'youtu.be/');
+                }
+                // إذا لم يحتوِ على watch?v= أو youtu.be/ سنفترض أنه ID جاهز
             }
         }
 

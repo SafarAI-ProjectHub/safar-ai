@@ -309,7 +309,6 @@
                         <div class="col-lg-4 responsive-column-half mb-4">
                             <div class="card card-item">
                                 <div class="card-image">
-                                    <!-- تعديل الكلاس لإزالة الـ inline-style واعتماد الكلاس الجديد -->
                                     <a href="{{ route('student.myCourses', ['unit_id' => $course->id]) }}" class="d-block">
                                         <img 
                                             class="card-img-top lazy uniform-card-img" 
@@ -424,8 +423,15 @@
                         Your browser does not support the video tag.
                     </video>
                 @elseif($lesson->content_type === 'youtube')
+                    <!-- إطار يوتيوب مضمّن مع العرض المناسب -->
                     <div style="position: relative; padding-bottom: 56.25%; height: 0; overflow: hidden;">
-                        <iframe style="position: absolute; top: 0; left: 0; width: 100%; height: 100%;" src="https://www.youtube.com/embed/{{ $lesson->content }}" frameborder="0" allowfullscreen></iframe>
+                        <iframe 
+                            style="position: absolute; top: 0; left: 0; width: 100%; height: 100%;" 
+                            src="https://www.youtube.com/embed/{{ $lesson->content }}" 
+                            frameborder="0" 
+                            allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" 
+                            allowfullscreen>
+                        </iframe>
                     </div>
                 @else
                     {!! nl2br(e($lesson->content ?? 'No content')) !!}
