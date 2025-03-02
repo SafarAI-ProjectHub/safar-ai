@@ -208,6 +208,13 @@
             margin: 1rem auto;
             max-width: 700px;
         }
+
+        /* الكلاس الجديد لضبط حجم الصور في البطاقات */
+        .uniform-card-img {
+            width: 100%;
+            height: 212px; /* يمكنك تغيير هذه القيمة حسب الحاجة */
+            object-fit: cover;
+        }
     </style>
 @endsection
 
@@ -302,8 +309,12 @@
                         <div class="col-lg-4 responsive-column-half mb-4">
                             <div class="card card-item">
                                 <div class="card-image">
+                                    <!-- تعديل الكلاس لإزالة الـ inline-style واعتماد الكلاس الجديد -->
                                     <a href="{{ route('student.myCourses', ['unit_id' => $course->id]) }}" class="d-block">
-                                        <img class="card-img-top lazy" src="{{ $course->image }}" alt="Course Image" style="width:100%; min-height:212px; object-fit:cover;">
+                                        <img 
+                                            class="card-img-top lazy uniform-card-img" 
+                                            src="{{ $course->image }}" 
+                                            alt="Course Image">
                                     </a>
                                 </div>
                                 <div class="card-body d-flex flex-column">
