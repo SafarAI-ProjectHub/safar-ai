@@ -304,9 +304,13 @@ Route::middleware(['auth', 'role:Student'])->prefix('student')->group(function (
     Route::get('subscription/details', [SubscriptionController::class, 'showSubscriptionDetails'])->name('subscription.details');
 
     // unit progress
-    Route::post('/course/update-unit-completion', [CourseController::class, 'updateUnitCompletion'])->name('course.updateUnitCompletion');
+    
+
+    Route::post('/course/update-unit-completion', [CourseController::class, 'updateUnitCompletion'])
+        ->name('course.updateUnitCompletion');
+
     Route::post('/mark-lesson-completed', [CourseController::class, 'updateUnitCompletion'])
-    ->name('student.markLessonCompleted');
+        ->name('student.markLessonCompleted');
 
     //Certificate
     Route::get('/certificate/check', [CertificateController::class, 'check'])->name('certificate.check');
