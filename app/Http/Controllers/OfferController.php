@@ -11,7 +11,19 @@ class OfferController extends Controller
     public function index(Request $request)
     {
         if ($request->ajax()) {
-            $offers = Offer::all();
+            // عرض الحقول المطلوبة بدون حقل alignment
+            $offers = Offer::select([
+                'id',
+                'name',
+                'title',
+                'description',
+                'action_type',
+                'action_value',
+                'is_active',
+                'start_date',
+                'end_date'
+            ]);
+
             return DataTables::of($offers)
                 ->addColumn('actions', function ($offer) {
                     return view('dashboard.admin.partials.offer_actions', compact('offer'));
@@ -24,7 +36,6 @@ class OfferController extends Controller
 
     public function store(Request $request)
     {
-
         $validatedData = $request->validate([
             'name' => 'required|string|max:255',
             'title' => 'required|string|max:255',
@@ -34,7 +45,6 @@ class OfferController extends Controller
             'start_date' => 'nullable|date',
             'end_date' => 'nullable|date|after_or_equal:start_date',
             'background_image' => 'required|image|max:2048',
-            'alignment' => 'required|in:left,right,center',
         ]);
 
         if ($request->hasFile('background_image')) {
@@ -42,6 +52,7 @@ class OfferController extends Controller
             $validatedData['background_image'] = $path;
         }
 
+        // إضافة user_id إذا كان لديك نظام مستخدمين
         $validatedData['user_id'] = auth()->id();
 
         Offer::create($validatedData);
@@ -57,7 +68,6 @@ class OfferController extends Controller
 
     public function update(Request $request, $id)
     {
-
         $validatedData = $request->validate([
             'name' => 'required|string|max:255',
             'title' => 'required|string|max:255',
@@ -67,7 +77,6 @@ class OfferController extends Controller
             'start_date' => 'nullable|date',
             'end_date' => 'nullable|date|after_or_equal:start_date',
             'background_image' => 'nullable|image|max:2048',
-            'alignment' => 'required|in:left,right,center',
         ]);
 
         $offer = Offer::findOrFail($id);
