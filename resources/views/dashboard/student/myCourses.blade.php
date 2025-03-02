@@ -216,9 +216,9 @@
     @php
         /*
             تحديد عنوان الصفحة بحسب المرحلة (stage) الحالية:
-            1- blocks   -> صفحة الكتل
-            2- units    -> صفحة الوحدات
-            3- lessons  -> صفحة الدروس
+            1- blocks         -> صفحة الكتل
+            2- units          -> صفحة الوحدات
+            3- lessons        -> صفحة الدروس
             4- lesson_details -> تفاصيل الدرس
         */
         $pageTitle = '';
@@ -234,9 +234,7 @@
     @endphp
 
     <div class="lesson-wrapper">
-        {{-- 
-            إذا كنا في مرحلة التفاصيل، نظهر الزخارف (SVG) في الأركان + اللوغو في المنتصف بالأعلى + العنوان بخط مزخرف
-        --}}
+        {{-- إذا كنا في مرحلة التفاصيل، نظهر الزخارف (SVG) في الأركان + اللوغو في المنتصف بالأعلى + العنوان --}}
         @if($stage === 'lesson_details')
             <div class="svg-corner svg-top-left">
                 <img src="{{ asset('images/file.svg') }}" alt="svg-ornament">
@@ -270,7 +268,7 @@
                 @forelse($blocks as $block)
                     <div class="col-md-3 mb-4">
                         <div class="block-circle">
-                            {{-- الانتقال لصفحة الكورسات (الوحدات) الخاصة بهذا الـ Block --}}
+                            {{-- الانتقال لصفحة الوحدات الخاصة بهذا الـ Block --}}
                             <a href="{{ route('student.myCourses', ['block_id' => $block->id]) }}">
                                 {{ $block->name }}
                             </a>
@@ -286,6 +284,13 @@
 
         {{-- ############################################ UNITS ############################################ --}}
         @if($stage === 'units')
+            <!-- زر الرجوع إلى صفحة الـ Blocks -->
+            <div class="mb-3">
+                <a href="{{ route('student.myCourses') }}" class="btn btn-secondary">
+                    <i class="bi bi-arrow-left"></i> Back to Blocks
+                </a>
+            </div>
+
             <div class="row">
                 @if ($courses->isEmpty())
                     <div class="col-md-12 text-center">
@@ -295,7 +300,6 @@
                     @foreach ($courses as $course)
                         @php
                             // جلب الدروس التابعة لهذا الكورس
-                            // إن كانت العلاقة اسمها ->units
                             $lessons = $course->units ?? collect();
                             $totalLessons = $lessons->count();
 
@@ -306,7 +310,6 @@
                             $completedCount = 0;
                             if ($studentId && $totalLessons > 0) {
                                 $lessonIds = $lessons->pluck('id')->toArray();
-                                // نبحث في student_units عن الدروس المكتملة
                                 $completedCount = DB::table('student_units')
                                     ->where('student_id', $studentId)
                                     ->whereIn('unit_id', $lessonIds)
@@ -314,7 +317,6 @@
                                     ->count();
                             }
 
-                            // نسبة الإنجاز
                             $progress = $totalLessons > 0
                                 ? round(($completedCount / $totalLessons) * 100)
                                 : 0;
@@ -378,6 +380,13 @@
 
         {{-- ############################################ LESSONS ############################################ --}}
         @if($stage === 'lessons')
+            <!-- زر الرجوع إلى صفحة الـ Units (بافتراض وجود block_id في الطلب) -->
+            <div class="mb-3">
+                <a href="{{ route('student.myCourses', ['block_id' => request('block_id')]) }}" class="btn btn-secondary">
+                    <i class="bi bi-arrow-left"></i> Back to Units
+                </a>
+            </div>
+
             @php
                 $completedLessons = $lessons->filter(function($l){ 
                     return isset($l->is_completed) && $l->is_completed; 
@@ -435,6 +444,19 @@
 
         {{-- ###################################### LESSON DETAILS ###################################### --}}
         @if($stage === 'lesson_details')
+            <!-- زر الرجوع إلى صفحة الـ Lessons (بافتراض وجود unit_id في الطلب أو في $lesson) -->
+            <div class="mb-3 text-center">
+                @if($lesson->unit_id ?? false)
+                    <a href="{{ route('student.myCourses', ['unit_id' => $lesson->unit_id]) }}" class="btn btn-secondary">
+                        <i class="bi bi-arrow-left"></i> Back to Lessons
+                    </a>
+                @else
+                    <a href="{{ route('student.myCourses', ['unit_id' => request('unit_id')]) }}" class="btn btn-secondary">
+                        <i class="bi bi-arrow-left"></i> Back to Lessons
+                    </a>
+                @endif
+            </div>
+
             <div class="lesson-body-text">
                 @if($lesson->content_type === 'text')
                     {!! $lesson->content !!}

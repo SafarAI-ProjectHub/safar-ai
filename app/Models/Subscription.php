@@ -42,6 +42,7 @@ class Subscription extends Model
         return $this->hasMany(Payment::class);
     }
 
+    // لجعل أول حرف كابيتال لو تحب
     public function getSubscriptionTypeAttribute($value)
     {
         return ucfirst($value);
