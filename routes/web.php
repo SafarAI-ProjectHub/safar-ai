@@ -49,6 +49,9 @@ Broadcast::routes(['middleware' => ['auth']]);
 
 
 
+use App\Http\Controllers\MoodleController;
+
+Route::get('/moodle/courses', [MoodleController::class, 'getCourses']);
 
 Route::get('/', [HomeController::class, 'index']);
 Route::get('/terms-and-conditions', [HomeController::class, 'terms'])->name('terms');
