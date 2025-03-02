@@ -208,19 +208,18 @@
             margin: 1rem auto;
             max-width: 700px;
         }
+
+        /* الكلاس الجديد لضبط حجم الصور في البطاقات */
+        .uniform-card-img {
+            width: 100%;
+            height: 212px; /* يمكنك تغيير هذه القيمة حسب الحاجة */
+            object-fit: cover;
+        }
     </style>
 @endsection
 
-
 @section('content')
     @php
-        /*
-            تحديد عنوان الصفحة بحسب المرحلة (stage) الحالية:
-            1- blocks         -> صفحة الكتل
-            2- units          -> صفحة الوحدات
-            3- lessons        -> صفحة الدروس
-            4- lesson_details -> تفاصيل الدرس
-        */
         $pageTitle = '';
         if ($stage === 'blocks') {
             $pageTitle = 'My Blocks';
@@ -234,7 +233,7 @@
     @endphp
 
     <div class="lesson-wrapper">
-        {{-- إذا كنا في مرحلة التفاصيل، نظهر الزخارف (SVG) في الأركان + اللوغو في المنتصف بالأعلى + العنوان --}}
+        {{-- عرض تفاصيل الدرس إذا كانت المرحلة lesson_details --}}
         @if($stage === 'lesson_details')
             <div class="svg-corner svg-top-left">
                 <img src="{{ asset('images/file.svg') }}" alt="svg-ornament">
@@ -248,18 +247,15 @@
             <div class="svg-corner svg-bottom-right">
                 <img src="{{ asset('images/file.svg') }}" alt="svg-ornament">
             </div>
-
             <div class="lesson-logo">
                 <img src="{{ asset('images/logo.png') }}" alt="Logo">
             </div>
-
             <h1 class="fancy-title">{{ $pageTitle }}</h1>
         @else
-            {{-- غير ذلك، نعرض العنوان بشكل عادي في منتصف الصفحة --}}
             <h1 class="text-center mb-4">{{ $pageTitle }}</h1>
         @endif
 
-        {{-- ############################################ BLOCKS ############################################ --}}
+        {{-- عرض صفحة الكتل --}}
         @if($stage === 'blocks')
             <div class="row text-center mb-4">
                 <h2>Choose a Block</h2>
@@ -268,7 +264,6 @@
                 @forelse($blocks as $block)
                     <div class="col-md-3 mb-4">
                         <div class="block-circle">
-                            {{-- الانتقال لصفحة الوحدات الخاصة بهذا الـ Block --}}
                             <a href="{{ route('student.myCourses', ['block_id' => $block->id]) }}">
                                 {{ $block->name }}
                             </a>
@@ -282,15 +277,13 @@
             </div>
         @endif
 
-        {{-- ############################################ UNITS ############################################ --}}
+        {{-- عرض صفحة الوحدات --}}
         @if($stage === 'units')
-            <!-- زر الرجوع إلى صفحة الـ Blocks -->
             <div class="mb-3">
                 <a href="{{ route('student.myCourses') }}" class="btn btn-secondary">
                     <i class="bi bi-arrow-left"></i> Back to Blocks
                 </a>
             </div>
-
             <div class="row">
                 @if ($courses->isEmpty())
                     <div class="col-md-12 text-center">
@@ -299,14 +292,9 @@
                 @else
                     @foreach ($courses as $course)
                         @php
-                            // جلب الدروس التابعة لهذا الكورس
                             $lessons = $course->units ?? collect();
                             $totalLessons = $lessons->count();
-
-                            $studentId = Auth::check() && Auth::user()->student
-                                         ? Auth::user()->student->id
-                                         : null;
-
+                            $studentId = Auth::check() && Auth::user()->student ? Auth::user()->student->id : null;
                             $completedCount = 0;
                             if ($studentId && $totalLessons > 0) {
                                 $lessonIds = $lessons->pluck('id')->toArray();
@@ -316,20 +304,17 @@
                                     ->where('completed', 1)
                                     ->count();
                             }
-
-                            $progress = $totalLessons > 0
-                                ? round(($completedCount / $totalLessons) * 100)
-                                : 0;
+                            $progress = ($totalLessons > 0) ? round(($completedCount / $totalLessons) * 100) : 0;
                         @endphp
-
                         <div class="col-lg-4 responsive-column-half mb-4">
                             <div class="card card-item">
                                 <div class="card-image">
+                                    <!-- تعديل الكلاس لإزالة الـ inline-style واعتماد الكلاس الجديد -->
                                     <a href="{{ route('student.myCourses', ['unit_id' => $course->id]) }}" class="d-block">
-                                        <img class="card-img-top lazy"
-                                             src="{{ $course->image }}"
-                                             alt="Course Image"
-                                             style="width:100%; min-height:212px; object-fit:cover;">
+                                        <img 
+                                            class="card-img-top lazy uniform-card-img" 
+                                            src="{{ $course->image }}" 
+                                            alt="Course Image">
                                     </a>
                                 </div>
                                 <div class="card-body d-flex flex-column">
@@ -338,7 +323,6 @@
                                             {{ $course->title }}
                                         </a>
                                     </h5>
-
                                     <p class="card-text description lh-22 pt-2">
                                         @if (strlen($course->description) > 100)
                                             {{ substr($course->description, 0, 100) }}...
@@ -346,29 +330,16 @@
                                             {{ $course->description }}
                                         @endif
                                     </p>
-
-                                    <p class="card-text lh-22 pt-2">
-                                        {{ $course->teacher ? $course->teacher->user->full_name : 'No teacher assigned yet' }}
-                                    </p>
-
-                                    {{-- شريط التقدم --}}
                                     <div class="mb-3">
                                         <label>Progress:</label>
                                         <div class="progress" style="height: 20px; background-color: #e0e0e0;">
-                                            <div class="progress-bar"
-                                                 role="progressbar"
-                                                 style="width: {{ $progress }}%; background-color: #d455df;"
-                                                 aria-valuenow="{{ $progress }}"
-                                                 aria-valuemin="0"
-                                                 aria-valuemax="100">
-                                                 {{ $progress }}%
+                                            <div class="progress-bar" role="progressbar" style="width: {{ $progress }}%; background-color: #d455df;" aria-valuenow="{{ $progress }}" aria-valuemin="0" aria-valuemax="100">
+                                                {{ $progress }}%
                                             </div>
                                         </div>
                                     </div>
-
-                                    <a href="{{ route('student.myCourses', ['unit_id' => $course->id]) }}"
-                                       class="btn btn-primary mt-auto d-block">
-                                       View Lessons
+                                    <a href="{{ route('student.myCourses', ['unit_id' => $course->id]) }}" class="btn btn-primary mt-auto d-block">
+                                        View Lessons
                                     </a>
                                 </div>
                             </div>
@@ -378,42 +349,31 @@
             </div>
         @endif
 
-        {{-- ############################################ LESSONS ############################################ --}}
+        {{-- عرض صفحة الدروس --}}
         @if($stage === 'lessons')
-            <!-- زر الرجوع إلى صفحة الـ Units (بافتراض وجود block_id في الطلب) -->
             <div class="mb-3">
                 <a href="{{ route('student.myCourses', ['block_id' => request('block_id')]) }}" class="btn btn-secondary">
                     <i class="bi bi-arrow-left"></i> Back to Units
                 </a>
             </div>
-
             @php
                 $completedLessons = $lessons->filter(function($l){ 
                     return isset($l->is_completed) && $l->is_completed; 
                 })->count();
                 $totalLessons = $lessons->count();
-                $progress = $totalLessons > 0 
-                    ? round(($completedLessons / $totalLessons) * 100) 
-                    : 0;
+                $progress = $totalLessons > 0 ? round(($completedLessons / $totalLessons) * 100) : 0;
             @endphp
-
             <div class="row">
                 <div class="col-md-12 mb-4">
                     <div class="d-flex align-items-center">
                         <span class="me-2">Progress:</span>
                         <div class="progress flex-grow-1" style="height: 20px;">
-                            <div class="progress-bar" 
-                                 role="progressbar" 
-                                 style="width: {{ $progress }}%;" 
-                                 aria-valuenow="{{ $progress }}" 
-                                 aria-valuemin="0" 
-                                 aria-valuemax="100">
+                            <div class="progress-bar" role="progressbar" style="width: {{ $progress }}%;" aria-valuenow="{{ $progress }}" aria-valuemin="0" aria-valuemax="100">
                                 {{ $progress }}%
                             </div>
                         </div>
                     </div>
                 </div>
-
                 @if ($lessons->isEmpty())
                     <div class="col-md-12 text-center">
                         <h3>No Lessons found.</h3>
@@ -430,8 +390,7 @@
                                         @endif
                                     </h5>
                                     <p>{!! $lesson->subtitle !!}</p>
-                                    <a href="{{ route('student.myCourses', ['lesson_id' => $lesson->id]) }}"
-                                       class="btn btn-primary d-block">
+                                    <a href="{{ route('student.myCourses', ['lesson_id' => $lesson->id]) }}" class="btn btn-primary d-block">
                                         View Lesson
                                     </a>
                                 </div>
@@ -442,9 +401,8 @@
             </div>
         @endif
 
-        {{-- ###################################### LESSON DETAILS ###################################### --}}
+        {{-- عرض تفاصيل الدرس --}}
         @if($stage === 'lesson_details')
-            <!-- زر الرجوع إلى صفحة الـ Lessons (بافتراض وجود unit_id في الطلب أو في $lesson) -->
             <div class="mb-3 text-center">
                 @if($lesson->unit_id ?? false)
                     <a href="{{ route('student.myCourses', ['unit_id' => $lesson->unit_id]) }}" class="btn btn-secondary">
@@ -467,10 +425,7 @@
                     </video>
                 @elseif($lesson->content_type === 'youtube')
                     <div style="position: relative; padding-bottom: 56.25%; height: 0; overflow: hidden;">
-                        <iframe style="position: absolute; top: 0; left: 0; width: 100%; height: 100%;"
-                                src="https://www.youtube.com/embed/{{ $lesson->content }}"
-                                frameborder="0" allowfullscreen>
-                        </iframe>
+                        <iframe style="position: absolute; top: 0; left: 0; width: 100%; height: 100%;" src="https://www.youtube.com/embed/{{ $lesson->content }}" frameborder="0" allowfullscreen></iframe>
                     </div>
                 @else
                     {!! nl2br(e($lesson->content ?? 'No content')) !!}
@@ -478,21 +433,27 @@
             </div>
 
             <div class="mt-4 text-center">
-                @if(!isset($lesson->is_completed) || !$lesson->is_completed)
-                    <form action="{{ route('student.markLessonCompleted', ['lesson_id' => $lesson->id]) }}" method="POST">
-                        @csrf
+                <form action="{{ route('student.markLessonCompleted') }}" method="POST">
+                    @csrf
+                    <input type="hidden" name="lesson_id" value="{{ $lesson->id }}">
+                    @if($lesson->is_completed == 1)
+                        <!-- إذا الدرس مكتمل -->
+                        <input type="hidden" name="completed" value="0">
+                        <button type="submit" class="btn btn-danger">
+                            Mark Lesson as Incomplete
+                        </button>
+                    @else
+                        <!-- إذا الدرس غير مكتمل -->
+                        <input type="hidden" name="completed" value="1">
                         <button type="submit" class="btn btn-success">
                             Mark Lesson as Completed
                         </button>
-                    </form>
-                @else
-                    <p class="text-success">You have already completed this lesson!</p>
-                @endif
+                    @endif
+                </form>
             </div>
         @endif
-    </div><!-- /lesson-wrapper -->
+    </div>
 @endsection
-
 
 @section('scripts')
     <script src="{{ asset('js/bootstrap.bundle.min.js') }}"></script>
@@ -508,7 +469,6 @@
     <script src="{{ asset('js/tooltipster.bundle.min.js') }}"></script>
     <script src="{{ asset('js/jquery.lazy.min.js') }}"></script>
     <script src="{{ asset('js/main.js') }}"></script>
-
     <script>
         function adjustCardHeights() {
             var maxHeight = 0;
@@ -520,7 +480,6 @@
             });
             $('.card.card-item.youtube').height(maxHeight);
         }
-
         $(window).on('load', function() {
             adjustCardHeights();
         });
