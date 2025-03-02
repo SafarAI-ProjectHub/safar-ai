@@ -277,7 +277,7 @@
             </div>
         @endif
 
-        {{-- عرض صفحة الوحدات --}}
+        {{-- عرض صفحة الوحدات (units) --}}
         @if($stage === 'units')
             <div class="mb-3">
                 <a href="{{ route('student.myCourses') }}" class="btn btn-secondary">
@@ -298,11 +298,13 @@
                             $completedCount = 0;
                             if ($studentId && $totalLessons > 0) {
                                 $lessonIds = $lessons->pluck('id')->toArray();
+                                // تم إضافة distinct هنا لحل مشكلة العد المكرر
                                 $completedCount = DB::table('student_units')
                                     ->where('student_id', $studentId)
                                     ->whereIn('unit_id', $lessonIds)
                                     ->where('completed', 1)
-                                    ->count();
+                                    ->distinct()
+                                    ->count('unit_id');
                             }
                             $progress = ($totalLessons > 0) ? round(($completedCount / $totalLessons) * 100) : 0;
                         @endphp
@@ -348,7 +350,7 @@
             </div>
         @endif
 
-        {{-- عرض صفحة الدروس --}}
+        {{-- عرض صفحة الدروس (lessons) --}}
         @if($stage === 'lessons')
             <div class="mb-3">
                 <a href="{{ route('student.myCourses', ['block_id' => request('block_id')]) }}" class="btn btn-secondary">
@@ -400,7 +402,7 @@
             </div>
         @endif
 
-        {{-- عرض تفاصيل الدرس --}}
+        {{-- عرض تفاصيل الدرس (lesson_details) --}}
         @if($stage === 'lesson_details')
             <div class="mb-3 text-center">
                 @if($lesson->unit_id ?? false)
