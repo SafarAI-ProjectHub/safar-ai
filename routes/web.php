@@ -280,6 +280,8 @@ Route::middleware(['auth', 'role:Teacher|Super Admin'])->prefix('teacher')->grou
     Route::get('student-profiles', [TeacherController::class, 'getStudentProfiles'])->name('teacher.getStudentProfiles');
     Route::get('student-profiles/{id}', [TeacherController::class, 'showStudentProfile'])->name('teacher.showStudentProfile');
 
+    Route::get('courses-index', [CourseController::class, 'index'])->name('courses.index');
+
     // My contract 
 
     Route::get('my-contract', [ContractController::class, 'myContract'])->name('contracts.myContract');
