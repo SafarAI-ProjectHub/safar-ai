@@ -334,7 +334,7 @@ Route::middleware(['auth', 'role:Student'])->prefix('student')->group(function (
 
     Route::post('/mark-lesson-completed', [CourseController::class, 'updateUnitCompletion'])
         ->name('student.markLessonCompleted');
-
+    
     //Certificate
     Route::get('/certificate/check', [CertificateController::class, 'check'])->name('certificate.check');
     Route::get('/certificate/download', [CertificateController::class, 'download'])->name('certificate.download');
