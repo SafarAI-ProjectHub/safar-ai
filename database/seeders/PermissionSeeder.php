@@ -10,12 +10,21 @@ class PermissionSeeder extends Seeder
 {
     public function run()
     {
-        Permission::create(['name' => 'create courses']);
+        // إنشاء إذن "create courses" إذا لم يكن موجودًا مسبقًا
+        $permission = Permission::firstOrCreate(
+            ['name' => 'create courses', 'guard_name' => 'web']
+        );
 
-        $adminRole = Role::findByName('Admin');
-        $superAdminRole = Role::findByName('Super Admin');
+        // التأكد من وجود الدورين المطلوبين، وإنشاؤهما إذا لم يكونا موجودين
+        $adminRole = Role::firstOrCreate(
+            ['name' => 'Admin', 'guard_name' => 'web']
+        );
+        $superAdminRole = Role::firstOrCreate(
+            ['name' => 'Super Admin', 'guard_name' => 'web']
+        );
 
-        $adminRole->givePermissionTo('create courses');
-        $superAdminRole->givePermissionTo('create courses');
+        // منح إذن "create courses" للدورين Admin و Super Admin
+        $adminRole->givePermissionTo($permission);
+        $superAdminRole->givePermissionTo($permission);
     }
 }

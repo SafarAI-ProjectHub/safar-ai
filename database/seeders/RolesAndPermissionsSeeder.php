@@ -15,7 +15,7 @@ class RolesAndPermissionsSeeder extends Seeder
         // حذف الكاش للأذونات
         app()[\Spatie\Permission\PermissionRegistrar::class]->forgetCachedPermissions();
 
-        // إنشاء الأذونات
+        // قائمة الأذونات المراد إنشاؤها
         $permissions = [
             'admin',
             'teacher',
@@ -24,7 +24,7 @@ class RolesAndPermissionsSeeder extends Seeder
             'create courses'
         ];
 
-        // إنشاء الأدوار
+        // قائمة الأدوار المراد إنشاؤها
         $roles = [
             'Admin',
             'Student',
@@ -45,30 +45,30 @@ class RolesAndPermissionsSeeder extends Seeder
         // تحديد دور Super Admin
         $superAdminRole = Role::where('name', 'Super Admin')->first();
 
-        // إنشاء مستخدم Super Admin إذا لم يكن موجودًا
+        // إنشاء مستخدم Super Admin إذا لم يكن موجودًا مسبقًا
         $superAdminEmail = 'superadmin@safarAi.com';
         $superAdmin = User::firstOrCreate(
             ['email' => $superAdminEmail],
             [
-                'first_name' => 'Super',
-                'last_name' => 'Admin',
-                'phone_number' => '1234567890',
-                'date_of_birth' => '1990-01-01',
-                'password' => Hash::make('password'),
+                'first_name'       => 'Super',
+                'last_name'        => 'Admin',
+                'phone_number'     => '1234567890',
+                'date_of_birth'    => '1990-01-01',
+                'password'         => Hash::make('password'),
                 'country_location' => 'USA',
-                'status' => 'active'
+                'status'           => 'active'
             ]
         );
 
-        // منح جميع الصلاحيات لـ Super Admin
+        // منح جميع الصلاحيات لدور Super Admin
         $superAdminRole->syncPermissions(Permission::all());
 
-        // تعيين دور Super Admin له
+        // تعيين دور Super Admin للمستخدم إذا لم يكن يمتلكه
         if (!$superAdmin->hasRole('Super Admin')) {
             $superAdmin->assignRole('Super Admin');
         }
 
-        // تحديث أدوار المستخدمين بناءً على البريد الإلكتروني أو أي شرط آخر
+        // تحديث أدوار المستخدمين بناءً على البريد الإلكتروني أو شروط أخرى
         User::all()->each(function ($user) {
             if (strpos($user->email, 'admin') !== false) {
                 $user->assignRole('Admin');

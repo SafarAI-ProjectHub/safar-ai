@@ -11,11 +11,12 @@ class DatabaseSeeder extends Seeder
      */
     public function run(): void
     {
-        // Call seeders in the correct order
+        // استدعاء الـseeders بالترتيب الصحيح
         $this->call(RolesTableSeeder::class);
         $this->call(CourseCategorySeeder::class);
         $this->call(UserSeeder::class);
-        $this->call(PermissionSeeder::class);
         $this->call(RolesAndPermissionsSeeder::class);
+        $this->call(PermissionSeeder::class);
+        $this->call(BlocksTableSeeder::class);
     }
 }

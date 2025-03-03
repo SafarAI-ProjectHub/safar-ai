@@ -4,12 +4,9 @@ namespace App\Http\Controllers;
 
 use App\Services\PayPalService;
 use App\Models\Subscription;
-use App\Models\UserSubscription;
 use Illuminate\Http\Request;
 use Yajra\DataTables\DataTables;
 use Illuminate\Support\Facades\Auth;
-use Illuminate\Support\Facades\Log;
-use Carbon\Carbon;
 
 class AdminSubscriptionController extends Controller
 {
@@ -21,112 +18,75 @@ class AdminSubscriptionController extends Controller
     }
 
     /**
-     * عرض قائمة الاشتراكات في الـ DataTable.
+     * عرض قائمة الخطط (subscriptions) في DataTable
      */
     public function index(Request $request)
     {
         if ($request->ajax()) {
+            $query = Subscription::query()->select(
+                'id',
+                'product_name',
+                'description',
+                'price',
+                'subscription_type',
+                'is_active'
+            );
 
-            // سجل (Log) بيانات الفلتر بالتاريخ
-            Log::info('طلب AJAX للـ admin.subscriptions مع daterange=', [
-                'daterange' => $request->daterange
-            ]);
-
-            // نختار كل الاشتراكات مع العلاقة subscription
-            $query = UserSubscription::with(['user', 'subscription']);
-
-            // فلترة بالتاريخ (إن وجد)
-            if ($request->filled('daterange')) {
-                $dateRange = explode(' - ', $request->daterange);
-                if (count($dateRange) === 2) {
-                    try {
-                        $start = Carbon::parse($dateRange[0]);
-                        $end   = Carbon::parse($dateRange[1]);
-                        $query->whereBetween('start_date', [$start, $end]);
-
-                        Log::info('تم تطبيق فلترة التاريخ:', [
-                            'start' => $start->toDateTimeString(),
-                            'end'   => $end->toDateTimeString(),
-                        ]);
-                    } catch (\Exception $e) {
-                        Log::error("Date parsing error: " . $e->getMessage());
-                    }
-                }
-            }
-
-            // نبني الـ DataTable
             return DataTables::of($query)
-                ->addColumn('user_name', function ($row) {
-                    return optional($row->user)->first_name . ' ' . optional($row->user)->last_name;
+
+                // نعدل عمود is_active ليعيد HTML يحتوي Checkbox (Toggle)
+                ->editColumn('is_active', function ($row) {
+                    $checked = $row->is_active ? 'checked' : '';
+                    // نضع كلاس activate-subscription حتى نلتقط الحدث بالـJS
+                    // ونستدعي التفعيل/التعطيل عبر Ajax
+                    return "
+                        <div class='form-switch d-flex align-items-center'>
+                            <input type='checkbox'
+                                   class='form-check-input activate-subscription'
+                                   data-id='{$row->id}'
+                                   style='cursor: pointer;'
+                                   {$checked}>
+                        </div>
+                    ";
                 })
-                ->addColumn('subscription_id', function ($row) {
-                    return $row->subscription_id;
-                })
-                ->addColumn('status', function ($row) {
-                    return $row->status;
-                })
-                ->addColumn('start_date', function ($row) {
-                    return $row->start_date
-                        ? $row->start_date->format('Y-m-d H:i')
-                        : 'N/A';
-                })
-                ->addColumn('next_billing_time', function ($row) {
-                    return $row->next_billing_time
-                        ? $row->next_billing_time->format('Y-m-d H:i')
-                        : 'N/A';
-                })
-                ->addColumn('payment_status', function ($row) {
-                    // مجرد مثال
-                    return 'N/A';
-                })
-                // عمود يرسل معلومات الاشتراك (subscription) للـ Frontend
-                ->addColumn('subscription_data', function ($row) {
-                    // سجّل Log للبيانات حتى نعرف هل تُجلب بنجاح:
-                    if ($row->subscription) {
-                        Log::info("subscription_data for UserSubscription #{$row->id}:", [
-                            'subscription_id' => $row->subscription->id,
-                            'subscription_array' => $row->subscription->toArray(),
-                        ]);
-                        return $row->subscription->toArray();
-                    } else {
-                        Log::warning("لا توجد علاقة subscription لهذا الـ UserSubscription #{$row->id}");
-                        return null;
-                    }
-                })
-                ->addColumn('details', function ($row) {
-                    return '<button class="btn btn-info btn-sm view-details"
-                            data-id="'.$row->id.'">View</button>';
-                })
-                ->rawColumns(['details'])
+
+                // مهم حتى لا يتم ترميز الـHTML وإظهاره كنص
+                ->rawColumns(['is_active'])
+
                 ->make(true);
         }
 
-        // إن لم يكن طلب AJAX نعيد الفيو
         return view('dashboard.admin.subscriptions.index');
     }
 
     /**
-     * إنشاء اشتراك جديد في جدول subscriptions (تعريف خطة).
+     * إرجاع بيانات خطة (للتعديل)
+     * GET /admin/subscriptions/{id}
+     */
+    public function show($id)
+    {
+        $subscription = Subscription::findOrFail($id);
+        return response()->json(['subscription' => $subscription]);
+    }
+
+    /**
+     * إضافة خطة جديدة
      */
     public function store(Request $request)
     {
-        Log::info("طلب إنشاء اشتراك جديد:", $request->all());
-
         $request->validate([
             'name'              => 'required|string|max:255',
             'description'       => 'required|string',
             'price'             => 'required|numeric|min:0',
             'features'          => 'nullable|string',
             'subscription_type' => 'required|string|in:yolo,solo,tolo',
+            'is_active'         => 'required|in:0,1', 
         ]);
 
-        // جهّز الـ features كمصفوفة
         $featuresArray = $this->processFeatures($request->features);
 
-        Log::info("featuresArray:", $featuresArray);
-
+        // خطة مجانية إن كان السعر = 0
         if ($request->price == 0) {
-            // لو الاشتراك مجاني:
             $sub = Subscription::create([
                 'product_name'      => $request->name,
                 'paypal_plan_id'    => null,
@@ -135,102 +95,105 @@ class AdminSubscriptionController extends Controller
                 'price'             => 0,
                 'user_id'           => Auth::id(),
                 'description'       => $request->description,
-                'is_active'         => false,
+                'is_active'         => $request->boolean('is_active'), 
                 'features'          => $featuresArray,
+                'payment_method'    => 'card',
             ]);
 
-            Log::info("تم إنشاء خطة مجانية بنجاح", [$sub]);
-
-            return response()->json([
-                'success' => 'تم إنشاء الخطة المجانية بنجاح.'
-            ]);
-        } else {
-            // في حال السعر أكبر من الصفر، ننشئ منتج وخطة في PayPal
-            $productResponse = $this->paypalService->createProduct(
-                $request->name,
-                $request->description
-            );
-
-            Log::info("نتيجة إنشاء المنتج في باي بال:", $productResponse);
-
-            if (!isset($productResponse['id'])) {
-                Log::error("فشل إنشاء المنتج في باي بال");
-                return response()->json([
-                    'error' => 'فشل في إنشاء المنتج في PayPal.'
-                ], 500);
-            }
-
-            $planResponse = $this->paypalService->createPlan(
-                $productResponse['id'],
-                $request->name,
-                $request->description,
-                $request->price,
-                $request->subscription_type
-            );
-
-            Log::info("نتيجة إنشاء الخطة في باي بال:", $planResponse);
-
-            if (!isset($planResponse['id'])) {
-                Log::error("فشل إنشاء الخطة في باي بال");
-                return response()->json([
-                    'error' => 'فشل في إنشاء الخطة في PayPal.'
-                ], 500);
-            }
-
-            $sub = Subscription::create([
-                'product_name'      => $request->name,
-                'paypal_plan_id'    => $planResponse['id'],
-                'paypal_product_id' => $productResponse['id'],
-                'subscription_type' => $request->subscription_type,
-                'price'             => $request->price,
-                'user_id'           => Auth::id(),
-                'description'       => $request->description,
-                'is_active'         => false,
-                'features'          => $featuresArray,
-            ]);
-
-            Log::info("تم إنشاء خطة مدفوعة بنجاح", [$sub]);
-
-            return response()->json([
-                'success' => 'تم إنشاء الخطة المدفوعة بنجاح.'
-            ]);
+            return response()->json(['success' => 'تم إنشاء الخطة المجانية بنجاح.']);
         }
+
+        // خطة مدفوعة (إنشاء منتج + خطة في باي بال)
+        $productResponse = $this->paypalService->createProduct(
+            $request->name,
+            $request->description
+        );
+        if (!isset($productResponse['id'])) {
+            return response()->json(['error' => 'فشل في إنشاء المنتج في PayPal.'], 500);
+        }
+
+        $planResponse = $this->paypalService->createPlan(
+            $productResponse['id'],
+            $request->name,
+            $request->description,
+            $request->price,
+            $request->subscription_type
+        );
+        if (!isset($planResponse['id'])) {
+            return response()->json(['error' => 'فشل في إنشاء الخطة في PayPal.'], 500);
+        }
+
+        $sub = Subscription::create([
+            'product_name'      => $request->name,
+            'paypal_plan_id'    => $planResponse['id'],
+            'paypal_product_id' => $productResponse['id'],
+            'subscription_type' => $request->subscription_type,
+            'price'             => $request->price,
+            'user_id'           => Auth::id(),
+            'description'       => $request->description,
+            'is_active'         => $request->boolean('is_active'),
+            'features'          => $featuresArray,
+            'payment_method'    => 'card',
+        ]);
+
+        return response()->json(['success' => 'تم إنشاء الخطة المدفوعة بنجاح.']);
     }
 
     /**
-     * تفعيل/تعطيل اشتراك (تعريف خطة).
+     * تحديث الخطة
+     * PUT /admin/subscriptions/{id}
+     */
+    public function update(Request $request, $id)
+    {
+        $subscription = Subscription::findOrFail($id);
+
+        $request->validate([
+            'name'              => 'required|string|max:255',
+            'description'       => 'required|string',
+            'price'             => 'required|numeric|min:0',
+            'features'          => 'nullable|string',
+            'subscription_type' => 'required|string|in:yolo,solo,tolo',
+            'is_active'         => 'required|in:0,1',
+        ]);
+
+        $featuresArray = $this->processFeatures($request->features);
+
+        // لو أردت تحديث خطة PayPal عند تغيّر السعر، يمكنك إضافة منطق هنا
+        $subscription->update([
+            'product_name'      => $request->name,
+            'subscription_type' => $request->subscription_type,
+            'price'             => $request->price,
+            'description'       => $request->description,
+            'features'          => $featuresArray,
+            'is_active'         => $request->boolean('is_active'),
+        ]);
+
+        return response()->json(['success' => 'Subscription updated successfully.']);
+    }
+
+    /**
+     * حذف الخطة
+     * DELETE /admin/subscriptions/{id}
+     */
+    public function destroy($id)
+    {
+        $subscription = Subscription::findOrFail($id);
+        $subscription->delete();
+        return response()->json(['success' => 'Subscription deleted successfully.']);
+    }
+
+    /**
+     * تفعيل/تعطيل الخطة (عند الضغط على التوجّل)
      */
     public function toggleActive($id)
     {
-        Log::info("طلب toggleActive للاشتراك رقم: $id");
         $subscription = Subscription::findOrFail($id);
-        $subscriptionType = $subscription->subscription_type;
-        Log::info("الاشتراك قبل التغيير:", $subscription->toArray());
 
+        // لو ترغب في منع تعطيل آخر خطة مفعلة من نوع معيّن، أضف المنطق هنا
         if ($subscription->is_active) {
-            // منع تعطيل آخر اشتراك من نفس النوع
-            $activeSubscriptionCount = Subscription::where('is_active', true)
-                ->where('subscription_type', $subscriptionType)
-                ->count();
-
-            if ($activeSubscriptionCount <= 1) {
-                Log::warning("محاولة تعطيل آخر اشتراك فعال من النوع نفسه: $subscriptionType");
-                return response()->json([
-                    'success' => false,
-                    'message' => 'لا يمكن تعطيل آخر اشتراك من هذا النوع. يجب أن يبقى واحد على الأقل مفعّل.'
-                ], 400);
-            }
-
             $subscription->update(['is_active' => false]);
-            Log::info("تم تعطيل الاشتراك رقم: $id");
         } else {
-            // عند التفعيل، نعطّل غيره من نفس النوع
-            Subscription::where('id', '!=', $id)
-                ->where('subscription_type', $subscriptionType)
-                ->update(['is_active' => false]);
-
             $subscription->update(['is_active' => true]);
-            Log::info("تم تفعيل الاشتراك رقم: $id وتعطيل الباقي من نفس النوع: $subscriptionType");
         }
 
         return response()->json([
@@ -240,7 +203,7 @@ class AdminSubscriptionController extends Controller
     }
 
     /**
-     * تفكيك الـ features إلى مصفوفة أسطر (سطر سطر).
+     * تحويل الـ features (نص) إلى مصفوفة أسطر
      */
     private function processFeatures($features)
     {
