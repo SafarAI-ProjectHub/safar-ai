@@ -5,6 +5,10 @@ use Illuminate\Support\ServiceProvider;
 
 return [
 
+
+    'moodle_url' => env('MOODLE_URL', 'https://moodle.safarai.org/webservice/rest/server.php'),
+    'moodle_wstoken' => env('MOODLE_WSTOKEN', null),
+
     /*
     |--------------------------------------------------------------------------
     | Application Name

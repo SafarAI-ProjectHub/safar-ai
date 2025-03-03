@@ -30,5 +30,10 @@ return [
         'secret' => env('AWS_SECRET_ACCESS_KEY'),
         'region' => env('AWS_DEFAULT_REGION', 'us-east-1'),
     ],
-
+'moodle' => [
+        'client_id' => env('safarai-laravel'),
+        'client_secret' => env('SafarAi@2025'),
+        'redirect' => env('https://safarai.org/oauth/callback'),
+        'url' => env('https://moodle.safarai.org/'),
+    ],
 ];

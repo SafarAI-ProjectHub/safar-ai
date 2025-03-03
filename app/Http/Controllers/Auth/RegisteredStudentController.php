@@ -9,10 +9,12 @@ use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Validator;
 use App\Http\Requests\Auth\RegisterStudentRequest;
 use Spatie\Permission\Models\Role;
+use App\Services\MoodleUserService;
 
 
 class RegisteredStudentController extends Controller
 {
+    
     public function create()
     {
         return view('auth.register');
@@ -30,7 +32,6 @@ class RegisteredStudentController extends Controller
             'date_of_birth' => $request->date_of_birth,
             'password' => Hash::make($request->password),
             'country_location' => $request->country_location,
-            // 'role_id' => 2,
             'status' => 'pending',
         ]);
         $user->assignRole('Student');
@@ -39,7 +40,17 @@ class RegisteredStudentController extends Controller
             'english_proficiency_level' => 1,
             'subscription_status' => 'free',
         ]);
+        $moodleUserService = app(MoodleUserService::class);
 
+            $moodleUserId = $moodleUserService->createUser($user);
+            if ($moodleUserId) {
+                $user->update(['moodle_id' => $moodleUserId]);
+                Log::info("✅ تم تسجيل الطالب في Moodle بنجاح: {$user->email}");
+            } else {
+                Log::warning("⚠️ فشل تسجيل الطالب في Moodle: {$user->email}");
+            }
+        
+ 
         if ($user) {
             return response()->json([
                 'success' => true,

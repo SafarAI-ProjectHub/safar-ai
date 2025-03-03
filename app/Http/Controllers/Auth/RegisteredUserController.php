@@ -12,9 +12,12 @@ use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Validation\Rules;
 use Illuminate\View\View;
+use App\Services\MoodleUserService;
 
 class RegisteredUserController extends Controller
 {
+    
+  
     /**
      * Display the registration view.
      */
@@ -47,7 +50,15 @@ class RegisteredUserController extends Controller
         ]);
 
         event(new Registered($user));
+        $moodleUserService = app(MoodleUserService::class);
 
+        $moodleUserId = $moodleUserService->createUser($user);
+        if ($moodleUserId) {
+            $user->update(['moodle_id' => $moodleUserId]);
+            Log::info("✅ تم تسجيل الطالب في Moodle بنجاح: {$user->email}");
+        } else {
+            Log::warning("⚠️ فشل تسجيل الطالب في Moodle: {$user->email}");
+        }
         Auth::login($user);
 
         return redirect(RouteServiceProvider::HOME);

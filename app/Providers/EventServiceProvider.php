@@ -8,6 +8,7 @@ use Illuminate\Foundation\Support\Providers\EventServiceProvider as ServiceProvi
 use Illuminate\Support\Facades\Event;
 use App\Events\NotificationEvent;
 use App\Listeners\NotificationListener;
+use App\Listeners\CreateMoodleUser;
 
 class EventServiceProvider extends ServiceProvider
 {
@@ -17,6 +18,9 @@ class EventServiceProvider extends ServiceProvider
      * @var array<class-string, array<int, class-string>>
      */
     protected $listen = [
+        Registered::class => [
+            CreateMoodleUser::class,
+        ],
         Registered::class => [
             SendEmailVerificationNotification::class,
         ],
@@ -32,6 +36,7 @@ class EventServiceProvider extends ServiceProvider
         'Illuminate\Auth\Events\Logout' => [
             'App\Listeners\LogLogout',
         ],
+
     ];
 
     /**
