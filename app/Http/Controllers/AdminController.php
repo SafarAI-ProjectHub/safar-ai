@@ -21,6 +21,8 @@ use Illuminate\Support\Facades\Http;
 use Carbon\Carbon;
 use DB;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Facades\Log;
+use App\Services\MoodleUserService;
 
 class AdminController extends Controller
 {
@@ -79,9 +81,11 @@ class AdminController extends Controller
 
     public function createAdmin()
     {
+        // عرض الصفحة الخاصة بإنشاء حساب سوبر أدمن
         return view('dashboard.admin.create_admin');
     }
-
+    
+    
     public function storeAdmin(Request $request)
     {
         $validator = Validator::make($request->all(), [
@@ -95,15 +99,13 @@ class AdminController extends Controller
         ]);
 
         if ($validator->fails()) {
-            // نعيد رد JSON ليتماشى مع الـAJAX
             return response()->json(['errors' => $validator->errors()], 422);
         }
 
-        // إنشاء المستخدم + Role=Admin
         $user = User::create([
             'first_name'       => $request->first_name,
             'last_name'        => $request->last_name,
-            'email'            => $request->email,
+            'email'            => strtolower($request->email),
             'phone_number'     => $request->country_code . $request->phone_number,
             'date_of_birth'    => $request->date_of_birth,
             'password'         => Hash::make($request->password),
@@ -113,10 +115,21 @@ class AdminController extends Controller
 
         $user->assignRole('Admin');
 
-        // نرسل JSON يضم الرسالة
+        // تسجيل الأدمن في Moodle
+        $moodleUserService = app(MoodleUserService::class);
+        $moodleUserId = $moodleUserService->createUser($user);
+        // في حال أردت تعيين الدور يدويًا، استخدم: ->createUser($user, 1)
+
+        if ($moodleUserId) {
+            $user->update(['moodle_id' => $moodleUserId]);
+            Log::info("✅ تم تسجيل الأدمن في Moodle بنجاح: {$user->email}");
+        } else {
+            Log::warning("⚠️ فشل تسجيل الأدمن في Moodle: {$user->email}");
+        }
+
         return response()->json(['message' => 'Admin created successfully!']);
     }
-
+            
     public function editAdmin($id)
     {
         $user = User::findOrFail($id);
