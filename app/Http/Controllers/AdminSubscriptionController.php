@@ -7,6 +7,7 @@ use App\Models\Subscription;
 use Illuminate\Http\Request;
 use Yajra\DataTables\DataTables;
 use Illuminate\Support\Facades\Auth;
+use Carbon\Carbon;
 
 class AdminSubscriptionController extends Controller
 {
@@ -25,20 +26,23 @@ class AdminSubscriptionController extends Controller
         if ($request->ajax()) {
             $query = Subscription::query()->select(
                 'id',
+                'user_name',
+                'subscription_id',
+                'status',
+                'start_date',
+                'next_billing_time',
+                'payment_status',
                 'product_name',
                 'description',
                 'price',
                 'subscription_type',
+                'features',
                 'is_active'
             );
 
             return DataTables::of($query)
-
-                // نعدل عمود is_active ليعيد HTML يحتوي Checkbox (Toggle)
                 ->editColumn('is_active', function ($row) {
                     $checked = $row->is_active ? 'checked' : '';
-                    // نضع كلاس activate-subscription حتى نلتقط الحدث بالـJS
-                    // ونستدعي التفعيل/التعطيل عبر Ajax
                     return "
                         <div class='form-switch d-flex align-items-center'>
                             <input type='checkbox'
@@ -49,10 +53,7 @@ class AdminSubscriptionController extends Controller
                         </div>
                     ";
                 })
-
-                // مهم حتى لا يتم ترميز الـHTML وإظهاره كنص
                 ->rawColumns(['is_active'])
-
                 ->make(true);
         }
 
@@ -87,7 +88,7 @@ class AdminSubscriptionController extends Controller
 
         // خطة مجانية إن كان السعر = 0
         if ($request->price == 0) {
-            $sub = Subscription::create([
+            Subscription::create([
                 'product_name'      => $request->name,
                 'paypal_plan_id'    => null,
                 'paypal_product_id' => null,
@@ -95,9 +96,10 @@ class AdminSubscriptionController extends Controller
                 'price'             => 0,
                 'user_id'           => Auth::id(),
                 'description'       => $request->description,
-                'is_active'         => $request->boolean('is_active'), 
+                'is_active'         => $request->boolean('is_active'),
                 'features'          => $featuresArray,
                 'payment_method'    => 'card',
+                'next_billing_time' => Carbon::now()->addMonth()->toDateTimeString(),
             ]);
 
             return response()->json(['success' => 'تم إنشاء الخطة المجانية بنجاح.']);
@@ -123,7 +125,7 @@ class AdminSubscriptionController extends Controller
             return response()->json(['error' => 'فشل في إنشاء الخطة في PayPal.'], 500);
         }
 
-        $sub = Subscription::create([
+        Subscription::create([
             'product_name'      => $request->name,
             'paypal_plan_id'    => $planResponse['id'],
             'paypal_product_id' => $productResponse['id'],
@@ -134,6 +136,7 @@ class AdminSubscriptionController extends Controller
             'is_active'         => $request->boolean('is_active'),
             'features'          => $featuresArray,
             'payment_method'    => 'card',
+            'next_billing_time' => Carbon::now()->addMonth()->toDateTimeString(),
         ]);
 
         return response()->json(['success' => 'تم إنشاء الخطة المدفوعة بنجاح.']);
@@ -158,7 +161,6 @@ class AdminSubscriptionController extends Controller
 
         $featuresArray = $this->processFeatures($request->features);
 
-        // لو أردت تحديث خطة PayPal عند تغيّر السعر، يمكنك إضافة منطق هنا
         $subscription->update([
             'product_name'      => $request->name,
             'subscription_type' => $request->subscription_type,
@@ -189,7 +191,6 @@ class AdminSubscriptionController extends Controller
     {
         $subscription = Subscription::findOrFail($id);
 
-        // لو ترغب في منع تعطيل آخر خطة مفعلة من نوع معيّن، أضف المنطق هنا
         if ($subscription->is_active) {
             $subscription->update(['is_active' => false]);
         } else {
@@ -199,6 +200,24 @@ class AdminSubscriptionController extends Controller
         return response()->json([
             'success' => true,
             'message' => 'تم تحديث حالة الاشتراك بنجاح.'
+        ]);
+    }
+
+    /**
+     * تشغيل عملية الفوترة القادمة للاشتراك
+     * POST /admin/subscriptions/{id}/next-billing
+     */
+    public function nextBilling(Request $request, $id)
+    {
+        $subscription = Subscription::findOrFail($id);
+        // تحديث تاريخ الفوترة القادمة إلى شهر من الآن
+        $nextBillingTime = Carbon::now()->addMonth()->toDateTimeString();
+        $subscription->update(['next_billing_time' => $nextBillingTime]);
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Next billing triggered successfully.',
+            'next_billing_time' => $nextBillingTime
         ]);
     }
 
