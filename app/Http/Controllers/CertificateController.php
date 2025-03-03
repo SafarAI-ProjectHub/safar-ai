@@ -14,52 +14,38 @@ use App\Models\Certificate;
 
 class CertificateController extends Controller
 {
-    /**
-     * التحقق إن كان المستخدم طالب وأنهى الكورس والوحدات.
-     */
     public function check(Request $request)
     {
-        $user      = User::find($request->user_id);
-        $isStudent = $user && $user->hasRole('Student');
-        $course    = Course::find($request->course_id);
+        $user = User::find($request->user_id);
+        $isStudent = $user->hasRole('Student');
+        $course = Course::find($request->course_id);
         $completed = false;
-
-        if ($user && $course) {
-            // نفترض أنك تستخدم حقل completed=1 في pivot لتدل أن الطالب أنهى الكورس
-            $completed = $user->courses()
-                              ->where('course_id', $course->id)
-                              ->where('completed', 1)
-                              ->exists();
+        if ($course) {
+            $completed = $user->courses()->where('course_id', $request->course_id)->where('completed', 1)->count() == 1;
         }
-        \Log::info('CertificateController@check => Course completed ?', [
-            'completed' => $completed
-        ]);
 
-        // إذا هو طالب وأتمّ إنهاء الكورس
         if ($isStudent && $completed) {
-            $unitnumber = Unit::where('course_id', $course->id)->count();
-            $unitsIds   = $course->units->pluck('id')->toArray();
-
-            // معرف الطالب في جدول students
-            $studentId  = $user->student->id;
-
-            // سحب الوحدات المكتملة الخاصة بهذا الطالب في هذا الكورس
+            $unitnumber = Unit::where('course_id', $request->course_id)->count();
+            $unitsIds = $course->units->pluck('id')->toArray();
             $completedUnitIds = DB::table('student_units')
                 ->where('student_id', $studentId)
                 ->where('completed', 1)
-                ->whereIn('unit_id', $unitsIds)
-                ->distinct()
-                ->pluck('unit_id')
+                ->get('unit_id')
                 ->toArray();
 
-            $completedUnitCount = count($completedUnitIds);
-            \Log::info('CertificateController@check => completedUnitCount', [
-                'count' => $completedUnitCount
-            ]);
+            $completedUnitIds = array_filter($completedUnitIds, function ($unit) use ($unitsIds) {
+                return in_array($unit->unit_id, $unitsIds);
+            });
 
-            // إذا أكمل كل الوحدات
-            if ($completedUnitCount == $unitnumber && $unitnumber > 0) {
-                \Log::info('CertificateController@check => All units completed => allow certificate');
+            $completedUnitIds = array_map(function ($unit) {
+                return $unit->unit_id;
+            }, $completedUnitIds);
+
+            $completedUnitIds = array_values($completedUnitIds);
+
+            $completedUnitCount = count($completedUnitIds);
+
+            if ($completedUnitCount == $unitnumber) {
                 return response()->json([
                     'isStudent'         => $isStudent,
                     'completed'         => $completed,
@@ -67,7 +53,6 @@ class CertificateController extends Controller
                 ]);
             }
 
-            \Log::info('CertificateController@check => Not all units completed => no certificate yet');
             return response()->json([
                 'isStudent'         => $isStudent,
                 'completed'         => $completed,
@@ -75,67 +60,58 @@ class CertificateController extends Controller
             ]);
         }
 
-        \Log::info('CertificateController@check => Either not a student or not completed');
         return response()->json([
             'isStudent' => $isStudent,
             'completed' => $completed
         ]);
     }
 
-    /**
-     * عرض صفحة الشهادة (إنهاء الكورس + إنهاء جميع الوحدات)
-     */
+    public function download()
+    {
+        // $user = Auth::user();
+        // $pdf = PDF::loadView('certificate.pdf', compact('user'));
+        // return $pdf->download('certificate.pdf');
+    }
+
     public function certificatePage($course_id)
     {
-        \Log::info('CertificateController@certificatePage => Start', [
-            'course_id'    => $course_id,
-            'auth_user_id' => Auth::id()
-        ]);
-
-        // السماح فقط للطالب
         if (!Auth::user()->hasRole('Student')) {
+            \Log::info('certificatePage => User is not Student => 403', [
+                'user_id' => Auth::id()
+            ]);
             abort(403, 'Unauthorized action.');
         }
-
         $course = Course::find($course_id);
-        $user   = Auth::user();
-
-        // تحقق من إتمام الكورس في الجدول الوسيط
-        $completed = $user->courses()
-                          ->where('course_id', $course_id)
-                          ->where('completed', 1)
-                          ->exists();
-
-        \Log::info('certificatePage => Checking course completion', [
-            'user_id'   => $user->id,
-            'course_id' => $course_id,
-            'completed' => $completed
-        ]);
+        $user = Auth::user();
+        $completed = $user->courses()->where('course_id', $course_id)->exists();
 
         if ($completed) {
+            // عدد الوحدات الخاصة بالكورس
             $unitnumber = Unit::where('course_id', $course_id)->count();
-            $unitsIds   = $course->units->pluck('id')->toArray();
-            $studentId  = $user->student->id;
-
-            // جلب الوحدات المكتملة
+            $unitsIds = $course->units->pluck('id')->toArray();
             $completedUnitIds = DB::table('student_units')
-                ->where('student_id', $studentId)
+                ->where('student_id', $user->student->id)
                 ->where('completed', 1)
-                ->whereIn('unit_id', $unitsIds)
-                ->distinct()
-                ->pluck('unit_id')
+                ->get('unit_id')
                 ->toArray();
 
-            $completedUnitCount = count($completedUnitIds);
+            $completedUnitIds = array_filter($completedUnitIds, function ($unit) use ($unitsIds) {
+                return in_array($unit->unit_id, $unitsIds);
+            });
 
+            $completedUnitIds = array_map(function ($unit) {
+                return $unit->unit_id;
+            }, $completedUnitIds);
+
+            $completedUnitIds = array_values($completedUnitIds);
+
+            $completedUnitCount = count($completedUnitIds);
             \Log::info('certificatePage => completedUnitCount vs totalUnits', [
                 'completedUnitCount' => $completedUnitCount,
                 'unitnumber'         => $unitnumber
             ]);
 
-            // إذا أنهى جميع الوحدات
-            if ($completedUnitCount == $unitnumber && $unitnumber > 0) {
-                // أحضر أحدث وحدة مكتملة من حيث التاريخ
+            if ($completedUnitCount == $unitnumber) {
                 $lastCompletedUnit = DB::table('student_units')
                     ->where('student_id', $studentId)
                     ->where('completed', 1)
@@ -143,10 +119,8 @@ class CertificateController extends Controller
                     ->orderBy('updated_at', 'desc')
                     ->first();
 
-                // تاريخ الإكمال
-                $completedAt = $lastCompletedUnit->updated_at ?? now();
+                $completedAt = $lastCompletedUnit->updated_at;
 
-                // أنشئ أو أحضر الشهادة
                 Certificate::firstOrCreate(
                     [
                         'user_id'   => $user->id,
@@ -157,6 +131,7 @@ class CertificateController extends Controller
                     ]
                 );
 
+                // عرض صفحة الشهادة
                 return view('dashboard.student.certificate', compact('course', 'completedAt'));
             } else {
                 \Log::info('certificatePage => Not all course units are completed => 403');
@@ -164,7 +139,6 @@ class CertificateController extends Controller
             }
         }
 
-        \Log::info('certificatePage => course not completed => 403');
         abort(403, 'the course is not completed yet.');
     }
 
@@ -173,113 +147,85 @@ class CertificateController extends Controller
      */
     public function generatePDF(Request $request)
     {
-        \Log::info('CertificateController@generatePDF => Start', [
-            'auth_user_id' => Auth::id(),
-            'course_id'    => $request->course_id
-        ]);
-
-        $user    = Auth::user();
-        $course  = Course::find($request->course_id);
-
+        $user   = Auth::user();
+        $course = Course::find($request->course_id);
+    
+        // تحقّق من وجود الكورس
         if (!$course) {
-            \Log::info('generatePDF => Course not found => 404');
             return response()->json([
                 'error' => 'Course not found.'
             ], 404);
         }
-
-        // جلب الشهادة إن وجدت
+    
+        // تحقّق من وجود شهادة للمستخدم في هذا الكورس
         $certificate = Certificate::where('user_id', $user->id)
                                   ->where('course_id', $course->id)
                                   ->first();
-
+    
         if (!$certificate) {
-            \Log::info('generatePDF => No certificate found => 404');
             return response()->json([
                 'error' => 'No certificate found for this user and course.'
             ], 404);
         }
-
+    
+        // تأكد أن حقل completed_at متوفر
         if (!$certificate->completed_at) {
             \Log::info('generatePDF => No completion date => 422');
             return response()->json([
                 'error' => 'Certificate does not have a completion date.'
             ], 422);
         }
-
+    
+        // البيانات التي ستُعرض في الـPDF
         $data = [
             'user'   => $user,
             'course' => $course,
             'date'   => $certificate->completed_at->format('F j, Y'),
         ];
-
-        // توليد الملف PDF
+    
+        // توليد الـPDF باستخدام المكتبة
         $pdf = PDF::loadView('pdf.certificate', $data);
-
-        // إذا تريد العمل محلّيًا على ويندوز:
-        if (strtoupper(substr(PHP_OS, 0, 3)) === 'WIN') {
-            // ضَع المسار الفعلي wkhtmltopdf.exe
-            $pdf->setBinary('C:\Progra~1\wkhtmltopdf\bin\wkhtmltopdf.exe');
-            // السماح بالوصول للملفات المحلية
-            $pdf->setOption('enable-local-file-access', true);
-        } else {
-            // على السيرفر (لينكس)، عدل المسار حسب ما هو متوفر
-            $pdf->setBinary('/usr/local/bin/wkhtmltopdf');
-        }
-
-        // بقية الإعدادات
+        $pdf->setOption('page-size', 'A4');
         $pdf->setOption('orientation', 'landscape');
         $pdf->setOption('page-size', 'A4');
         $pdf->setOption('page-width', '224mm');
         $pdf->setOption('page-height', '300mm');
-        $pdf->setOption('margin-top', 0);
-        $pdf->setOption('margin-right', 0);
-        $pdf->setOption('margin-bottom', 0);
-        $pdf->setOption('margin-left', 0);
-
-        // ننفذ التنزيل
+        $pdf->setOption('margin-top', '0');
+        $pdf->setOption('margin-right', '0');
+        $pdf->setOption('margin-bottom', '0');
+        $pdf->setOption('margin-left', '0');
+    
+        // نرجع الملف كـ"Blob" حتى يتعامل معه الـAjax في المتصفح
         return $pdf->download('certificate-' . $course->title . '.pdf');
     }
-
-    /**
-     * إظهار جميع شهادات الطالب في DataTables
-     */
+    
     public function myCertificates(Request $request)
     {
-        \Log::info('CertificateController@myCertificates => Start (Ajax check)', [
-            'isAjax'       => $request->ajax(),
-            'auth_user_id' => Auth::id()
-        ]);
-
         if ($request->ajax()) {
-            $user      = Auth::user();
-            $studentId = $user->student->id;
-
-            // جلب جميع الكورسات التي أنهى الطالب فيها الكورس (completed=1)
-            $courses = $user->courses()
-                            ->where('completed', 1)
-                            ->get();
-
-            \Log::info('myCertificates => courses found with completed=1', [
-                'course_ids' => $courses->pluck('id')->toArray()
-            ]);
-
+            $user = Auth::user();
+    
+            // جلب جميع الكورسات التي ظهرت في جدول user_courses بعلامة completed = 1
+            $courses = $user->courses()->where('completed', 1)->get();
             $completedCourses = [];
 
             foreach ($courses as $course) {
+                // عدد وحدات الكورس
                 $unitnumber = Unit::where('course_id', $course->id)->count();
-                $unitsIds   = $course->units->pluck('id')->toArray();
-
+                $unitsIds = $course->units->pluck('id')->toArray();
+    
+                // جلب معرفات الوحدات التي أنهاها الطالب
                 $completedUnitIds = DB::table('student_units')
-                    ->where('student_id', $studentId)
+                    ->where('student_id', $user->student->id)
                     ->where('completed', 1)
                     ->whereIn('unit_id', $unitsIds)
                     ->pluck('unit_id')
                     ->toArray();
-
+    
                 $completedUnitCount = count($completedUnitIds);
-
+    
+                // إذا كان عدد الوحدات في الكورس يساوي عدد الوحدات المكتملة فعلاً
                 if ($unitnumber == $completedUnitCount && $unitnumber > 0) {
+                    // آخر وحدة مكتملة من حيث التاريخ
                     $lastCompletedUnit = DB::table('student_units')
                         ->where('student_id', $studentId)
                         ->where('completed', 1)
@@ -289,8 +235,8 @@ class CertificateController extends Controller
 
                     if ($lastCompletedUnit) {
                         $completedAt = $lastCompletedUnit->updated_at;
-
-                        // أنشئ أو أحضر الشهادة
+    
+                        // إنشاء شهادة أو تجاهل إذا كانت موجودة مسبقاً
                         Certificate::firstOrCreate(
                             [
                                 'user_id'   => $user->id,
@@ -305,12 +251,12 @@ class CertificateController extends Controller
                     }
                 }
             }
-
-            // جلب الشهادات لهذا الطالب
+    
+            // جلب الشهادات لإرسالها إلى DataTables
             $certificates = Certificate::where('user_id', $user->id)
                 ->with('course')
                 ->get();
-
+    
             return DataTables::of($certificates)
                 ->addColumn('course', function ($certificate) {
                     return $certificate->course
@@ -331,7 +277,7 @@ class CertificateController extends Controller
                 })
                 ->make(true);
         }
-
+    
         return view('dashboard.student.my_certificates');
     }
 }
