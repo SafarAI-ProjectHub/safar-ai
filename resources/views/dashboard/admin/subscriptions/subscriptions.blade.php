@@ -23,9 +23,7 @@
                             <th>Subscription ID</th>
                             <th>Status</th>
                             <th>Start Date</th>
-                            <th>Next Billing Time</th>
                             <th>Payment Status</th>
-                            <th>Details</th> <!-- زر التفاصيل -->
                         </tr>
                     </thead>
                 </table>
@@ -33,15 +31,14 @@
         </div>
     </div>
 
-    <!-- Modal لعرض تفاصيل الاشتراك -->
+    <!-- Modal تفاصيل الاشتراك (إن احتجت لها لاحقاً) -->
     <div class="modal fade" id="detailsModal" tabindex="-1" aria-labelledby="detailsModalLabel" aria-hidden="true">
       <div class="modal-dialog modal-lg">
         <div class="modal-content">
           <div class="modal-header">
             <h5 class="modal-title" id="detailsModalLabel">Subscription Details</h5>
-            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            <button type="button" class="btn btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
           </div>
-
           <div class="modal-body">
             <div class="row">
                 <div class="col-md-6">
@@ -53,7 +50,6 @@
                     <p id="modal_product_name"></p>
                 </div>
             </div>
-
             <div class="row">
                 <div class="col-md-6">
                     <strong>Description:</strong>
@@ -64,7 +60,6 @@
                     <p id="modal_price"></p>
                 </div>
             </div>
-
             <div class="row">
                 <div class="col-md-12">
                     <strong>Features:</strong>
@@ -72,7 +67,6 @@
                 </div>
             </div>
           </div>
-
           <div class="modal-footer">
             <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
           </div>
@@ -147,21 +141,11 @@
                     }
                 },
                 columns: [
-                    { data: 'user_name',          name: 'user_name' },
-                    { data: 'subscription_id',    name: 'subscription_id' },
-                    { data: 'status',             name: 'status' },
-                    { data: 'start_date',         name: 'start_date' },
-                    { data: 'next_billing_time',  name: 'next_billing_time' },
-                    { data: 'payment_status',     name: 'payment_status' },
-                    {
-                        data: null,
-                        name: 'details',
-                        orderable: false,
-                        searchable: false,
-                        render: function(data, type, row) {
-                            return `<button class="btn btn-info btn-sm view-details" data-id="${row.id}">View</button>`;
-                        }
-                    }
+                    { data: 'user_name',       name: 'user_name' },
+                    { data: 'subscription_id', name: 'subscription_id' },
+                    { data: 'status',          name: 'status' },
+                    { data: 'start_date',      name: 'start_date' },
+                    { data: 'payment_status',  name: 'payment_status' }
                 ],
                 dom: 'Bfrtip',
                 buttons: [
@@ -190,29 +174,6 @@
             });
 
             cb(start, end, label);
-
-            $(document).on('click', '.view-details', function() {
-                var rowData = table.row($(this).closest('tr')).data();
-                if (!rowData) return;
-
-                $('#modal_subscription_type').text(rowData.subscription_type ?? 'N/A');
-                $('#modal_product_name').text(rowData.product_name ?? 'N/A');
-                $('#modal_description').text(rowData.description ?? 'N/A');
-                $('#modal_price').text(rowData.price ?? 'N/A');
-
-                // فكّ مصفوفة features
-                var features = rowData.features;
-                $('#modal_features').empty();
-                if (Array.isArray(features) && features.length > 0) {
-                    features.forEach(function(item) {
-                        $('#modal_features').append('<li>' + item + '</li>');
-                    });
-                } else {
-                    $('#modal_features').append('<li>No features found</li>');
-                }
-
-                $('#detailsModal').modal('show');
-            });
         });
-    </script>
+    </script> 
 @endsection

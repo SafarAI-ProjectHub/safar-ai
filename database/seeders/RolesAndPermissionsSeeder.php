@@ -14,6 +14,7 @@ class RolesAndPermissionsSeeder extends Seeder
     {
         app()[\Spatie\Permission\PermissionRegistrar::class]->forgetCachedPermissions();
 
+        // قائمة الأذونات المراد إنشاؤها
         $permissions = [
             'admin',
             'teacher',
@@ -22,6 +23,7 @@ class RolesAndPermissionsSeeder extends Seeder
             'create courses'
         ];
 
+        // قائمة الأدوار المراد إنشاؤها
         $roles = [
             'Admin',
             'Student',
@@ -40,6 +42,7 @@ class RolesAndPermissionsSeeder extends Seeder
 
         $superAdminRole = Role::where('name', 'Super Admin')->first();
 
+        // إنشاء مستخدم Super Admin إذا لم يكن موجودًا مسبقًا
         $superAdminEmail = 'superadmin@safarAi.com';
         $superAdmin = User::firstOrCreate(
             ['email' => $superAdminEmail],
@@ -54,12 +57,15 @@ class RolesAndPermissionsSeeder extends Seeder
             ]
         );
 
+        // منح جميع الصلاحيات لدور Super Admin
         $superAdminRole->syncPermissions(Permission::all());
 
+        // تعيين دور Super Admin للمستخدم إذا لم يكن يمتلكه
         if (!$superAdmin->hasRole('Super Admin')) {
             $superAdmin->assignRole('Super Admin');
         }
 
+        // تحديث أدوار المستخدمين بناءً على البريد الإلكتروني أو شروط أخرى
         User::all()->each(function ($user) {
             if (strpos($user->email, 'admin') !== false) {
                 $user->assignRole('Admin');

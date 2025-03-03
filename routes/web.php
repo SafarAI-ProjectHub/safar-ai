@@ -146,15 +146,38 @@ Route::middleware(['auth', 'role:Admin|Super Admin'])->prefix('admin')->group(fu
     Route::delete('/upload', [FileUploadController::class, 'revert'])->name('filepond.revert');
     Route::get('/upload/{id}', [FileUploadController::class, 'load'])->name('filepond.load');
 
-    // Subscriptions
-    Route::get('users/subscriptions', [AdminBillingController::class, 'subscriptions'])->name('admin.subscriptions');
-    Route::get('inactive_subscriptions', [AdminBillingController::class, 'InactiveSubscriptions'])->name('admin.inactive_subscriptions');
-    Route::get('payments', [AdminBillingController::class, 'payments'])->name('admin.payments');
-    Route::prefix('subscriptions')->group(function () {
-        Route::get('/', [AdminSubscriptionController::class, 'index'])->name('admin.subscriptions.index');
-        Route::post('/', [AdminSubscriptionController::class, 'store'])->name('admin.subscriptions.store');
-        Route::post('/toggle-active/{id}', [AdminSubscriptionController::class, 'toggleActive'])->name('admin.subscriptions.toggleActive');
-    });
+   
+// Subscriptions
+Route::get('users/subscriptions', [AdminBillingController::class, 'subscriptions'])->name('admin.subscriptions');
+Route::get('inactive_subscriptions', [AdminBillingController::class, 'InactiveSubscriptions'])->name('admin.inactive_subscriptions');
+Route::get('payments', [AdminBillingController::class, 'payments'])->name('admin.payments');
+
+// مجموعة المسارات الخاصة بـ AdminSubscriptionController
+Route::prefix('subscriptions')->group(function () {
+    // عرض صفحة/جدول الاشتراكات
+    Route::get('/', [AdminSubscriptionController::class, 'index'])
+        ->name('admin.subscriptions.index');
+    
+    // إضافة خطة جديدة
+    Route::post('/', [AdminSubscriptionController::class, 'store'])
+        ->name('admin.subscriptions.store');
+
+    // الحصول على خطة محددة (لأغراض عرضها في مودال التعديل)
+    Route::get('/{id}', [AdminSubscriptionController::class, 'show'])
+        ->name('admin.subscriptions.show');
+    
+    // تحديث خطة محددة (PUT)
+    Route::put('/{id}', [AdminSubscriptionController::class, 'update'])
+        ->name('admin.subscriptions.update');
+    
+    // حذف خطة محددة (DELETE)
+    Route::delete('/{id}', [AdminSubscriptionController::class, 'destroy'])
+        ->name('admin.subscriptions.destroy');
+
+    // تفعيل/تعطيل خطة
+    Route::post('/toggle-active/{id}', [AdminSubscriptionController::class, 'toggleActive'])
+        ->name('admin.subscriptions.toggleActive');
+});
 
     // cliq payments
     Route::get('/pending-payments', [CliqController::class, 'showPendingPayments'])->name('showPendingPayments');
@@ -316,7 +339,7 @@ Route::middleware(['auth', 'role:Student'])->prefix('student')->group(function (
 
     Route::post('/mark-lesson-completed', [CourseController::class, 'updateUnitCompletion'])
         ->name('student.markLessonCompleted');
-
+    
     //Certificate
     Route::get('/certificate/check', [CertificateController::class, 'check'])->name('certificate.check');
     Route::get('/certificate/download', [CertificateController::class, 'download'])->name('certificate.download');
