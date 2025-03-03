@@ -6,7 +6,7 @@
     'name' => 'Safar-AI',
     'env' => 'local',
     'debug' => true,
-    'url' => 'https://127.0.0.1/',
+    'url' => 'https://127.0.0.1',
     'asset_url' => NULL,
     'timezone' => 'UTC',
     'locale' => 'en',
@@ -592,7 +592,7 @@
       array (
         'driver' => 'local',
         'root' => 'E:\\SafarAI-ProjectHub\\safar-ai\\storage\\app/public',
-        'url' => 'https://127.0.0.1//storage',
+        'url' => 'https://127.0.0.1/storage',
         'visibility' => 'public',
         'throw' => false,
       ),

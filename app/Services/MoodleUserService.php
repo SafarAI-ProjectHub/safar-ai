@@ -36,22 +36,15 @@ class MoodleUserService
             ]
         ];
 
-        Log::info('🔍 إرسال طلب إلى Moodle:', ['request' => $postData]);
 
-        // ✅ استخدام $this->moodleUrl بدلاً من $moodleUrl
         $response = Http::asForm()->post($this->moodleUrl, $postData);
         $responseData = $response->json();
 
-        Log::info('🔍 استجابة Moodle:', ['response' => $responseData ?? []]);
 
         if (!empty($responseData) && isset($responseData[0]['id'])) {
             return $responseData[0]['id'];
         }
-
-        Log::warning('⚠️ لم يتم تسجيل المستخدم في Moodle، تحقق من الاستجابة:', ['response' => $responseData ?? []]);
-
         return null;
     }
 }
-dump(env('MOODLE_WSTOKEN'));
-dump(config('app.moodle_wstoken'));
+

@@ -53,12 +53,8 @@ class RegisteredUserController extends Controller
         $moodleUserService = app(MoodleUserService::class);
 
         $moodleUserId = $moodleUserService->createUser($user);
-        if ($moodleUserId) {
             $user->update(['moodle_id' => $moodleUserId]);
-            Log::info("✅ تم تسجيل الطالب في Moodle بنجاح: {$user->email}");
-        } else {
-            Log::warning("⚠️ فشل تسجيل الطالب في Moodle: {$user->email}");
-        }
+        
         Auth::login($user);
 
         return redirect(RouteServiceProvider::HOME);
