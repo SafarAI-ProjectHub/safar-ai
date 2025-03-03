@@ -161,11 +161,9 @@
                 { data: 'description',        name: 'description' },
                 { data: 'price',              name: 'price' },
                 { data: 'subscription_type',  name: 'subscription_type' },
-                { 
+                {
                     data: 'is_active',
                     name: 'is_active',
-                    // ملاحظة: سننشئ الـcheckbox HTML في الـController (editColumn)
-                    // لذلك لن نضع render هنا (تكفي 'is_active' من الـController)
                 },
                 {
                     data: null,
@@ -187,7 +185,7 @@
                 { extend: 'pdf',   className: 'btn btn-outline-secondary' },
                 { extend: 'print', className: 'btn btn-outline-secondary' }
             ],
-            order: [[0, 'asc']], 
+            order: [[0, 'asc']],
             lengthChange: false
         });
 
@@ -254,8 +252,8 @@
             var subscriptionId = $('#edit_id').val();
             $.ajax({
                 url: '/admin/subscriptions/' + subscriptionId,
-                method: 'POST', 
-                data: $(this).serialize(), 
+                method: 'POST', // نظرًا لاستخدامنا hidden input: _method=PUT
+                data: $(this).serialize(),
                 success: function(response) {
                     $('#editSubscriptionModal').modal('hide');
                     Swal.fire('Success!', response.success, 'success');
