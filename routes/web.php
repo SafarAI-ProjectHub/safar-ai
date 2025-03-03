@@ -49,6 +49,9 @@ Broadcast::routes(['middleware' => ['auth']]);
 
 
 
+use App\Http\Controllers\MoodleController;
+
+Route::get('/moodle/courses', [MoodleController::class, 'getCourses']);
 
 Route::get('/', [HomeController::class, 'index']);
 Route::get('/terms-and-conditions', [HomeController::class, 'terms'])->name('terms');
@@ -302,6 +305,8 @@ Route::middleware(['auth', 'role:Teacher|Super Admin'])->prefix('teacher')->grou
     Route::get('quiz-results/{courseId}', [TeacherController::class, 'getStudentQuizResults'])->name('teacher.quizResults');
     Route::get('student-profiles', [TeacherController::class, 'getStudentProfiles'])->name('teacher.getStudentProfiles');
     Route::get('student-profiles/{id}', [TeacherController::class, 'showStudentProfile'])->name('teacher.showStudentProfile');
+
+    Route::get('courses-index', [CourseController::class, 'index'])->name('courses.index');
 
     // My contract 
 

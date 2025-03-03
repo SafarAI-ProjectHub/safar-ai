@@ -12,7 +12,6 @@ class RolesAndPermissionsSeeder extends Seeder
 {
     public function run()
     {
-        // حذف الكاش للأذونات
         app()[\Spatie\Permission\PermissionRegistrar::class]->forgetCachedPermissions();
 
         // قائمة الأذونات المراد إنشاؤها
@@ -37,12 +36,10 @@ class RolesAndPermissionsSeeder extends Seeder
             Role::firstOrCreate(['name' => $role, 'guard_name' => 'web']);
         }
 
-        // إنشاء الأذونات إذا لم تكن موجودة
         foreach ($permissions as $permission) {
             Permission::firstOrCreate(['name' => $permission, 'guard_name' => 'web']);
         }
 
-        // تحديد دور Super Admin
         $superAdminRole = Role::where('name', 'Super Admin')->first();
 
         // إنشاء مستخدم Super Admin إذا لم يكن موجودًا مسبقًا
