@@ -42,14 +42,13 @@ class TeacherController extends Controller
 
             if (auth()->user()->hasRole('Teacher') && auth()->user()->teacher->approval_status == 'pending') {
                 return view('dashboard.teacher.pending_approval');
-
             }
 
             return redirect()->route('teacher.courses');
         } else {
-            abourt(403, 'Unauthorized action.');
+            // تم تصحيح الخطأ هنا
+            abort(403, 'Unauthorized action.');
         }
-
     }
 
     public function getStudentQuizResults($courseId)
@@ -71,7 +70,6 @@ class TeacherController extends Controller
         } else {
             abort(403, 'Unauthorized action.');
         }
-
     }
 
     public function getStudentProfiles(Request $request)
@@ -164,7 +162,6 @@ class TeacherController extends Controller
         return redirect()->back()->with('success', 'Zoom meeting scheduled successfully.');
     }
 
-
     /*
      *
      * Level Test Assessment
@@ -178,15 +175,21 @@ class TeacherController extends Controller
         $assessments = [];
         $openAiRequests = [];
         $audioTranscriptions = [];
+
         \Log::info("before foreach data" . json_encode($data));
 
+        // جلب جميع الأسئلة مع الخيارات
         $questions = LevelTestQuestion::with('choices')->get()->keyBy('id');
 
         foreach ($data as $key => $value) {
             if (strpos($key, 'question_') !== false) {
-                $questionId = explode('_', $key)[1];
-                $question = $questions->get($questionId);
+                // استخراج رقم السؤال من اسم الحقل
+                $parts = explode('_', $key);
+                // متوقع أن يكون الشكل question_{id} أو question_{id}_audio
+                // لذا يكون رقم السؤال في index 1
+                $questionId = $parts[1];
 
+                $question = $questions->get($questionId);
                 if (!$question) {
                     continue;
                 }
@@ -217,11 +220,20 @@ class TeacherController extends Controller
                         'question_type' => 'text'
                     ];
                 } elseif ($question->question_type === 'voice') {
+                    // نتوقع هنا أن $value عبارة عن ملف (UploadedFile)
+                    // قمنا بتخزين الملف باسم جديد على القرص public
                     $customFileName = sha1($value->getClientOriginalName()) . '.wav';
-                    $path = $value->storeAs('audio_responses', $customFileName);
+
+                    // التخزين على القرص "public" حتى يصبح المسار في
+                    // storage_path('app/public/...') صحيحًا
+                    $path = $value->storeAs('audio_responses', $customFileName, 'public');
+
+                    // نمرر المسار الكامل للدالة
                     $transcription = $this->transcribeAudio(storage_path('app/public/' . $path));
+
                     $assessment->response = $path;
                     $audioTranscriptions[$questionId] = $transcription;
+
                     $openAiRequests[] = [
                         'question' => $question->question_text,
                         'transcription' => $transcription,
@@ -236,17 +248,21 @@ class TeacherController extends Controller
             }
         }
 
+        // إرسال الأسئلة والأجوبة للذكاء الاصطناعي للتقييم
         $aiResponse = $this->reviewWithAI($openAiRequests);
 
-        foreach ($aiResponse['questions'] as $review) {
-            $assessment = LevelTestAssessment::where('level_test_question_id', $review['question_id'])
-                ->where('user_id', $user->id)
-                ->first();
+        // حفظ تقييم الذكاء الاصطناعي في قاعدة البيانات
+        if (isset($aiResponse['questions']) && is_array($aiResponse['questions'])) {
+            foreach ($aiResponse['questions'] as $review) {
+                $assessment = LevelTestAssessment::where('level_test_question_id', $review['question_id'])
+                    ->where('user_id', $user->id)
+                    ->first();
 
-            if ($assessment) {
-                $assessment->ai_review = $review['ai_review'];
-                $assessment->correct = $review['is_correct'];
-                $assessment->save();
+                if ($assessment) {
+                    $assessment->ai_review = $review['ai_review'] ?? '';
+                    $assessment->correct = !empty($review['is_correct']);
+                    $assessment->save();
+                }
             }
         }
 
@@ -255,11 +271,12 @@ class TeacherController extends Controller
 
     private function transcribeAudio($audioPath)
     {
-
         $extension = pathinfo($audioPath, PATHINFO_EXTENSION);
 
+        // إذا كان الملف بصيغة webm، نقوم بتحويله إلى wav
         if ($extension === 'webm' && is_string($audioPath) && file_exists($audioPath)) {
             $wavPath = str_replace('.webm', '.wav', $audioPath);
+
             FFMpeg::fromDisk('local')
                 ->open($audioPath)
                 ->export()
@@ -269,20 +286,18 @@ class TeacherController extends Controller
 
             \Log::info("Converted audio file path: " . $wavPath);
 
-            // Use the wav file for transcription
+            // نستخدم الملف wav الجديد لعملية التفريغ الصوتي
             $audioContent = new UploadedFile($wavPath, basename($wavPath));
         } else {
             $audioContent = new UploadedFile($audioPath, basename($audioPath));
         }
 
         if ($audioContent instanceof UploadedFile) {
-
-
             $response = OpenAI::audio()->translate([
                 'model' => 'whisper-1',
                 'file' => fopen($audioContent->getRealPath(), 'r'),
                 'language' => 'en',
-                'temperature' => 0, 
+                'temperature' => 0,
             ]);
 
             \Log::info("Transcription response: " . json_encode($response));
@@ -296,8 +311,9 @@ class TeacherController extends Controller
     {
         $prompt = $this->generatePrompt($requests);
 
+        // تأكد من أن الموديل صحيح (gpt-4 أو gpt-3.5-turbo أو غيره حسب إعداداتك)
         $response = OpenAI::chat()->create([
-            'model' => 'gpt-4o',
+            'model' => 'gpt-4',
             'messages' => [
                 [
                     'role' => 'system',
@@ -309,24 +325,27 @@ class TeacherController extends Controller
         ]);
 
         \Log::info("response: " . json_encode($response));
-        $responseContent = $response->choices[0]->message->content;
+        $responseContent = $response->choices[0]->message->content ?? '';
+
+        // محاولة استخراج الـ JSON من الـ response
         $jsonString = $this->extractJsonString($responseContent);
 
         $aiResponse = json_decode($jsonString, true);
         \Log::info("aiResponse: " . json_encode($aiResponse));
 
-        return $aiResponse;
+        return $aiResponse ?: ['questions' => []];
     }
 
     private function extractJsonString($responseContent)
     {
         $jsonStart = strpos($responseContent, '{');
-        $jsonEnd = strrpos($responseContent, '}') + 1;
-        $jsonString = substr($responseContent, $jsonStart, $jsonEnd - $jsonStart);
+        $jsonEnd = strrpos($responseContent, '}');
+        if ($jsonStart === false || $jsonEnd === false) {
+            return '{}';
+        }
 
-        $jsonString = trim($jsonString, " \t\n\r\0\x0B");
-
-        return $jsonString;
+        $jsonString = substr($responseContent, $jsonStart, $jsonEnd - $jsonStart + 1);
+        return trim($jsonString);
     }
 
     private function generatePrompt($requests)
@@ -363,7 +382,7 @@ class TeacherController extends Controller
         ]
     }
 
-    Here are the questions and answers provided by the teachers That needs Evasluation: \n\n";
+    Here are the questions and answers provided by the teachers That needs Evaluation:\n\n";
 
         foreach ($requests as $request) {
             $prompt .= "Question ID: {$request['question_id']}\n";
@@ -380,8 +399,8 @@ class TeacherController extends Controller
                 $prompt .= "Transcription: {$request['transcription']}\n\n";
             }
         }
+
         \Log::info("Generated prompt: " . $prompt);
         return $prompt;
     }
-
 }
