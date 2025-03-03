@@ -24,20 +24,17 @@ class AdminSubscriptionController extends Controller
     public function index(Request $request)
     {
         if ($request->ajax()) {
+            // إزالة الأعمدة غير الموجودة في جدول subscriptions
             $query = Subscription::query()->select(
                 'id',
-                'user_name',
-                'subscription_id',
-                'status',
-                'start_date',
-                'next_billing_time',
-                'payment_status',
                 'product_name',
                 'description',
                 'price',
                 'subscription_type',
                 'features',
                 'is_active'
+                // يمكنك إضافة أي عمود آخر موجود فعليًا في جدول subscriptions هنا
+                // مثال: 'next_billing_time' لو أردت عرضه أو استخدامه
             );
 
             return DataTables::of($query)
@@ -81,7 +78,7 @@ class AdminSubscriptionController extends Controller
             'price'             => 'required|numeric|min:0',
             'features'          => 'nullable|string',
             'subscription_type' => 'required|string|in:yolo,solo,tolo',
-            'is_active'         => 'required|in:0,1', 
+            'is_active'         => 'required|in:0,1',
         ]);
 
         $featuresArray = $this->processFeatures($request->features);
