@@ -43,15 +43,16 @@ class RegisteredTeacherController extends Controller
             'date_of_birth'    => $data['date_of_birth'],
             'password'         => Hash::make($data['password']),
             'country_location' => $data['country_location'],
-            'status'           => 'pending',
+            // تم التعديل هنا: كانت 'pending' وأصبحت 'active'
+            'status'           => 'active',
         ]);
         $user->assignRole('Teacher');
 
         Teacher::create([
-            'teacher_id'         => $user->id,
-            'cv_link'            => $cvPath ?? null,
-            'years_of_experience'=> $data['years_of_experience'],
-            'approval_status'    => 'pending',
+            'teacher_id'          => $user->id,
+            'cv_link'             => $cvPath ?? null,
+            'years_of_experience' => $data['years_of_experience'],
+            'approval_status'     => 'pending', // لا يزال pending حتى يراجع الأدمن
         ]);
 
         // تسجيل المعلم في Moodle
@@ -68,7 +69,7 @@ class RegisteredTeacherController extends Controller
         if ($user) {
             return response()->json([
                 'success'  => true,
-                'message'  => 'Your registration is successful. Please wait for the admin to approve your account.',
+                'message'  => 'Your registration is successful. Please wait for the admin to review your approval status as a teacher.',
                 'redirect' => route('login')
             ]);
         } else {

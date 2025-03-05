@@ -81,10 +81,9 @@ class AdminController extends Controller
 
     public function createAdmin()
     {
-        // عرض الصفحة الخاصة بإنشاء حساب سوبر أدمن
+        // عرض الصفحة الخاصة بإنشاء حساب أدمن
         return view('dashboard.admin.create_admin');
     }
-    
     
     public function storeAdmin(Request $request)
     {
@@ -110,6 +109,7 @@ class AdminController extends Controller
             'date_of_birth'    => $request->date_of_birth,
             'password'         => Hash::make($request->password),
             'country_location' => $request->country_location,
+            // الحالة هنا كانت ولا تزال 'active'
             'status'           => 'active',
         ]);
 
