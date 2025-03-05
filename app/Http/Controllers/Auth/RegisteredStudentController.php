@@ -10,9 +10,9 @@ use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Log;
 use App\Http\Requests\Auth\RegisterStudentRequest;
 use Spatie\Permission\Models\Role;
-
-// استدعاء MoodleUserService
 use App\Services\MoodleUserService;
+use App\Events\UserCreated;
+
 
 class RegisteredStudentController extends Controller
 {
@@ -41,6 +41,7 @@ class RegisteredStudentController extends Controller
             'english_proficiency_level' => 1,
             'subscription_status'       => 'free',
         ]);
+        event(new UserCreated($user));
 
         // تسجيل الطالب في Moodle
         $moodleUserService = app(MoodleUserService::class);

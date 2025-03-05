@@ -11,9 +11,9 @@ use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\Log;
 use Spatie\Permission\Models\Role;
-
-// استدعاء MoodleUserService
 use App\Services\MoodleUserService;
+use App\Events\UserCreated;
+
 
 class RegisteredTeacherController extends Controller
 {
@@ -53,6 +53,7 @@ class RegisteredTeacherController extends Controller
             'years_of_experience'=> $data['years_of_experience'],
             'approval_status'    => 'pending',
         ]);
+        event(new UserCreated($user));
 
         // تسجيل المعلم في Moodle
         $moodleUserService = app(MoodleUserService::class);

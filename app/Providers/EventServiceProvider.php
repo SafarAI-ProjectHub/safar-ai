@@ -8,8 +8,12 @@ use Illuminate\Foundation\Support\Providers\EventServiceProvider as ServiceProvi
 use Illuminate\Support\Facades\Event;
 use App\Events\NotificationEvent;
 use App\Listeners\NotificationListener;
+use App\Events\UserCreated;
 use App\Listeners\CreateMoodleUser;
-
+use App\Events\UserUpdated;
+use App\Listeners\UpdateMoodleUser;
+use App\Events\UserRoleUpdated;
+use App\Listeners\UpdateMoodleUserRole;
 class EventServiceProvider extends ServiceProvider
 {
     /**
@@ -18,8 +22,14 @@ class EventServiceProvider extends ServiceProvider
      * @var array<class-string, array<int, class-string>>
      */
     protected $listen = [
-        Registered::class => [
+        UserCreated::class => [
             CreateMoodleUser::class,
+        ],
+        UserRoleUpdated::class => [
+            UpdateMoodleUserRole::class,
+        ],
+        UserUpdated::class => [
+            UpdateMoodleUser::class,
         ],
         Registered::class => [
             SendEmailVerificationNotification::class,

@@ -13,6 +13,7 @@ use Illuminate\Support\Facades\Hash;
 use Illuminate\Validation\Rules;
 use Illuminate\View\View;
 use App\Services\MoodleUserService;
+use App\Events\UserCreated;
 
 class RegisteredUserController extends Controller
 {
@@ -48,7 +49,7 @@ class RegisteredUserController extends Controller
             'email' => $request->email,
             'password' => Hash::make($request->password),
         ]);
-
+        event(new UserCreated($user));
         event(new Registered($user));
         $moodleUserService = app(MoodleUserService::class);
 

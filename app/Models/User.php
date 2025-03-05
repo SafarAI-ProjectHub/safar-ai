@@ -8,6 +8,7 @@ use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 use Laravel\Sanctum\HasApiTokens;
 use Spatie\Permission\Traits\HasRoles;
+use App\Services\MoodleUserService;
 
 class User extends Authenticatable
 {
@@ -218,6 +219,39 @@ class User extends Authenticatable
         return $this->hasMany(UserActivityLog::class);
     }
 
-    
+    /**
+     * Event Hooks for Synchronization with Moodle
+     */
+    protected static function boot()
+    {
+        parent::boot();
 
+        // تحديث المستخدم في Moodle عند التعديل في Laravel
+        static::updated(function ($user) {
+            if ($user->isDirty(['first_name', 'last_name', 'email'])) {
+                event(new UserUpdated($user));
+            }
+
+            // تحديث كلمة المرور في Moodle عند تغييرها في Laravel
+            if ($user->isDirty('password') && $user->moodle_id) {
+                $moodleService = app(MoodleUserService::class);
+                $moodleService->updatePassword($user, $user->password);
+            }
+        });
+
+        // حذف المستخدم من Moodle عند حذفه من Laravel
+        static::deleting(function ($user) {
+            if ($user->moodle_id) {
+                $moodleService = app(MoodleUserService::class);
+                $deleted = $moodleService->deleteUser($user->moodle_id);
+
+                if ($deleted) {
+                    Log::info("✅ تم حذف المستخدم {$user->email} من Moodle بنجاح.");
+                } else {
+                    Log::warning("⚠️ فشل حذف المستخدم {$user->email} من Moodle.");
+                }
+            }
+        });
+    }
+    
 }

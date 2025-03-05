@@ -54,12 +54,12 @@ use App\Http\Controllers\MoodleSSOController;
 
 Route::get('/oauth/redirect', [MoodleSSOController::class, 'redirectToMoodle']);
 Route::get('/oauth/callback', [MoodleSSOController::class, 'handleMoodleCallback']);
+Route::get('/moodle/courses', [MoodleController::class, 'showCourses']);
 
-Route::get('/moodle/courses', [MoodleController::class, 'getCourses']);
+// Route::get('/moodle/courses', [MoodleController::class, 'getCourses']);
 Route::get('/moodle/quizzes/{courseId}', [MoodleController::class, 'getQuizzes']);
 Route::get('/moodle/h5pactivities/{courseId}', [MoodleController::class, 'getH5PActivities']);
 //  // 
-Route::get('/moodle/courses', [MoodleController::class, 'showCourses']);
 Route::get('/moodle/course-details/{courseId}', [MoodleController::class, 'showCourseDetails']);
 Route::get('/moodle/course/{courseId}/quiz/{quizId}', [MoodleController::class, 'runQuiz']);
 Route::get('/moodle/course/{courseId}/h5p/{activityId}', [MoodleController::class, 'runH5P']);
