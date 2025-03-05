@@ -31,7 +31,8 @@ class RegisteredStudentController extends Controller
             'date_of_birth'    => $request->date_of_birth,
             'password'         => Hash::make($request->password),
             'country_location' => $request->country_location,
-            'status'           => 'pending',
+            // تم التعديل هنا: كانت 'pending' وأصبحت 'active'
+            'status'           => 'active',
         ]);
 
         $user->assignRole('Student');
