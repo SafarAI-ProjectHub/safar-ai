@@ -42,6 +42,19 @@ return [
             'prefix' => '',
             'foreign_key_constraints' => env('DB_FOREIGN_KEYS', true),
         ],
+'moodle' => [
+    'driver'    => 'mysql',
+    'host'      => env('MOODLE_DB_HOST', '54.237.228.206'),
+    'port'      => env('MOODLE_DB_PORT', '3306'),
+    'database'  => env('MOODLE_DB_DATABASE', 'Moodle_safar_ai'),
+    'username'  => env('MOODLE_DB_USERNAME', 'db_user'),
+    'password'  => env('MOODLE_DB_PASSWORD', '25_B?C#4efYs!'),
+    'charset'   => 'utf8mb4',
+    'collation' => 'utf8mb4_unicode_ci',
+    'prefix'    => 'mdl_',
+    'strict'    => false,
+    'engine'    => null,
+],
 
         'mysql' => [
             'driver' => 'mysql',

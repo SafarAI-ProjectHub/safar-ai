@@ -6,6 +6,7 @@ use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Log;
 use App\Models\User;
 use App\Notifications\SyncFailed;
+use Illuminate\Support\Facades\DB;
 
 class MoodleUserService
 {
@@ -240,13 +241,8 @@ public function getMoodleRoleId($user)
             return false;
         }
     
-        // تحديد `contextid` المناسب لكل دور
-        $contextId = match ($roleId) {
-            1 => 1,  // Admin على مستوى النظام
-            3 => 50, // Teacher على مستوى الدورة
-            2 => 50, // Student على مستوى الدورة
-            default => 1,
-        };
+        // جلب `contextid` الصحيح لكل دور
+        $contextId = $this->getContextIdForRole($roleId);
     
         $postData = [
             'wstoken'            => $this->moodleToken,
@@ -261,16 +257,53 @@ public function getMoodleRoleId($user)
     
         Log::info('🔍 تعيين دور المستخدم في Moodle:', ['request' => json_encode($postData)]);
         
-        // ✅ هنا المشكلة: تأكد من إرسال `$postData` فقط وليس `$this->moodleUrl`
         $responseData = $this->retryRequest($postData);
     
         if ($responseData && !isset($responseData['exception'])) {
+            Log::info("✅ تم تعيين الدور {$roleId} بنجاح للمستخدم Moodle ID: {$moodleUserId}");
             return true;
         }
     
-        Log::error("❌ فشل تعيين الدور {$roleId} للمستخدم Moodle ID: {$moodleUserId}");
+        Log::error("❌ فشل تعيين الدور {$roleId} للمستخدم Moodle ID: {$moodleUserId}", ['response' => $responseData]);
         return false;
     }
+    
+    /**
+     * 🔍 جلب معرف `contextid` الصحيح بناءً على `roleId`
+     */
+    protected function getContextIdForRole($roleId)
+    {
+        return match ($roleId) {
+            1 => 1, // Admin على مستوى النظام
+            3 => DB::connection('moodle')->table('mdl_context')
+                ->where('contextlevel', 50) // مستوى الدورة التدريبية
+                ->orderBy('id', 'asc')
+                ->value('id') ?? 1,
+            2 => DB::connection('moodle')->table('mdl_context')
+                ->where('contextlevel', 50) // مستوى الدورة التدريبية
+                ->orderBy('id', 'asc')
+                ->value('id') ?? 1,
+            default => 1,
+        };
+    }
+    
+    
+    /**
+     * جلب معرف السياق الخاص بالدورة التدريبية
+     */
+    protected function getCourseContextId()
+    {
+        $context = DB::connection('moodle')->table('mdl_context')
+        ->where('contextlevel', 50)
+        ->orderBy('id', 'asc')
+        ->first();
+    
+    
+        return $context ? $context->id : 1; // الافتراضي 1 إذا لم يتم العثور على `contextid`
+    }
+    
+
+    
     
 /**
  * إعادة المحاولة عند فشل الطلب
@@ -296,5 +329,26 @@ protected function retryRequest($data, $maxAttempts = 3)
     Log::error("❌ فشل الطلب إلى Moodle بعد {$maxAttempts} محاولات.", ['data' => $data]);
     return null;
 }
+public function getUserByEmail($email)
+{
+    $postData = [
+        'wstoken'            => $this->moodleToken,
+        'wsfunction'         => 'core_user_get_users_by_field',
+        'moodlewsrestformat' => 'json',
+        'field'              => 'email',
+        'values'             => [$email]
+    ];
+
+    Log::info("🔍 البحث عن المستخدم بالبريد الإلكتروني في Moodle:", ['email' => $email]);
+
+    $response = Http::asForm()->post($this->moodleUrl, $postData)->json();
+
+    if (!empty($response) && isset($response[0]['id'])) {
+        return $response[0]['id']; // إرجاع معرف المستخدم في Moodle
+    }
+
+    return null;
+}
+
 
 }
