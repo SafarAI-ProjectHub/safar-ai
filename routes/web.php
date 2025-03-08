@@ -49,20 +49,41 @@ Broadcast::routes(['middleware' => ['auth']]);
 
 
 
+
 use App\Http\Controllers\MoodleController;
 use App\Http\Controllers\MoodleSSOController;
+
+/*
+|--------------------------------------------------------------------------
+| Web Routes
+|--------------------------------------------------------------------------
+*/
 
 Route::get('/oauth/redirect', [MoodleSSOController::class, 'redirectToMoodle']);
 Route::get('/oauth/callback', [MoodleSSOController::class, 'handleMoodleCallback']);
 Route::get('/moodle/courses', [MoodleController::class, 'showCourses']);
 
+<<<<<<< Updated upstream
 // Route::get('/moodle/courses', [MoodleController::class, 'getCourses']);
 Route::get('/moodle/quizzes/{courseId}', [MoodleController::class, 'getQuizzes']);
 Route::get('/moodle/h5pactivities/{courseId}', [MoodleController::class, 'getH5PActivities']);
 //  // 
+=======
+// مسارات تعرض البيانات بصيغة JSON (API-style)
+Route::get('/moodle/courses/json', [MoodleController::class, 'getCourses']);
+Route::get('/moodle/quizzes/{courseId}', [MoodleController::class, 'getQuizzes']);
+Route::get('/moodle/h5pactivities/{courseId}', [MoodleController::class, 'getH5PActivities']);
+
+// مسارات تعرض الصفحات (Blade)
+Route::get('/moodle/courses', [MoodleController::class, 'showCourses']);
+>>>>>>> Stashed changes
 Route::get('/moodle/course-details/{courseId}', [MoodleController::class, 'showCourseDetails']);
 Route::get('/moodle/course/{courseId}/quiz/{quizId}', [MoodleController::class, 'runQuiz']);
 Route::get('/moodle/course/{courseId}/h5p/{activityId}', [MoodleController::class, 'runH5P']);
+
+// -----------------------------------------------------------------------------------------
+// -------------------------------------------------------------------------------------
+// -----------------------------------------------------------------------------------------
 
 
 Route::get('/', [HomeController::class, 'index']);
