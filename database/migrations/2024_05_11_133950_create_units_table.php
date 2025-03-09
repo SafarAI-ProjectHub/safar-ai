@@ -12,11 +12,12 @@ return new class extends Migration {
     {
         Schema::create('units', function (Blueprint $table) {
             $table->id();
-            $table->foreignId('course_id')->constrained('courses');
+            $table->foreignId('block_id')->constrained('blocks')->onDelete('cascade');
             $table->string('title');
-            $table->string('subtitle')->nullable();
-            $table->enum('content_type', ['video', 'text', 'youtube']);
-            $table->longText('content')->nullable();
+            $table->text('summary')->nullable();
+            $table->integer('position')->default(1);
+            $table->bigInteger('moodle_unit_id')->nullable();
+            $table->boolean('visibility')->default(true);
             $table->timestamps();
         });
     }

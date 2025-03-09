@@ -10,7 +10,12 @@ return new class extends Migration
     {
         Schema::create('blocks', function (Blueprint $table) {
             $table->id();
-            $table->string('name')->unique(); // Block 1, Block 2 ...
+            $table->foreignId('course_id')->constrained('courses')->onDelete('cascade');
+            $table->string('name');
+            $table->text('description')->nullable(); 
+            $table->integer('position')->default(1); 
+            $table->bigInteger('moodle_section_id')->nullable();
+            $table->boolean('visibility')->default(true); 
             $table->timestamps();
         });
     }

@@ -11,16 +11,19 @@ return new class extends Migration
      */
     public function up(): void
     {
+       
         Schema::create('user_responses', function (Blueprint $table) {
-            $table->id();
-            $table->foreignId('question_id')->constrained('questions');
-            $table->foreignId('user_id')->constrained('users');
+            $table->id();            
+            $table->foreignId('question_id')->constrained('questions')->onDelete('cascade');
+            $table->foreignId('user_id')->constrained('users')->onDelete('cascade');            
+            $table->integer('attempt_id')->default(1); 
             $table->text('response');
-            $table->boolean('correct');
+            $table->boolean('is_correct')->default(false); 
             $table->text('ai_review')->nullable(); 
             $table->text('teacher_review')->nullable(); 
             $table->timestamps();
         });
+        
     }
 
     /**

@@ -10,18 +10,17 @@ return new class extends Migration {
      */
     public function up(): void
     {
-        Schema::create('quizzes', function (Blueprint $table) {
+        Schema::create('activities', function (Blueprint $table) {
             $table->id();
             $table->foreignId('unit_id')->constrained('units')->onDelete('cascade');
-            $table->string('title');
-            $table->enum('type', ['multiple_choice', 'writing', 'speaking', 'true_false']); 
-            $table->timestamp('start_date')->nullable();
-            $table->timestamp('end_date')->nullable();
-            $table->unsignedInteger('pass_mark')->nullable(); 
-            $table->bigInteger('moodle_quiz_id')->nullable();
+            $table->string('name');
+            $table->enum('type', ['assignment', 'forum', 'quiz', 'exercise']);
+            $table->text('description')->nullable();
+            $table->integer('position')->default(1);
+            $table->bigInteger('moodle_activity_id')->nullable();
+            $table->boolean('visibility')->default(true);
             $table->timestamps();
         });
-        
     }
 
     /**
@@ -29,6 +28,6 @@ return new class extends Migration {
      */
     public function down(): void
     {
-        Schema::dropIfExists('quizzes');
+        Schema::dropIfExists('activities');
     }
 };

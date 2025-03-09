@@ -12,6 +12,7 @@ return new class extends Migration
     public function up(): void
     {
         Schema::create('teachers', function (Blueprint $table) {
+            $table->id();
             $table->foreignId('teacher_id')->constrained('users')->onDelete('cascade');
             $table->string('cv_link')->nullable();
             $table->integer('years_of_experience');

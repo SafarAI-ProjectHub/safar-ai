@@ -13,13 +13,15 @@ return new class extends Migration {
         Schema::create('questions', function (Blueprint $table) {
             $table->id();
             $table->foreignId('quiz_id')->constrained('quizzes')->onDelete('cascade');
-            $table->text('question_text');
-            $table->text('sub_text')->nullable();
-            $table->enum('question_type', ['text', 'choice', 'voice', 'video']);
-            $table->unsignedInteger('mark')->nullable();
+            $table->string('question_text');
+            $table->enum('type', ['multiple_choice', 'true_false', 'short_answer', 'long_answer', 'matching']); // دعم كل الأنواع
+            $table->integer('order')->default(1); 
+            $table->decimal('score', 5, 2)->default(1.0); 
+            $table->bigInteger('moodle_question_id')->nullable();
             $table->foreignId('media_url')->nullable();
             $table->timestamps();
         });
+        
     }
 
     /**

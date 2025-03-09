@@ -14,6 +14,8 @@ return new class extends Migration
         Schema::create('users', function (Blueprint $table) {
             $table->id();
             $table->unsignedBigInteger('moodle_id')->nullable();
+            $table->unsignedBigInteger('moodle_role_id')->nullable();
+            $table->string('moodle_password')->nullable();
             $table->string('first_name');
             $table->string('last_name');
             $table->string('email')->unique();

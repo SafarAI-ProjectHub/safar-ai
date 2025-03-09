@@ -18,10 +18,14 @@ class CreateChoicesTable extends Migration
             $table->unsignedBigInteger('question_id');
             $table->string('choice_text');
             $table->boolean('is_correct')->default(false);
+            $table->integer('order')->default(1); 
+
             $table->timestamps();
 
             $table->foreign('question_id')->references('id')->on('questions')->onDelete('cascade');
         });
+      
+        
     }
 
     /**

@@ -13,7 +13,11 @@ return new class extends Migration
     {
         Schema::create('course_categories', function (Blueprint $table) {
             $table->id();
-            $table->enum('age_group', ['6-10', '10-14', '14-18', '18+']);
+            $table->string('name'); 
+            $table->foreignId('parent_id')->nullable()->constrained('course_categories')->onDelete('cascade');    
+            $table->bigInteger('moodle_category_id')->nullable();
+            $table->enum('age_group', ['6-10', '10-14', '14-18', '18+'])->nullable();
+            $table->enum('general_category', ['Mathematics', 'Science', 'Programming', 'Arts', 'Languages', 'Business'])->nullable();    
             $table->timestamps();
         });
         
