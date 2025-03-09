@@ -6,13 +6,22 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Auth;
 use App\Models\Course;
-use App\Models\Unit;        // موديل الدرس
-use App\Models\StudentUnit; // الجدول الوسيط للطالب والدروس
+use App\Models\Unit;
+use App\Models\StudentUnit;
 use Carbon\Carbon;
-use Illuminate\Support\Str; // للتعامل مع النصوص بشكل أسهل
+use Illuminate\Support\Str;
+use App\Services\MoodleService; 
+use Illuminate\Support\Facades\Log;
 
 class CourseController extends Controller
 {
+    protected $moodleService;
+
+    public function __construct(MoodleService $moodleService)
+    {
+        $this->moodleService = $moodleService;
+    }
+
     /**
      * دالة عرض الدورات/البلوكات/الوحدات/الدروس للطالب.
      */
@@ -22,14 +31,12 @@ class CourseController extends Controller
         $unitId   = $request->input('unit_id');
         $lessonId = $request->input('lesson_id');
 
-        // متغيّرات ستحدد أي مرحلة سنعرض
         $stage   = 'blocks';
         $blocks  = [];
         $courses = [];
         $lessons = [];
         $lesson  = null;
 
-        // جلب معرّف الطالب إذا كان المستخدم طالباً
         $studentId = Auth::check() && Auth::user()->student
             ? Auth::user()->student->id
             : null;
@@ -48,7 +55,7 @@ class CourseController extends Controller
             $stage   = 'units';
             $courses = Course::where('block_id', $blockId)->get();
         }
-        // المرحلة 3: عند إرسال unit_id فقط، نعرض الدروس (lessons)
+        // المرحلة 3: عند إرسال unit_id فقط، نعرض الدروس (units)
         elseif ($unitId && !$lessonId) {
             $stage = 'lessons';
             $unit  = Course::with('units')->find($unitId);
@@ -82,15 +89,11 @@ class CourseController extends Controller
 
             // إذا كان الدرس من نوع "youtube" نتحقق هل هو رابط كامل أم مجرد ID
             if ($lesson && $lesson->content_type === 'youtube') {
-                // مثال: https://www.youtube.com/watch?v=xxxx
                 if (Str::contains($lesson->content, 'watch?v=')) {
                     $lesson->content = Str::after($lesson->content, 'watch?v=');
-                }
-                // مثال: https://youtu.be/xxxx
-                elseif (Str::contains($lesson->content, 'youtu.be/')) {
+                } elseif (Str::contains($lesson->content, 'youtu.be/')) {
                     $lesson->content = Str::after($lesson->content, 'youtu.be/');
                 }
-                // لو لم يحتوِ على watch?v= أو youtu.be/ نفترض أنه ID جاهز
             }
         }
 
@@ -106,12 +109,16 @@ class CourseController extends Controller
 
     /**
      * دالة تغيير حالة الدرس (إكمال/إلغاء إكمال).
+     * إذا أردت عكس ذلك في Moodle أيضاً، سنضيف استدعاء لـ markSectionCompletion أو نحوها.
      */
     public function updateUnitCompletion(Request $request)
     {
+        if (!Auth::check() || !Auth::user()->student) {
+            return redirect()->back()->with('error', 'Unauthorized action.');
+        }
+
         $studentId = Auth::user()->student->id;
 
-        // الحصول على قيم الحقول من النموذج
         $lessonId  = $request->input('lesson_id');
         $completed = $request->input('completed'); // 0 أو 1
 
@@ -133,27 +140,52 @@ class CourseController extends Controller
             ]
         );
 
+        //  تحدّث الإكمال في Moodle 
+        if ($completed && Auth::user()->moodle_id && $lesson->moodle_section_id && $lesson->course->moodle_course_id) {
+            $result = $this->moodleService->markSectionCompletion(
+                Auth::user()->moodle_id,
+                $lesson->course->moodle_course_id,
+                $lesson->moodle_section_id
+            );
+            Log::info("تم تسجيل إكمال الدرس في Moodle", ['result' => $result]);
+        }
+
         return redirect()->back()->with('success', 'Lesson status updated!');
     }
 
-
-    /**
-     * مثال على دالة للمعلم (في حال احتجتَها):
-     * سنمرر أيضاً blocks فارغة أو أي بيانات لازمة حتى لا تظهر رسالة الخطأ.
-     */
     public function teacherCourses()
     {
-        // هنا مثلاً نعرّف blocks حتى لا يكون المتغيّر غير معرّف
         $blocks = [
             (object)['id' => 1, 'name' => 'Block A'],
             (object)['id' => 2, 'name' => 'Block B'],
             (object)['id' => 3, 'name' => 'Block C'],
         ];
 
-        // ... أي منطق آخر للمعلم ...
         return view('dashboard.teacher.courses.index', [
             'blocks' => $blocks,
-            // يمكن تمرير أي بيانات أخرى يحتاجها المعلم
         ]);
+    }
+
+    public function storeUnitForTeacher(Request $request)
+    {
+        $request->validate([
+            'course_id' => 'required|exists:courses,id',
+            'title'     => 'required|string|max:255',
+        ]);
+
+        $unit = Unit::create([
+            'course_id'    => $request->course_id,
+            'title'        => $request->title,
+            'content_type' => 'text', 
+        ]);
+
+        // إنشاء قسم في Moodle
+        $sectionId = $this->moodleService->createSectionForUnit($unit);
+        if ($sectionId) {
+            $unit->moodle_section_id = $sectionId;
+            $unit->save();
+        }
+
+        return redirect()->back()->with('success', 'Unit created and synced with Moodle!');
     }
 }

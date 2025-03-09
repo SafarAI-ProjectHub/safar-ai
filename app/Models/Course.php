@@ -9,8 +9,9 @@ class Course extends Model
 {
     use HasFactory;
 
+    // نتركه بلا fillable لأننا نستخدم $guarded = []
+    // ما دام الجدول يحوي columns مثل: moodle_course_id, moodle_category_id, moodle_enrollment_method, ...
     protected $guarded = [];
-
 
     public function teacher()
     {
@@ -20,8 +21,8 @@ class Course extends Model
     public function students()
     {
         return $this->belongsToMany(Student::class, 'course_student', 'course_id', 'student_id')
-            ->withPivot('enrollment_date', 'progress')
-            ->withTimestamps();
+                    ->withPivot('enrollment_date', 'progress')
+                    ->withTimestamps();
     }
 
     public function category()
@@ -66,8 +67,17 @@ class Course extends Model
     }
 
     public function block()
-{
-    return $this->belongsTo(Block::class, 'block_id');
-}
+    {
+        return $this->belongsTo(Block::class, 'block_id');
+    }
 
+    /**
+     * تكامل Moodle
+     * اذا كان جدول moodle_enrollments يحتوي على moodle_course_id
+     */
+    public function moodleEnrollments()
+    {
+        // نربط العمود المحلي moodle_course_id مع العمود moodle_course_id في جدول moodle_enrollments
+        return $this->hasMany(MoodleEnrollment::class, 'moodle_course_id', 'moodle_course_id');
+    }
 }

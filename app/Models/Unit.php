@@ -20,13 +20,15 @@ class Unit extends Model
     {
         return $this->hasMany(Quiz::class, 'unit_id');
     }
+
     public function students()
     {
-        return $this->belongsToMany(Student::class, 'student_units')->withPivot('completed')->withTimestamps();
+        return $this->belongsToMany(Student::class, 'student_units')
+                    ->withPivot('completed')
+                    ->withTimestamps();
     }
-    // public function block()
-    // {
-    //     return $this->belongsTo(Block::class, 'block_id', 'id');
-    // }
-    
+
+    // لو أردت علاقة Moodle section:
+    // public function moodleSectionId() { ... }
+    // حيث أنك تملك عمود moodle_section_id في جدول units
 }

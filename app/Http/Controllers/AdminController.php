@@ -22,15 +22,19 @@ use Carbon\Carbon;
 use DB;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Log;
+
 use App\Services\MoodleUserService;
+use App\Services\MoodleService;
 
 class AdminController extends Controller
 {
     protected $videoToAudioService;
+    protected $moodleService;
 
-    public function __construct(VideoToAudioService $videoToAudioService)
+    public function __construct(VideoToAudioService $videoToAudioService, MoodleService $moodleService)
     {
         $this->videoToAudioService = $videoToAudioService;
+        $this->moodleService       = $moodleService;
     }
 
     public function index()
@@ -50,13 +54,13 @@ class AdminController extends Controller
             })->whereDoesntHave('roles', function ($query) {
                 $query->where('name', 'Super Admin');
             })->select([
-                'id', 
-                'first_name', 
-                'last_name', 
-                'email', 
-                'phone_number', 
-                'date_of_birth', 
-                'country_location', 
+                'id',
+                'first_name',
+                'last_name',
+                'email',
+                'phone_number',
+                'date_of_birth',
+                'country_location',
                 'status'
             ])->get();
 
@@ -68,8 +72,8 @@ class AdminController extends Controller
                             </div>';
                 })
                 ->editColumn('date_of_birth', function ($admin) {
-                    return $admin->date_of_birth 
-                        ? with(new Carbon($admin->date_of_birth))->format('Y-m-d') 
+                    return $admin->date_of_birth
+                        ? with(new Carbon($admin->date_of_birth))->format('Y-m-d')
                         : '';
                 })
                 ->rawColumns(['action'])
@@ -84,8 +88,7 @@ class AdminController extends Controller
         // عرض الصفحة الخاصة بإنشاء حساب سوبر أدمن
         return view('dashboard.admin.create_admin');
     }
-    
-    
+
     public function storeAdmin(Request $request)
     {
         $validator = Validator::make($request->all(), [
@@ -115,10 +118,9 @@ class AdminController extends Controller
 
         $user->assignRole('Admin');
 
-        // تسجيل الأدمن في Moodle
+        // تسجيل الأدمن في Moodle (إنشاء مستخدم في Moodle)
         $moodleUserService = app(MoodleUserService::class);
         $moodleUserId = $moodleUserService->createUser($user);
-        // في حال أردت تعيين الدور يدويًا، استخدم: ->createUser($user, 1)
 
         if ($moodleUserId) {
             $user->update(['moodle_id' => $moodleUserId]);
@@ -129,12 +131,11 @@ class AdminController extends Controller
 
         return response()->json(['message' => 'Admin created successfully!']);
     }
-            
+
     public function editAdmin($id)
     {
         $user = User::findOrFail($id);
 
-        // جلب جميع القيم المميزة (distinct) من عمود status في جدول users
         $statuses = User::select('status')->distinct()->pluck('status');
 
         return view('dashboard.admin.edit_admin', compact('user', 'statuses'));
@@ -389,7 +390,7 @@ class AdminController extends Controller
         $teachers   = Teacher::with('user')->get();
         $blocks     = \App\Models\Block::all();
 
-        return view('dashboard.admin.courses', compact('categories', 'teachers','blocks'));
+        return view('dashboard.admin.courses', compact('categories', 'teachers', 'blocks'));
     }
 
     public function getCourses(Request $request)
@@ -432,8 +433,8 @@ class AdminController extends Controller
                         $deleteCourseButton = '<a class="btn btn-sm btn-outline-dark btn-danger delete-btn p-2" data-id="' . $row->id . '"><i class="bx bx-trash"></i>Delete</a>';
                         $editCourseButton   = '<button class="btn btn-secondary btn-sm edit-btn" data-id="' . $row->id . '"><i class="bx bx-edit"></i>Edit</button>';
 
-                        $actions = '<div class="d-flex justify-content-around gap-2">' 
-                                . $assignButton 
+                        $actions = '<div class="d-flex justify-content-around gap-2">'
+                                . $assignButton
                                 . $showUnitsButton
                                 . $viewCourseButton
                                 . $editCourseButton
@@ -499,6 +500,16 @@ class AdminController extends Controller
 
         $course->save();
 
+        // إنشاء الدورة في Moodle
+        $moodleCourseId = $this->moodleService->createCourseInMoodle($course);
+        if ($moodleCourseId) {
+            $course->moodle_course_id = $moodleCourseId;
+            $course->save();
+            Log::info("✅ تم إنشاء الدورة في Moodle بنجاح: ID = $moodleCourseId");
+        } else {
+            Log::warning("⚠️ فشل إنشاء الدورة في Moodle: {$course->title}");
+        }
+
         return response()->json(['success' => 'Course added successfully']);
     }
 
@@ -545,6 +556,14 @@ class AdminController extends Controller
 
         $course->save();
 
+        // تحديث الدورة في Moodle (إذا كانت موجودة هناك)
+        if ($course->moodle_course_id) {
+            $this->moodleService->updateCourseInMoodle($course);
+            Log::info("✅ تم تحديث الدورة في Moodle: ID = {$course->moodle_course_id}");
+        } else {
+            Log::warning("⚠️ لم يتم تحديث الدورة في Moodle لأنها غير مرتبطة بـ moodle_course_id.");
+        }
+
         return response()->json(['success' => true, 'message' => 'Course updated successfully']);
     }
 
@@ -572,6 +591,14 @@ class AdminController extends Controller
     {
         try {
             $course = Course::findOrFail($courseId);
+
+            // حذف الدورة من Moodle لو لها معرف
+            if ($course->moodle_course_id) {
+                $this->moodleService->deleteCourseInMoodle($course->moodle_course_id);
+                Log::info("✅ تم حذف الدورة من Moodle: ID = {$course->moodle_course_id}");
+            }
+
+            // حذف كل الارتباطات في النظام المحلي
             $course->certificates()->delete();
             $course->students()->detach();
             $course->units()->each(function ($unit) {
@@ -605,7 +632,6 @@ class AdminController extends Controller
     {
         $course = Course::with('units')->findOrFail($courseId);
 
-        // إن أردت التحقق من صلاحية المعلم
         if (Auth::user()->hasAnyRole(['Teacher'])) {
             if (Auth::id() != $course->teacher->teacher_id) {
                 abort(403, 'Unauthorized action.');
@@ -619,7 +645,7 @@ class AdminController extends Controller
     public function storeUnit(Request $request)
     {
         \Log::info('Store Unit Request:', $request->all());
-
+    
         $request->validate([
             'course_id'    => 'required|exists:courses,id',
             'title'        => 'required|string|max:255',
@@ -629,37 +655,49 @@ class AdminController extends Controller
             'video'        => 'required_if:content_type,video|file|mimes:mp4,mov,ogg,qt,webm|max:204800',
             'youtube'      => 'nullable|string',
         ]);
-
+    
+        // 1) أنشئ الـUnit في قاعدة البيانات
         $unit = new Unit();
         $unit->course_id    = $request->course_id;
         $unit->title        = $request->title;
         $unit->subtitle     = $request->subtitle;
         $unit->content_type = $request->content_type;
-
-        if($request->content_type === 'text'){
+    
+        if ($request->content_type === 'text') {
             $unit->content = $request->content;
-        } elseif($request->content_type === 'youtube'){
+        } elseif ($request->content_type === 'youtube') {
             $videoId = $this->extractVideoId($request->youtube);
             $checkUrl = $this->checkUrl($videoId);
             if ($checkUrl['status'] === 'error') {
                 return response()->json(['error' => $checkUrl['error']], 422);
             }
             $unit->content = $videoId;
-            $unit->script  = $request->youtube; // نحتفظ بالرابط الأصلي في الحقل script
-        } elseif($request->content_type === 'video' && $request->hasFile('video')){
+            $unit->script  = $request->youtube; 
+        } elseif ($request->content_type === 'video' && $request->hasFile('video')) {
             $file = $request->file('video');
             $filename = uniqid() . '.' . $file->getClientOriginalExtension();
             $path = $file->storeAs('uploads', $filename, 'public');
             $unit->content = 'storage/' . $path;
         }
-
+    
         $unit->save();
-
-        // معالجته لاحقًا بالـ AI
+    
+        // 2) استدعاء MoodleService لإنشاء الـSection في Moodle
+        $sectionId = $this->moodleService->createSectionForUnit($unit);
+        if ($sectionId) {
+            $unit->moodle_section_id = $sectionId;
+            $unit->save();
+            \Log::info("✅ تم إنشاء Section في Moodle للدرس: {$unit->title} برقم معرف: {$sectionId}");
+        } else {
+            \Log::warning("⚠️ فشل إنشاء Section في Moodle للدرس: {$unit->title}");
+        }
+    
+        // 3) معالجته بالـ AI
         ProcessUnitAI::dispatch($unit->id, $this->videoToAudioService);
-
-        return response()->json(['success' => 'Lesson added successfully']);
+    
+        return response()->json(['success' => 'Lesson added successfully and synced with Moodle']);
     }
+    
 
     // جلب الوحدات (الدروس) عبر DataTables
     public function getUnits($courseId)
@@ -712,9 +750,9 @@ class AdminController extends Controller
         $unit->subtitle     = $request->subtitle;
         $unit->content_type = $request->content_type;
 
-        if ($request->content_type == 'text') {
+        if ($request->content_type === 'text') {
             $unit->content = $request->content;
-        } elseif ($request->content_type == 'video' && $request->hasFile('video')) {
+        } elseif ($request->content_type === 'video' && $request->hasFile('video')) {
             // حذف الفيديو القديم إن وجد
             if ($unit->content && Storage::disk('public')->exists(str_replace('storage/', '', $unit->content))) {
                 Storage::disk('public')->delete(str_replace('storage/', '', $unit->content));
@@ -724,7 +762,7 @@ class AdminController extends Controller
             $filename = uniqid() . '.' . $file->getClientOriginalExtension();
             $path = $file->storeAs('uploads', $filename, 'public');
             $unit->content = 'storage/' . $path;
-        } elseif ($request->content_type == 'youtube') {
+        } elseif ($request->content_type === 'youtube') {
             $videoId = $this->extractVideoId($request->youtube);
             $checkUrl = $this->checkUrl($videoId);
             if ($checkUrl['status'] == 'error') {
@@ -874,6 +912,7 @@ class AdminController extends Controller
             'english_proficiency_level' => $request->english_proficiency_level,
             'subscription_status'       => $request->subscription_status,
         ]);
+
         $user = $student->user;
 
         $user->update([
@@ -975,7 +1014,7 @@ class AdminController extends Controller
             $q->where('name', 'Student');
         })
             ->whereHas('levelTestAssessments')
-            ->with(['levelTestAssessments.question', 'student'])
+            ->with(['levelTestAssessments.question.choices', 'student'])
             ->select('users.*');
 
         return $dataTables->eloquent($query)
@@ -1032,19 +1071,19 @@ class AdminController extends Controller
     private function extractVideoId($url)
     {
         $parsed = parse_url($url);
-    
+
         // 1) لو الرابط فيه query فيها v=...
         parse_str($parsed['query'] ?? '', $query);
         if (isset($query['v'])) {
             return $query['v'];
         }
-    
+
         // 2) لو الرابط على شكل youtu.be/xxxxxxxx
         if (isset($parsed['host']) && strpos($parsed['host'], 'youtu.be') !== false) {
             $path = trim($parsed['path'] ?? '', '/');
             return $path;
         }
-    
+
         return null; // فشل
     }
 
@@ -1056,14 +1095,14 @@ class AdminController extends Controller
         $response = \Illuminate\Support\Facades\Http::get($apiUrl);
         if ($response->successful() && !empty($response->json()['items'])) {
             return [
-                'status' => 'success',
+                'status'  => 'success',
                 'message' => 'Correct YouTube Video URL',
             ];
         }
 
         return [
             'status' => 'error',
-            'error' => 'Invalid YouTube Video URL'
+            'error'  => 'Invalid YouTube Video URL'
         ];
     }
 }

@@ -21,6 +21,7 @@ class Subscription extends Model
         'price',
         'is_active',
         'features',
+        'moodle_payment_id', // لو أنك أضفت عمود moodle_payment_id في الجدول
     ];
 
     protected $casts = [
@@ -42,7 +43,6 @@ class Subscription extends Model
         return $this->hasMany(Payment::class);
     }
 
-    // لجعل أول حرف كابيتال لو تحب
     public function getSubscriptionTypeAttribute($value)
     {
         return ucfirst($value);

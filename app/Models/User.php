@@ -2,24 +2,29 @@
 
 namespace App\Models;
 
-// use Illuminate\Contracts\Auth\MustVerifyEmail;
+use Illuminate\Contracts\Auth\MustVerifyEmail;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 use Laravel\Sanctum\HasApiTokens;
 use Spatie\Permission\Traits\HasRoles;
 use App\Services\MoodleUserService;
+use Illuminate\Support\Facades\Log;       // لاستخدام Log
+use App\Events\UserUpdated;               // لو كنت تستخدم الحدث UserUpdated
+use Carbon\Carbon;
 
 class User extends Authenticatable
 {
     use HasApiTokens, HasFactory, Notifiable, HasRoles;
 
     /**
-     * The attributes that are mass assignable.
-     *
-     * @var array<int, string>
+     * الحقول القابلة للإسناد الجماعي (fillable).
+     * هنا نفترض أنك أضفت الحقول في الجدول: moodle_id, moodle_role_id, moodle_password
      */
     protected $fillable = [
+        'moodle_id',
+        'moodle_role_id',
+        'moodle_password',
         'first_name',
         'last_name',
         'email',
@@ -34,62 +39,54 @@ class User extends Authenticatable
     ];
 
     /**
-     * The attributes that should be hidden for serialization.
-     *
-     * @var array<int, string>
+     * الحقول المخفية عند التحويل إلى JSON/array.
      */
     protected $hidden = [
         'password',
         'remember_token',
+        'moodle_password', // إن رغبت بإخفاء كلمة مرور Moodle أيضًا
     ];
 
     /**
-     * The attributes that should be cast.
-     *
-     * @var array<string, string>
+     * الحقول التي سيتم عمل Casting لها آليًا.
      */
     protected $casts = [
         'email_verified_at' => 'datetime',
-        'password' => 'hashed',
-        'date_of_birth' => 'date',
+        'password'          => 'hashed',
+        'date_of_birth'     => 'date',
     ];
 
+    /**
+     * حقول التاريخ.
+     */
     protected $dates = [
         'zoom_token_expires_at',
     ];
+
     /**
-     * Get the user's full name by concatenating first and last names.
-     *
-     * @return string
+     * دالة للحصول على الاسم الكامل (first + last).
      */
     public function getFullNameAttribute()
     {
         return "{$this->first_name} {$this->last_name}";
     }
-    //example use : $user->full_name
-
 
     /**
-     * Relationship with Role
+     * علاقات خاصة بالأسئلة والاختبارات، إلخ.
      */
-    // public function role()
-    // {
-    //     return $this->belongsTo(Role::class);
-    // }
-
-    // User's responses to various quiz questions
     public function userResponses()
     {
         return $this->hasMany(UserResponse::class);
     }
 
-    // Assessments associated with the user
     public function assessments()
     {
         return $this->hasMany(Assessment::class);
     }
 
-    // Subscriptions that the user has
+    /**
+     * علاقة مع الـSubscriptions
+     */
     public function userSubscriptions()
     {
         return $this->hasOne(UserSubscription::class);
@@ -98,10 +95,9 @@ class User extends Authenticatable
     public function subscriptions()
     {
         return $this->belongsToMany(Subscription::class, 'user_subscriptions')
-            ->withPivot('start_date', 'next_billing_time', 'status')
-            ->withTimestamps();
+                    ->withPivot('start_date', 'next_billing_time', 'status')
+                    ->withTimestamps();
     }
-
 
     public function activeSubscription()
     {
@@ -114,75 +110,73 @@ class User extends Authenticatable
         return $activeSubscription ? $activeSubscription->subscription_type : 'None';
     }
 
-    // Student's relation 
+    /**
+     * علاقات الطالب أو المعلّم
+     */
     public function student()
     {
         return $this->hasOne(Student::class, 'student_id', 'id');
     }
-    
-    //teacher's relation
+
     public function teacher()
     {
         return $this->hasOne(Teacher::class, 'teacher_id');
     }
 
-    // Payments made by the user through their subscriptions
+    /**
+     * علاقات مع المدفوعات
+     */
     public function payments()
     {
         return $this->hasManyThrough(Payment::class, Subscription::class);
     }
 
     /**
-     * Check if the user is a student.
-     *
-     * @return bool
+     * الصلاحيات السريعة
      */
     public function isStudent()
     {
         return $this->hasRole('Student');
     }
-
-    /**
-     * Check if the user is a teacher.
-     *
-     * @return bool
-     */
     public function isTeacher()
     {
         return $this->hasRole('Teacher');
     }
-
-    /**
-     * Check if the user is an admin.
-     *
-     * @return bool
-     */
     public function isAdmin()
     {
         return $this->hasRole('Admin');
     }
 
-
-
-    // User's level test assessments relationship
+    /**
+     * اختبارات المستوى
+     */
     public function levelTestAssessments()
     {
         return $this->hasMany(LevelTestAssessment::class);
     }
 
-
+    /**
+     * علاقة بالمقررات التي يدرسها (إذا كان Student)
+     */
     public function courses()
     {
-        $student = $this->student;
+        // إذا اعتمدت جدولة (course_student) حيث student_id هو user->id
         return $this->belongsToMany(Course::class, 'course_student', 'student_id', 'course_id')
-            ->withPivot('enrollment_date', 'progress')
-            ->withTimestamps();
+                    ->withPivot('enrollment_date', 'progress')
+                    ->withTimestamps();
     }
 
+    /**
+     * التقييمات (Rates) أو تقييم المستخدم لدورات مثلاً
+     */
     public function rates()
     {
         return $this->hasMany(Rate::class);
     }
+
+    /**
+     * اجتماعات Zoom مرتبطة بالمستخدم
+     */
     public function zoomMeetings()
     {
         return $this->hasMany(ZoomMeeting::class);
@@ -193,12 +187,31 @@ class User extends Authenticatable
         return $this->hasMany(UserMeeting::class);
     }
 
+    /**
+     * عقود المعلمين
+     */
+    public function contract()
+    {
+        return $this->hasOne(Contract::class, 'teacher_id');
+    }
+
+    /**
+     * سجلات الأنشطة
+     */
+    public function timeLogs()
+    {
+        return $this->hasMany(UserActivityLog::class);
+    }
+
+    /**
+     * تحسب الفئة العمرية اعتمادًا على تاريخ الميلاد
+     */
     public function getAgeGroup()
     {
-        $age = \Carbon\Carbon::parse($this->date_of_birth)->age;
+        $age = Carbon::parse($this->date_of_birth)->age;
         if ($age <= 5) {
             return '1-5';
-        } else if ($age >= 6 && $age <= 10) {
+        } elseif ($age >= 6 && $age <= 10) {
             return '6-10';
         } elseif ($age > 10 && $age <= 14) {
             return '10-14';
@@ -209,24 +222,30 @@ class User extends Authenticatable
         }
     }
 
-    public function contract()
+    /**
+     * علاقات التكامل مع Moodle
+     * اذا كنت تستخدم جدول moodle_enrollments:
+     */
+    public function moodleEnrollments()
     {
-        return $this->hasOne(Contract::class, 'teacher_id');
+        // نفترض أن جدول moodle_enrollments فيه حقل user_id
+        return $this->hasMany(MoodleEnrollment::class, 'user_id');
     }
 
-    public function timeLogs()
+    public function moodleGrades()
     {
-        return $this->hasMany(UserActivityLog::class);
+        // نفترض أن جدول moodle_grades فيه حقل user_id
+        return $this->hasMany(MoodleGrade::class, 'user_id');
     }
 
     /**
-     * Event Hooks for Synchronization with Moodle
+     *  Events Hooks للمزامنة مع Moodle
      */
     protected static function boot()
     {
         parent::boot();
 
-        // تحديث المستخدم في Moodle عند التعديل في Laravel
+        // تحديث المستخدم في Moodle عند تغيّر الاسم أو الإيميل (مثلاً)
         static::updated(function ($user) {
             if ($user->isDirty(['first_name', 'last_name', 'email'])) {
                 event(new UserUpdated($user));
@@ -239,7 +258,7 @@ class User extends Authenticatable
             }
         });
 
-        // حذف المستخدم من Moodle عند حذفه من Laravel
+        // حذف المستخدم من Moodle عند حذفه من النظام
         static::deleting(function ($user) {
             if ($user->moodle_id) {
                 $moodleService = app(MoodleUserService::class);
@@ -253,5 +272,4 @@ class User extends Authenticatable
             }
         });
     }
-    
 }
