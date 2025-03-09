@@ -9,37 +9,55 @@ class Quiz extends Model
 {
     use HasFactory;
 
-    protected $guarded = [];
+    // الحقول القابلة للتعبئة
+    protected $fillable = [
+        'unit_id',
+        'title',
+        'type',
+        'start_date',
+        'end_date',
+        'pass_mark',
+        'moodle_quiz_id'
+    ];
 
+    /**
+     * علاقة الكويز بالوحدة التابع لها
+     */
     public function unit()
     {
         return $this->belongsTo(Unit::class, 'unit_id');
     }
 
     /**
-     * علاقة مع الدورة عبر الوحدة
+     * علاقة الكويز بالكورس عبر الوحدة
      */
     public function course()
     {
-        // إما أن تستخدم belongsToThrough (من حزم خارجية)
-        // أو ببساطة تصل للدورة عبر:
-        return $this->unit ? $this->unit->course() : null;
+        return $this->unit ? $this->unit->block->course : null;
     }
 
+    /**
+     * علاقة الكويز بالأسئلة
+     */
     public function questions()
     {
         return $this->hasMany(Question::class, 'quiz_id');
     }
 
-    public function setPassMark($mark)
-    {
-        $this->pass_mark = $mark;
-        $this->save();
-    }
-
+    /**
+     * علاقة الكويز بالتقييمات
+     */
     public function assessments()
     {
-        return $this->hasMany(Assessment::class);
+        return $this->hasMany(Assessment::class, 'quiz_id');
+    }
+
+    /**
+     * علاقة Moodle: ربط الكويز بكويزات Moodle
+     */
+    public function moodleQuiz()
+    {
+        return $this->hasOne(MoodleQuiz::class, 'id', 'moodle_quiz_id');
     }
 
     /**
@@ -47,7 +65,17 @@ class Quiz extends Model
      */
     public function moodleGrades()
     {
-        // نفترض أن جدول moodle_grades يحوي quiz_id يشير لنفس quiz_id هنا
         return $this->hasMany(MoodleGrade::class, 'quiz_id');
+    }
+
+    /**
+     * تعيين درجة النجاح للكويز
+     */
+    public function setPassMark($mark)
+    {
+        if ($mark >= 0) {
+            $this->pass_mark = $mark;
+            $this->save();
+        }
     }
 }

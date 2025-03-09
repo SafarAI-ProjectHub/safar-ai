@@ -15,6 +15,7 @@ return new class extends Migration {
             $table->foreignId('quiz_id')->constrained('quizzes');
             $table->foreignId('user_id')->constrained('users');
             $table->integer('attempt_number')->default(1);
+            $table->text('response');
             $table->decimal('total_score', 5, 2);
             $table->float('ai_mark')->nullable();
             $table->float('teacher_mark')->nullable();

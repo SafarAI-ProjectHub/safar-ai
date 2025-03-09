@@ -9,15 +9,35 @@ class Course extends Model
 {
     use HasFactory;
 
-    // نتركه بلا fillable لأننا نستخدم $guarded = []
-    // ما دام الجدول يحوي columns مثل: moodle_course_id, moodle_category_id, moodle_enrollment_method, ...
-    protected $guarded = [];
+    // الحقول القابلة للتعبئة
+    protected $fillable = [
+        'category_id',
+        'title',
+        'description',
+        'level',
+        'type',
+        'completed',
+        'visibility',
+        'startdate',
+        'enddate',
+        'moodle_course_id',
+        'moodle_category_id',
+        'moodle_enrollment_method',
+        'image',
+        'teacher_id'
+    ];
 
+    /**
+     * علاقة الكورس بالمدرس
+     */
     public function teacher()
     {
         return $this->belongsTo(Teacher::class, 'teacher_id');
     }
 
+    /**
+     * علاقة الكورس بالطلاب (Many-to-Many)
+     */
     public function students()
     {
         return $this->belongsToMany(Student::class, 'course_student', 'course_id', 'student_id')
@@ -25,59 +45,81 @@ class Course extends Model
                     ->withTimestamps();
     }
 
+    /**
+     * علاقة الكورس بالتصنيف
+     */
     public function category()
     {
         return $this->belongsTo(CourseCategory::class, 'category_id');
     }
 
+    /**
+     * علاقة الكورس بالبلوكات (Blocks)
+     */
+    public function blocks()
+    {
+        return $this->hasMany(Block::class, 'course_id');
+    }
+
+    /**
+     * علاقة الكورس بوحداته (من خلال البلوكات)
+     */
     public function units()
     {
-        return $this->hasMany(Unit::class, 'course_id');
+        return $this->hasManyThrough(Unit::class, Block::class, 'course_id', 'block_id');
     }
 
-    public function assignToCategory($categoryId)
+    /**
+     * علاقة Moodle Category
+     */
+    public function moodleCategory()
     {
-        $this->category_id = $categoryId;
-        $this->save();
+        return $this->hasOne(MoodleCategory::class, 'id', 'moodle_category_id');
     }
 
+    /**
+     * تكامل Moodle: ربط الكورس ببيانات التسجيل في Moodle
+     */
+    public function moodleEnrollments()
+    {
+        return $this->hasMany(MoodleEnrollment::class, 'moodle_course_id', 'moodle_course_id');
+    }
+
+    /**
+     * علاقة الكورس بالاجتماعات (مثل Zoom)
+     */
     public function zoomMeetings()
     {
-        return $this->hasMany(ZoomMeeting::class);
+        return $this->hasMany(ZoomMeeting::class, 'course_id');
     }
 
+    /**
+     * التقييمات الخاصة بالكورس
+     */
     public function rates()
     {
-        return $this->hasMany(Rate::class);
+        return $this->hasMany(Rate::class, 'course_id');
     }
 
-    public function RateAvg()
+    public function rateAvg()
     {
         return $this->rates()->avg('rate');
     }
 
-    public function courseStudents()
-    {
-        return $this->hasMany(CourseStudent::class, 'course_id');
-    }
-
+    /**
+     * علاقة الكورس بشهاداته
+     */
     public function certificates()
     {
         return $this->hasMany(Certificate::class, 'course_id');
     }
 
-    public function block()
-    {
-        return $this->belongsTo(Block::class, 'block_id');
-    }
-
     /**
-     * تكامل Moodle
-     * اذا كان جدول moodle_enrollments يحتوي على moodle_course_id
+     * دالة لتحديث حالة الكورس
      */
-    public function moodleEnrollments()
+    public function markAsCompleted()
     {
-        // نربط العمود المحلي moodle_course_id مع العمود moodle_course_id في جدول moodle_enrollments
-        return $this->hasMany(MoodleEnrollment::class, 'moodle_course_id', 'moodle_course_id');
+        $this->completed = true;
+        $this->save();
     }
 }

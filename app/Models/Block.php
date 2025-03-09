@@ -11,12 +11,37 @@ class Block extends Model
 
     protected $table = 'blocks';
 
+    // الحقول القابلة للتعبئة
     protected $fillable = [
+        'course_id',
         'name',
+        'description',
+        'position',
+        'moodle_section_id',
+        'visibility'
     ];
 
-    public function courses()
+    /**
+     * علاقة البلوك بالكورس التابع له
+     */
+    public function course()
     {
-        return $this->hasMany(Course::class, 'block_id');
+        return $this->belongsTo(Course::class, 'course_id');
+    }
+
+    /**
+     * علاقة البلوك بوحداته (Units)
+     */
+    public function units()
+    {
+        return $this->hasMany(Unit::class, 'block_id');
+    }
+
+    /**
+     * تكامل Moodle: ربط البلوك بالقسم في Moodle
+     */
+    public function moodleSection()
+    {
+        return $this->hasOne(MoodleSection::class, 'id', 'moodle_section_id');
     }
 }
