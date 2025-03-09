@@ -9,7 +9,6 @@ class CourseCategory extends Model
 {
     use HasFactory;
 
-    // الحقول القابلة للتعبئة
     protected $fillable = [
         'name',
         'parent_id',

@@ -7,20 +7,56 @@ use Illuminate\Support\Facades\Log;
 use App\Models\User;
 use App\Models\Course;
 use App\Models\Unit;
+use App\Services\MoodleServices\CourseCategoryService;
+use App\Services\MoodleServices\CourseService; 
 
 class MoodleService
 {
     protected $url;
     protected $token;
 
+    protected $courseCategoryService;
+    protected $courseService;
+
     /**
-     * تحميل قيم URL و TOKEN من ملف env أو config
+     * تحميل قيم URL و TOKEN من env + استقبال الخدمات المرتبطة
      */
-    public function __construct()
+    public function __construct(CourseCategoryService $courseCategoryService, CourseService $courseService)
     {
         $this->url   = config('app.moodle_url', 'https://moodle.safarai.org/webservice/rest/server.php');
         $this->token = config('app.moodle_wstoken');
+        $this->courseCategoryService = $courseCategoryService;
+        $this->courseService = $courseService;
     }
+
+ 
+
+    /**
+     * تمرير الطلبات المتعلقة بالتصنيفات إلى `CourseCategoryService`
+     */
+    public function createCategory(array $data)
+    {
+        return $this->courseCategoryService->createCategory($data);
+    }
+
+    public function updateCategory($category, array $data)
+    {
+        return $this->courseCategoryService->updateCategory($category, $data);
+    }
+
+    public function deleteCategory($category)
+    {
+        return $this->courseCategoryService->deleteCategory($category);
+    }
+    public function syncCategoriesFromMoodle()
+    {
+        return $this->courseCategoryService->syncCategoriesFromMoodle();
+    }
+      /**
+     * تمرير الطلبات المتعلقة بالتصنيفات إلى `CourseCategoryService`
+     */
+
+
 
     public function getCourses()
     {

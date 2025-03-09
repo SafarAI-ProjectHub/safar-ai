@@ -58,6 +58,27 @@ use App\Http\Controllers\MoodleSSOController;
 | Web Routes
 |--------------------------------------------------------------------------
 */
+// musab add
+/*
+|--------------------------------------------------------------------------
+CourseCategory
+|--------------------------------------------------------------------------
+*/
+use App\Http\Controllers\Admin\CourseCategoryController;
+
+Route::prefix('admin/course-categories')->name('admin.course_categories.')->group(function () {
+    Route::get('/', [CourseCategoryController::class, 'index'])->name('index');
+    Route::get('/create', [CourseCategoryController::class, 'create'])->name('create');
+    Route::post('/store', [CourseCategoryController::class, 'store'])->name('store');
+    Route::get('/{category}/edit', [CourseCategoryController::class, 'edit'])->name('edit');
+    Route::put('/{category}', [CourseCategoryController::class, 'update'])->name('update');
+    Route::delete('/{category}', [CourseCategoryController::class, 'destroy'])->name('destroy');
+    Route::get('/sync-categories', [CourseCategoryController::class, 'sync'])->name('sync');
+
+});
+
+
+
 
 Route::get('/oauth/redirect', [MoodleSSOController::class, 'redirectToMoodle']);
 Route::get('/oauth/callback', [MoodleSSOController::class, 'handleMoodleCallback']);
