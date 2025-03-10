@@ -281,9 +281,6 @@ $(function() {
                 defaultContent: 'N/A'
             },
             {
-                // لاحظ أننا نستقبل قيمة completed_switch من الكونترولر
-                // لكن هنا في كودك الأصلي: استقبلته باسم 'completed'
-                // لذلك سنستخدمه كما هو
                 data: 'completed',
                 name: 'completed',
                 orderable: false,
@@ -302,7 +299,19 @@ $(function() {
                 data: 'actions',
                 name: 'actions',
                 orderable: false,
-                searchable: false
+                searchable: false,
+                /**
+                 * هنا نضيف زر Show Blocks
+                 * ليرسلنا لصفحة بلوكات الكورس المعني
+                 */
+                render: function(data, type, row) {
+                    let showBlocksUrl = '/admin/courses/' + row.id + '/blocks';
+                    let showBlocksBtn = `
+                        <a href="${showBlocksUrl}" class="btn btn-sm btn-warning">Show Blocks</a>
+                    `;
+                    // نجمع الأزرار الموجودة في data (إن وجدت) مع زر Show Blocks
+                    return data + " " + showBlocksBtn;
+                }
             }
         ],
         columnDefs: [

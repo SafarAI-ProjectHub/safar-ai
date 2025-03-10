@@ -473,6 +473,7 @@ Route::middleware(['auth'])->group(function () {
 
 
 
+use App\Http\Controllers\Admin\BlockController;
 
 
 Route::prefix('admin')->name('admin.')->middleware(['auth','role:Super Admin|Admin|Teacher'])->group(function () {
@@ -547,4 +548,26 @@ Route::prefix('admin')->name('admin.')->middleware(['auth','role:Super Admin|Adm
     // مزامنة من Moodle (اختياري)
     Route::get('courses/sync-from-moodle', [CourseController::class, 'syncFromMoodle'])
          ->name('courses.syncFromMoodle');
+
+         
+    // ---------------------------------
+    //  2) Routes for Blocks
+    // ---------------------------------
+    // صفحة عرض البلوكات الخاصة بكورس محدد
+    Route::get('/courses/{courseId}/blocks', [BlockController::class, 'index'])->name('blocks.index');
+    
+    // جلب بيانات البلوكات (لـ DataTables مثلًا)
+    Route::get('/blocks/getBlocks', [BlockController::class, 'getBlocks'])->name('blocks.getBlocks');
+
+    // إضافة بلوك جديد
+    Route::post('/blocks/store', [BlockController::class, 'store'])->name('blocks.store');
+
+    // جلب بيانات بلوك واحد للتعديل
+    Route::get('/blocks/edit/{id}', [BlockController::class, 'edit'])->name('blocks.edit');
+
+    // تحديث بلوك
+    Route::post('/blocks/update/{id}', [BlockController::class, 'update'])->name('blocks.update');
+
+    // حذف بلوك
+    Route::delete('/blocks/delete/{id}', [BlockController::class, 'destroy'])->name('blocks.delete');
 });
