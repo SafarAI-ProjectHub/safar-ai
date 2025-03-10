@@ -27,53 +27,64 @@ class CourseController extends Controller
      * DataTables
      */
     public function getCourses(Request $request)
-    {
-        if ($request->ajax()) {
-            $query = Course::with(['category', 'teacher.user']);
+{
+    if ($request->ajax()) {
+        // التصفية حسب category_id إن وُجد
+        $categoryId = $request->input('category_id');
 
-            if (Auth::user()->hasRole('Teacher')) {
-                $teacher = Teacher::where('teacher_id', Auth::id())->first();
-                if ($teacher) {
-                    $query->where('teacher_id', $teacher->id);
-                }
+        $query = Course::with(['category', 'teacher.user']);
+
+        // إذا كان المستخدم Teacher فقط، نفلتر حسب المعلّم
+        if ($request->user()->hasRole('Teacher')) {
+            $teacher = Teacher::where('teacher_id', $request->user()->id)->first();
+            if ($teacher) {
+                $query->where('teacher_id', $teacher->id);
             }
-
-            return DataTables::of($query->get())
-                ->addColumn('category', function ($row) {
-                    return optional($row->category)->name ?? 'No Category';
-                })
-                ->addColumn('teacher', function ($row) {
-                    return $row->teacher
-                        ? ($row->teacher->user->first_name . ' ' . $row->teacher->user->last_name)
-                        : 'N/A';
-                })
-                ->addColumn('completed', function ($row) {
-                    return (int) $row->completed;
-                })
-                ->addColumn('actions', function ($row) {
-                    $actions = '';
-                    if (Auth::user()->hasAnyRole(['Super Admin', 'Admin'])) {
-                        $assignBtn = '<button class="btn btn-primary btn-sm assign-teacher-btn"
-                                                data-course-id="' . $row->id . '">
-                                                Assign Teacher
-                                            </button>';
-                        $editBtn   = '<button class="btn btn-secondary btn-sm edit-btn"
-                                                data-id="' . $row->id . '">
-                                                Edit
-                                        </button>';
-                        $delBtn    = '<button class="btn btn-danger btn-sm delete-btn"
-                                                data-id="' . $row->id . '">
-                                                Delete
-                                        </button>';
-                        $actions = "<div class='d-flex gap-2'>{$assignBtn}{$editBtn}{$delBtn}</div>";
-                    }
-                    return $actions;
-                })
-                ->rawColumns(['actions'])
-                ->make(true);
         }
-        return null;
+
+        // الفلترة حسب التصنيف
+        if ($categoryId) {
+            $query->where('category_id', $categoryId);
+        }
+
+        // لا تستخدم ->get() هنا، بل مرّر $query إلى DataTables مباشرةً
+        return DataTables::of($query)
+            ->addColumn('category', function ($row) {
+                return optional($row->category)->name ?? 'No Category';
+            })
+            ->addColumn('teacher', function ($row) {
+                return $row->teacher
+                    ? ($row->teacher->user->first_name . ' ' . $row->teacher->user->last_name)
+                    : 'N/A';
+            })
+            ->addColumn('completed', function ($row) {
+                return (int) $row->completed;
+            })
+            ->addColumn('actions', function ($row) {
+                $actions = '';
+                if (auth()->user()->hasAnyRole(['Super Admin', 'Admin'])) {
+                    $assignBtn = '<button class="btn btn-primary btn-sm assign-teacher-btn"
+                                            data-course-id="' . $row->id . '">
+                                            Assign Teacher
+                                        </button>';
+                    $editBtn   = '<button class="btn btn-secondary btn-sm edit-btn"
+                                            data-id="' . $row->id . '">
+                                            Edit
+                                    </button>';
+                    $delBtn    = '<button class="btn btn-danger btn-sm delete-btn"
+                                            data-id="' . $row->id . '">
+                                            Delete
+                                    </button>';
+                    $actions = "<div class='d-flex gap-2'>{$assignBtn}{$editBtn}{$delBtn}</div>";
+                }
+                return $actions;
+            })
+            ->rawColumns(['actions'])
+            ->make(true);
     }
+    return null;
+}
+
 
     /**
      * تخزين كورس جديد

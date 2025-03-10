@@ -18,6 +18,7 @@ use App\Http\Controllers\ZoomMeetingController;
 use App\Http\Controllers\DashboardController;
 // use App\Http\Controllers\CourseController;
 use App\Http\Controllers\Admin\CourseController;
+use App\Http\Controllers\Admin\CourseCategoryController;
 
 use App\Http\Controllers\levelTest\TeacherTestController;
 use App\Http\Controllers\OfferController;
@@ -66,18 +67,18 @@ use App\Http\Controllers\MoodleSSOController;
 CourseCategory
 |--------------------------------------------------------------------------
 */
-use App\Http\Controllers\Admin\CourseCategoryController;
+// use App\Http\Controllers\Admin\CourseCategoryController;
 
-Route::prefix('admin/course-categories')->name('admin.course_categories.')->group(function () {
-    Route::get('/', [CourseCategoryController::class, 'index'])->name('index');
-    Route::get('/create', [CourseCategoryController::class, 'create'])->name('create');
-    Route::post('/store', [CourseCategoryController::class, 'store'])->name('store');
-    Route::get('/{category}/edit', [CourseCategoryController::class, 'edit'])->name('edit');
-    Route::put('/{category}', [CourseCategoryController::class, 'update'])->name('update');
-    Route::delete('/{category}', [CourseCategoryController::class, 'destroy'])->name('destroy');
-    Route::get('/sync-categories', [CourseCategoryController::class, 'sync'])->name('sync');
+// Route::prefix('admin/course-categories')->name('admin.course_categories.')->group(function () {
+//     Route::get('/', [CourseCategoryController::class, 'index'])->name('index');
+//     Route::get('/create', [CourseCategoryController::class, 'create'])->name('create');
+//     Route::post('/store', [CourseCategoryController::class, 'store'])->name('store');
+//     Route::get('/{category}/edit', [CourseCategoryController::class, 'edit'])->name('edit');
+//     Route::put('/{category}', [CourseCategoryController::class, 'update'])->name('update');
+//     Route::delete('/{category}', [CourseCategoryController::class, 'destroy'])->name('destroy');
+//     Route::get('/sync-categories', [CourseCategoryController::class, 'sync'])->name('sync');
 
-});
+// });
 
 
 
@@ -471,24 +472,63 @@ Route::middleware(['auth'])->group(function () {
 
 
 
-// ... cource (admin)
 
 
 
 Route::prefix('admin')->name('admin.')->middleware(['auth','role:Super Admin|Admin|Teacher'])->group(function () {
-    
-    // عرض الصفحة
-    Route::get('courses', [CourseController::class, 'courses'])->name('courses');
 
-    // DataTables
-    Route::get('courses/get', [CourseController::class, 'getCourses'])->name('courses.getCourses');
+    // ---------------------------------
+    //  1) Routes for Categories
+    // ---------------------------------
+    // عرض صفحة التصنيفات
+    Route::get('course_categories', [CourseCategoryController::class, 'index'])
+         ->name('course_categories.index');
 
-    // إضافة كورس
-    Route::post('courses/store', [CourseController::class, 'storeCourse'])->name('courses.storeCourse');
+    // DataTables لجلب التصنيفات
+    Route::get('course_categories/get', [CourseCategoryController::class, 'getCategories'])
+         ->name('course_categories.getCategories');
 
-    // تعديل كورس
-    Route::get('courses/edit/{id}', [CourseController::class, 'editCourse'])->name('courses.editCourse');
-    Route::post('courses/update/{id}', [CourseController::class, 'updateCourse'])->name('courses.updateCourse');
+    // نموذج إنشاء تصنيف + حفظه
+    Route::get('course_categories/create', [CourseCategoryController::class, 'create'])
+         ->name('course_categories.create');
+    Route::post('course_categories/store', [CourseCategoryController::class, 'store'])
+         ->name('course_categories.store');
+
+    // تعديل تصنيف
+    Route::get('course_categories/edit/{category}', [CourseCategoryController::class, 'edit'])
+         ->name('course_categories.edit');
+    Route::post('course_categories/update/{category}', [CourseCategoryController::class, 'update'])
+         ->name('course_categories.update');
+
+    // حذف تصنيف
+    Route::delete('course_categories/delete/{category}', [CourseCategoryController::class, 'destroy'])
+         ->name('course_categories.destroy');
+
+    // مزامنة من Moodle (اختياري)
+    Route::get('course_categories/sync', [CourseCategoryController::class, 'sync'])
+         ->name('course_categories.sync');
+
+
+    // ---------------------------------
+    //  2) Routes for Courses
+    // ---------------------------------
+    // عرض صفحة الدورات
+    Route::get('courses', [CourseController::class, 'courses'])
+         ->name('courses');
+
+    // DataTables لجلب الدورات
+    Route::get('courses/get', [CourseController::class, 'getCourses'])
+         ->name('courses.getCourses');
+
+    // إضافة دورة
+    Route::post('courses/store', [CourseController::class, 'storeCourse'])
+         ->name('courses.storeCourse');
+
+    // تعديل دورة
+    Route::get('courses/edit/{id}', [CourseController::class, 'editCourse'])
+         ->name('courses.editCourse');
+    Route::post('courses/update/{id}', [CourseController::class, 'updateCourse'])
+         ->name('courses.updateCourse');
 
     // تبديل حالة completed
     Route::post('courses/toggle-complete/{course}', [CourseController::class, 'toggleComplete'])
@@ -500,10 +540,11 @@ Route::prefix('admin')->name('admin.')->middleware(['auth','role:Super Admin|Adm
     Route::post('courses/assign-teacher', [CourseController::class, 'assignTeacherToCourse'])
          ->name('courses.assignTeacherToCourse');
 
-    // حذف
-    Route::delete('courses/delete/{id}', [CourseController::class, 'deleteCourse'])->name('courses.delete');
+    // حذف دورة
+    Route::delete('courses/delete/{id}', [CourseController::class, 'deleteCourse'])
+         ->name('courses.delete');
 
-    // زر Fetch from Moodle
+    // مزامنة من Moodle (اختياري)
     Route::get('courses/sync-from-moodle', [CourseController::class, 'syncFromMoodle'])
          ->name('courses.syncFromMoodle');
 });

@@ -7,7 +7,6 @@
 
     <!-- Select2 CSS -->
     <link href="{{ asset('assets/plugins/select2/css/select2.min.css') }}" rel="stylesheet" />
-    <link href="{{ asset('assets/plugins/select2/css/select2-bootstrap4.css') }}" rel="stylesheet" />
 
     <style>
         .modal-body {
@@ -247,12 +246,21 @@
 
 <script>
 $(function() {
+    // سنقرأ category_id من بارامترات الرابط إن وُجد
+    // مثال: /admin/courses?category_id=3
+    let categoryId = "{{ request('category_id') }}";
 
     // إعداد DataTable
     let table = $('#courses-table').DataTable({
         processing: true,
         serverSide: true,
-        ajax: '{{ route('admin.courses.getCourses') }}',
+        ajax: {
+            url: '{{ route("admin.courses.getCourses") }}',
+            // نرسل category_id في البيانات
+            data: {
+                category_id: categoryId
+            }
+        },
         columns: [
             { data: 'id',          name: 'id' },
             { data: 'title',       name: 'title' },
@@ -273,6 +281,9 @@ $(function() {
                 defaultContent: 'N/A'
             },
             {
+                // لاحظ أننا نستقبل قيمة completed_switch من الكونترولر
+                // لكن هنا في كودك الأصلي: استقبلته باسم 'completed'
+                // لذلك سنستخدمه كما هو
                 data: 'completed',
                 name: 'completed',
                 orderable: false,
@@ -310,7 +321,7 @@ $(function() {
     // زر Fetch from Moodle
     $('#fetchFromMoodleBtn').on('click', function() {
         $.ajax({
-            url: '{{ route('admin.courses.syncFromMoodle') }}',
+            url: '{{ route("admin.courses.syncFromMoodle") }}',
             method: 'GET',
             success: function(resp) {
                 table.ajax.reload();
@@ -381,7 +392,7 @@ $(function() {
         }
 
         $.ajax({
-            url: '{{ route('admin.courses.storeCourse') }}',
+            url: '{{ route("admin.courses.storeCourse") }}',
             method: 'POST',
             data: formData,
             processData: false,
@@ -484,7 +495,7 @@ $(function() {
         $('#assignCourseId').val(courseId);
 
         $.ajax({
-            url: '{{ route('admin.courses.getTeachersForAssignment') }}',
+            url: '{{ route("admin.courses.getTeachersForAssignment") }}',
             method: 'GET',
             success: function(resp) {
                 let select = $('#teacher_id');
@@ -513,7 +524,7 @@ $(function() {
         e.preventDefault();
         let formData = $(this).serialize();
         $.ajax({
-            url: '{{ route('admin.courses.assignTeacherToCourse') }}',
+            url: '{{ route("admin.courses.assignTeacherToCourse") }}',
             method: 'POST',
             data: formData,
             success: function(resp) {
