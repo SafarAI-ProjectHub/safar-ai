@@ -16,7 +16,9 @@ use App\Http\Controllers\StudentController;
 use App\Http\Controllers\RateController;
 use App\Http\Controllers\ZoomMeetingController;
 use App\Http\Controllers\DashboardController;
-use App\Http\Controllers\CourseController;
+// use App\Http\Controllers\CourseController;
+use App\Http\Controllers\Admin\CourseController;
+
 use App\Http\Controllers\levelTest\TeacherTestController;
 use App\Http\Controllers\OfferController;
 use App\Http\Controllers\levelTest\StudentTestController;
@@ -463,4 +465,45 @@ Route::get('/paypal/cancel', [SubscriptionController::class, 'handleCancel'])->n
 
 Route::middleware(['auth'])->group(function () {
     Route::post('/update-activity-status', [UserActivityController::class, 'updateStatus']);
+});
+
+
+
+
+
+// ... cource (admin)
+
+
+
+Route::prefix('admin')->name('admin.')->middleware(['auth','role:Super Admin|Admin|Teacher'])->group(function () {
+    
+    // عرض الصفحة
+    Route::get('courses', [CourseController::class, 'courses'])->name('courses');
+
+    // DataTables
+    Route::get('courses/get', [CourseController::class, 'getCourses'])->name('courses.getCourses');
+
+    // إضافة كورس
+    Route::post('courses/store', [CourseController::class, 'storeCourse'])->name('courses.storeCourse');
+
+    // تعديل كورس
+    Route::get('courses/edit/{id}', [CourseController::class, 'editCourse'])->name('courses.editCourse');
+    Route::post('courses/update/{id}', [CourseController::class, 'updateCourse'])->name('courses.updateCourse');
+
+    // تبديل حالة completed
+    Route::post('courses/toggle-complete/{course}', [CourseController::class, 'toggleComplete'])
+         ->name('courses.toggleComplete');
+
+    // إسناد معلّم
+    Route::get('courses/get-teachers-for-assignment', [CourseController::class, 'getTeachersForAssignment'])
+         ->name('courses.getTeachersForAssignment');
+    Route::post('courses/assign-teacher', [CourseController::class, 'assignTeacherToCourse'])
+         ->name('courses.assignTeacherToCourse');
+
+    // حذف
+    Route::delete('courses/delete/{id}', [CourseController::class, 'deleteCourse'])->name('courses.delete');
+
+    // زر Fetch from Moodle
+    Route::get('courses/sync-from-moodle', [CourseController::class, 'syncFromMoodle'])
+         ->name('courses.syncFromMoodle');
 });

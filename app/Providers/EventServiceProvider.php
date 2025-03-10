@@ -14,6 +14,9 @@ use App\Events\UserUpdated;
 use App\Listeners\UpdateMoodleUser;
 use App\Events\UserRoleUpdated;
 use App\Listeners\UpdateMoodleUserRole;
+
+use App\Models\Course;
+use App\Observers\CourseObserver;
 class EventServiceProvider extends ServiceProvider
 {
     /**
@@ -55,6 +58,8 @@ class EventServiceProvider extends ServiceProvider
     public function boot()
     {
         parent::boot();
+        Course::observe(CourseObserver::class);
+
     }
 
     /**

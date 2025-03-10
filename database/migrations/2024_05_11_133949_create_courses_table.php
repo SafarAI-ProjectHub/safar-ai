@@ -12,11 +12,11 @@ return new class extends Migration {
     {
         Schema::create('courses', function (Blueprint $table) {
             $table->id();
-            $table->foreignId('category_id')->constrained('course_categories')->onDelete('cascade');
+            $table->foreignId('category_id')->nullable()->constrained('course_categories')->onDelete('cascade');
             $table->string('title');
             $table->text('description');
-            $table->integer('level');
-            $table->enum('type', ['weekly', 'intensive']);
+            $table->integer('level')->nullable();
+            $table->enum('type', ['weekly', 'intensive'])->nullable();
             $table->boolean('completed')->default(false);
             $table->boolean('visibility')->default(true); // هل الكورس مرئي للطلاب؟
             $table->timestamp('startdate')->nullable(); // تاريخ بدء الدورة
@@ -25,12 +25,10 @@ return new class extends Migration {
             $table->bigInteger('moodle_category_id')->nullable(); // ربط التصنيف بـ Moodle
             $table->string('moodle_enrollment_method')->nullable(); // طريقة التسجيل في Moodle
             $table->string('image')->nullable();
-            $table->biginteger('teacher_id')->nullable();
+            $table->bigInteger('teacher_id')->nullable();
 
             $table->timestamps();
         });
-        
-
     }
 
     /**
@@ -39,5 +37,5 @@ return new class extends Migration {
     public function down(): void
     {
         Schema::dropIfExists('courses');
-    }
+    } 
 };

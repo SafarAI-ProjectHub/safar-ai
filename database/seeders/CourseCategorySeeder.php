@@ -50,11 +50,14 @@ class CourseCategorySeeder extends Seeder
             ]));
 
             // إرساله إلى Moodle وتحديث `moodle_category_id`
-            $moodleCategoryId = $this->moodleService->createCategory($category);
+            // $moodleCategoryId = $this->moodleService->createCategory($category);
 
-            if ($moodleCategoryId) {
-                $category->update(['moodle_category_id' => $moodleCategoryId]);
-            }
+            // تم تعديله لتمرير مصفوفة بدلاً من كائن:
+            // $moodleCategoryId = $this->moodleService->createCategory($category->toArray());
+
+            // if ($moodleCategoryId) {
+            //     $category->update(['moodle_category_id' => $moodleCategoryId]);
+            // }
         }
     }
 }

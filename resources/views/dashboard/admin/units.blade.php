@@ -1,1081 +1,487 @@
 @extends('layouts_dashboard.main')
 
 @section('styles')
-    <!-- Quill Editor CSS -->
-    <link href="https://cdn.quilljs.com/1.3.6/quill.snow.css" rel="stylesheet">
-
-    <!-- FilePond CSS -->
     <link href="https://unpkg.com/filepond/dist/filepond.css" rel="stylesheet">
     <link href="https://unpkg.com/filepond-plugin-image-preview/dist/filepond-plugin-image-preview.css" rel="stylesheet">
-
-    <!-- Fabric.js -->
-    <script src="https://cdn.jsdelivr.net/npm/fabric@5.2.4/dist/fabric.min.js"></script>
-
+    <link href="{{ asset('assets/plugins/select2/css/select2.min.css') }}" rel="stylesheet" />
+    <link href="{{ asset('assets/plugins/select2/css/select2-bootstrap4.css') }}" rel="stylesheet" />
     <style>
-        .modal-content {
+        .modal-body {
+            max-height: calc(100vh - 200px);
             overflow-y: auto;
-        }
-        .index-0 {
-            z-index: 0 !important;
-        }
-        #designCanvas {
-            border: 1px dashed #ccc;
-            cursor: default;
-        }
-        .shape-row, .text-row {
-            margin-bottom: 10px;
         }
     </style>
 @endsection
 
 @section('content')
-<div class="card">
-    <div class="card-body">
-        <h5>Lessons for Unit: <a href="{{ route('admin.courses') }}">{{ $course->title }}</a></h5>
-        <div class="alert alert-info index-0" role="alert">
-            <strong>Note:</strong> The script is used by the AI to check the correctness of student answers in quizzes.
-            please make sure the script is accurate.
-        </div>
-
-        {{-- لا نمنع إضافة دروس جديدة --}}
-        <div class="d-flex justify-content-end mb-3">
-            <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#addUnitModal">
-                Add New Lesson
-            </button>
-        </div>
-
-        <div class="table-responsive">
-            <table id="units-table" class="table table-striped table-bordered">
-                <thead>
-                    <tr>
-                        <th>#</th>
-                        <th>Title</th>
-                        <th>Subtitle</th>
-                        <th>Content Type</th>
-                        <th>Actions</th>
-                    </tr>
-                </thead>
-            </table>
-        </div>
-    </div>
-</div>
-
-<!-- Add Lesson Modal -->
-<div class="modal fade" id="addUnitModal" tabindex="-1" aria-hidden="true">
-    <div class="modal-dialog modal-fullscreen">
-        <div class="modal-content">
-            <form id="addUnitForm" enctype="multipart/form-data">
-                @csrf
-                <input type="hidden" name="course_id" value="{{ $course->id }}">
-
-                <div class="modal-header">
-                    <h5 class="modal-title" id="addUnitModalLabel">Add New Lesson</h5>
-                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+    <div class="card">
+        <div class="card-body">
+            <h5>Units List</h5>
+            @can('create courses')
+                <div class="d-flex justify-content-end mb-3">
+                    <button class="btn btn-sm btn-primary" data-bs-toggle="modal" data-bs-target="#addCourseModal">Add New
+                        Unit</button>
                 </div>
-
-                <div class="modal-body">
-                    <!-- Title, Subtitle -->
-                    <div class="mb-3">
-                        <label for="title" class="form-label">Lesson Title</label>
-                        <input type="text" class="form-control" id="title" name="title" required>
-                    </div>
-                    <div class="mb-3">
-                        <label for="subtitle" class="form-label">Subtitle</label>
-                        <input type="text" class="form-control" id="subtitle" name="subtitle">
-                    </div>
-
-                    <!-- Content Type -->
-                    <div class="mb-3">
-                        <label for="content_type" class="form-label">Content Type</label>
-                        <select class="form-select" id="content_type" name="content_type" required>
-                            <option value="" disabled selected>Select Content Type</option>
-                            <option value="video">Video</option>
-                            <option value="text">Text</option>
-                            <option value="youtube">Youtube</option>
-                        </select>
-                    </div>
-
-                    <!-- Text Content + Canvas Combined -->
-                    <div id="text-and-canvas" style="display:none;">
-                        <label class="form-label">Content</label>
-                        <div id="editor"></div>
-                        <!-- hidden field to store Quill HTML -->
-                        <textarea name="content" id="content" style="display:none;"></textarea>
-
-                        <hr>
-                        <h5>Design Board</h5>
-                        <div class="mb-2">
-                            <label>Canvas Size:</label>
-                            <div class="d-flex gap-2 align-items-center">
-                                <input type="number" id="designWidth" placeholder="Width" value="800"
-                                       class="form-control" style="max-width:120px;">
-                                <input type="number" id="designHeight" placeholder="Height" value="400"
-                                       class="form-control" style="max-width:120px;">
-                                <button type="button" class="btn btn-sm btn-outline-secondary" id="applySizeBtn">
-                                    Apply Size
-                                </button>
-                            </div>
-                        </div>
-
-                        <!-- Shapes Row -->
-                        <div class="shape-row d-flex gap-2 align-items-end flex-wrap">
-                            <div>
-                                <label>Shape:</label>
-                                <select id="shapeType" class="form-select form-select-sm">
-                                    <option value="rect">Rectangle</option>
-                                    <option value="circle">Circle</option>
-                                    <option value="ellipse">Ellipse</option>
-                                    <option value="line">Line</option>
-                                    <option value="star">Star</option>
-                                    <option value="arrow">Arrow</option>
-                                    <option value="diamond">Diamond</option>
-                                    <option value="trapezoid">Trapezoid</option>
-                                    <option value="zigzag">Zigzag</option>
-                                </select>
-                            </div>
-                            <div>
-                                <label>Fill:</label>
-                                <input type="color" id="shapeFill" value="#00BFFF"
-                                       class="form-control form-control-color" style="width:60px;">
-                            </div>
-                            <div>
-                                <label>Stroke:</label>
-                                <input type="color" id="shapeStroke" value="#000000"
-                                       class="form-control form-control-color" style="width:60px;">
-                            </div>
-                            <div>
-                                <label>Stroke W:</label>
-                                <input type="number" id="shapeStrokeWidth" class="form-control form-control-sm"
-                                       style="max-width:80px;" value="1">
-                            </div>
-                            <button type="button" class="btn btn-sm btn-secondary" id="addShapeBtn">
-                                Add Shape
-                            </button>
-                            <button type="button" class="btn btn-sm btn-danger" id="removeSelectedBtn">
-                                Remove Selected
-                            </button>
-                            <button type="button" class="btn btn-sm btn-secondary" id="bringToFrontBtn">
-                                Bring Front
-                            </button>
-                            <button type="button" class="btn btn-sm btn-secondary" id="sendToBackBtn">
-                                Send Back
-                            </button>
-                        </div>
-
-                        <!-- Text Row -->
-                        <div class="text-row d-flex gap-2 align-items-end flex-wrap mt-3">
-                            <div>
-                                <label>Text:</label>
-                                <input type="text" id="textString" class="form-control form-control-sm"
-                                       placeholder="Enter text...">
-                            </div>
-                            <div>
-                                <label>Color:</label>
-                                <input type="color" id="textColor" value="#000000"
-                                       class="form-control form-control-color" style="width:60px;">
-                            </div>
-                            <div>
-                                <label>Font Size:</label>
-                                <input type="number" id="textSize" class="form-control form-control-sm"
-                                       style="max-width:80px;" value="20">
-                            </div>
-                            <button type="button" class="btn btn-sm btn-secondary" id="addTextBtn">
-                                Add Text
-                            </button>
-                        </div>
-
-                        <canvas id="designCanvas" width="800" height="400" style="margin-top:10px;"></canvas>
-                        <div class="mt-3">
-                            <button type="button" class="btn btn-info" id="insertDesignBtn">
-                                Insert Design to Editor
-                            </button>
-                            <button type="button" class="btn btn-outline-danger" id="clearCanvasBtn">
-                                Clear Canvas
-                            </button>
-                        </div>
-                    </div>
-
-                    <!-- Video Content -->
-                    <div class="mb-3" id="video-content" style="display:none;">
-                        <label for="video" class="form-label">Upload Video</label>
-                        <input type="file" class="filepond" name="video" data-allow-reorder="true"
-                               data-max-file-size="200MB" data-max-files="1">
-                    </div>
-
-                    <!-- Youtube Content -->
-                    <div class="mb-3" id="youtube-content" style="display:none;">
-                        <label for="youtube" class="form-label">Youtube Link</label>
-                        <input type="text" class="youtube form-control" name="youtube">
-                    </div>
-                </div>
-
-                <div class="modal-footer">
-                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
-                    <button type="submit" class="btn btn-primary">Add Lesson</button>
-                </div>
-            </form>
-        </div>
-    </div>
-</div>
-
-<!-- Show Script Modal -->
-<div class="modal fade" id="showScriptModal" tabindex="-1" aria-hidden="true">
-    <div class="modal-dialog modal-lg">
-        <div class="modal-content">
-            <form id="updateScriptForm">
-                @csrf
-                <div class="modal-header">
-                    <h5 class="modal-title" id="showScriptModalLabel">Script</h5>
-                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-                </div>
-                <div class="modal-body">
-                    <div class="mb-3">
-                        <label for="script" class="form-label">Script</label>
-                        <textarea class="form-control" id="script" name="script" rows="10" required></textarea>
-                    </div>
-                </div>
-                <div class="modal-footer">
-                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
-                    <button type="submit" class="btn btn-primary">Update Script</button>
-                </div>
-            </form>
-        </div>
-    </div>
-</div>
-
-<!-- Edit Lesson Modal -->
-<div class="modal fade" id="editUnitModal" tabindex="-1" aria-hidden="true">
-    <div class="modal-dialog modal-fullscreen">
-        <div class="modal-content">
-            <form id="editUnitForm">
-                @csrf
-                <input type="hidden" name="_method" value="PUT">
-                <input type="hidden" name="unit_id" id="edit-unit-id">
-
-                <div class="modal-header">
-                    <h5 class="modal-title" id="editUnitModalLabel">Edit Lesson</h5>
-                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-                </div>
-
-                <div class="modal-body">
-                    <!-- Title, Subtitle -->
-                    <div class="mb-3">
-                        <label for="edit-title" class="form-label">Lesson Title</label>
-                        <input type="text" class="form-control" id="edit-title" name="title" required>
-                    </div>
-                    <div class="mb-3">
-                        <label for="edit-subtitle" class="form-label">Subtitle</label>
-                        <input type="text" class="form-control" id="edit-subtitle" name="subtitle">
-                    </div>
-
-                    <!-- Content Type -->
-                    <div class="mb-3">
-                        <label for="edit-content_type" class="form-label">Content Type</label>
-                        <select class="form-select" id="edit-content_type" name="content_type" required>
-                            <option value="" disabled selected>Select Content Type</option>
-                            <option value="video">Video</option>
-                            <option value="text">Text</option>
-                            <option value="youtube">Youtube</option>
-                        </select>
-                    </div>
-
-                    <!-- Edit: Text + Canvas combined -->
-                    <div id="edit-text-and-canvas" style="display:none;">
-                        <label class="form-label">Content</label>
-                        <div id="edit-editor"></div>
-                        <textarea name="content" id="edit-content" style="display:none;"></textarea>
-
-                        <hr>
-                        <h5>Design Board</h5>
-                        <div class="mb-2">
-                            <label>Canvas Size:</label>
-                            <div class="d-flex gap-2 align-items-center">
-                                <input type="number" id="editDesignWidth" placeholder="Width" value="800"
-                                       class="form-control" style="max-width:120px;">
-                                <input type="number" id="editDesignHeight" placeholder="Height" value="400"
-                                       class="form-control" style="max-width:120px;">
-                                <button type="button" class="btn btn-sm btn-outline-secondary" id="editApplySizeBtn">
-                                    Apply Size
-                                </button>
-                            </div>
-                        </div>
-
-                        <div class="shape-row d-flex gap-2 align-items-end flex-wrap">
-                            <div>
-                                <label>Shape:</label>
-                                <select id="editShapeType" class="form-select form-select-sm">
-                                    <option value="rect">Rectangle</option>
-                                    <option value="circle">Circle</option>
-                                    <option value="ellipse">Ellipse</option>
-                                    <option value="line">Line</option>
-                                    <option value="star">Star</option>
-                                    <option value="arrow">Arrow</option>
-                                    <option value="diamond">Diamond</option>
-                                    <option value="trapezoid">Trapezoid</option>
-                                    <option value="zigzag">Zigzag</option>
-                                </select>
-                            </div>
-                            <div>
-                                <label>Fill:</label>
-                                <input type="color" id="editShapeFill" value="#00BFFF"
-                                       class="form-control form-control-color" style="width:60px;">
-                            </div>
-                            <div>
-                                <label>Stroke:</label>
-                                <input type="color" id="editShapeStroke" value="#000000"
-                                       class="form-control form-control-color" style="width:60px;">
-                            </div>
-                            <div>
-                                <label>Stroke W:</label>
-                                <input type="number" id="editShapeStrokeWidth" class="form-control form-control-sm"
-                                       style="max-width:80px;" value="1">
-                            </div>
-                            <button type="button" class="btn btn-sm btn-secondary" id="editAddShapeBtn">
-                                Add Shape
-                            </button>
-                            <button type="button" class="btn btn-sm btn-danger" id="editRemoveSelectedBtn">
-                                Remove Selected
-                            </button>
-                            <button type="button" class="btn btn-sm btn-secondary" id="editBringToFrontBtn">
-                                Bring Front
-                            </button>
-                            <button type="button" class="btn btn-sm btn-secondary" id="editSendToBackBtn">
-                                Send Back
-                            </button>
-                        </div>
-
-                        <div class="text-row d-flex gap-2 align-items-end flex-wrap mt-3">
-                            <div>
-                                <label>Text:</label>
-                                <input type="text" id="editTextString" class="form-control form-control-sm"
-                                       placeholder="Enter text...">
-                            </div>
-                            <div>
-                                <label>Color:</label>
-                                <input type="color" id="editTextColor" value="#000000"
-                                       class="form-control form-control-color" style="width:60px;">
-                            </div>
-                            <div>
-                                <label>Font Size:</label>
-                                <input type="number" id="editTextSize" class="form-control form-control-sm"
-                                       style="max-width:80px;" value="20">
-                            </div>
-                            <button type="button" class="btn btn-sm btn-secondary" id="editAddTextBtn">
-                                Add Text
-                            </button>
-                        </div>
-
-                        <canvas id="editDesignCanvas" width="800" height="400" style="margin-top:10px;"></canvas>
-                        <div class="mt-3">
-                            <button type="button" class="btn btn-info" id="editInsertDesignBtn">
-                                Insert Design to Editor
-                            </button>
-                            <button type="button" class="btn btn-outline-danger" id="editClearCanvasBtn">
-                                Clear Canvas
-                            </button>
-                        </div>
-                    </div>
-
-                    <!-- Edit: Video Content -->
-                    <div class="mb-3" id="edit-video-content" style="display:none;">
-                        <label for="edit-video" class="form-label">Upload Video</label>
-                        <input id="edit-video" type="file" class="filepond" name="video" multiple
-                               data-allow-reorder="true" data-max-file-size="200MB" data-max-files="1">
-                    </div>
-
-                    <!-- Edit: Youtube Content -->
-                    <div class="mb-3" id="edit-youtube-content" style="display:none;">
-                        <label for="edit-youtube" class="form-label">Youtube Link</label>
-                        <input type="text" class="edit-youtube form-control" name="youtube" id="edit-youtube">
-                    </div>
-                </div>
-
-                <div class="modal-footer">
-                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
-                    <button type="submit" class="btn btn-primary">Update Lesson</button>
-                </div>
-            </form>
-        </div>
-    </div>
-</div>
-
-<!-- View Lesson Modal -->
-<div class="modal fade" id="viewLessonModal" tabindex="-1" aria-hidden="true">
-    <div class="modal-dialog modal-lg">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h5 class="modal-title">View Lesson</h5>
-                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-            </div>
-            <div class="modal-body" id="viewLessonBody">
-                <!-- سيتم تعبئة المحتوى جافاسكربتياً -->
+            @endcan
+            <div class="table-responsive">
+                <table id="courses-table" class="table table-striped table-bordered">
+                    <thead>
+                        <tr>
+                            <th>#</th>
+                            <th>Title</th>
+                            <th>Description</th>
+                            <th>Category</th>
+                            <th>Level</th>
+                            <th>Type</th>
+                            <th>Teacher</th>
+                            <th>Block</th>
+                            <th>Completed</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                </table>
             </div>
         </div>
     </div>
-</div>
+
+    @can('create courses')
+    <!-- Add Course Modal -->
+    <div class="modal fade" id="addCourseModal" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-scrollable">
+            <div class="modal-content">
+                <form id="addCourseForm" enctype="multipart/form-data">
+                    @csrf
+                    <div class="modal-header">
+                        <h5 class="modal-title" id="addCourseModalLabel">Add New Unit</h5>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                    </div>
+                    <div class="modal-body">
+
+                        <div class="mb-3">
+                            <label for="title" class="form-label">Unit Title</label>
+                            <input type="text" class="form-control" id="title" name="title" required>
+                        </div>
+
+                        <div class="mb-3">
+                            <label for="description" class="form-label">Description</label>
+                            <textarea class="form-control" id="description" name="description" required></textarea>
+                        </div>
+
+                        <div class="mb-3">
+                            <label for="category_id" class="form-label">Category</label>
+                            <select class="form-select" id="category_id" name="category_id" required>
+                                <option value="" disabled selected>Select Category</option>
+                                @foreach ($categories as $category)
+                                    <option value="{{ $category->id }}">{{ $category->age_group }}</option>
+                                @endforeach
+                            </select>
+                        </div>
+
+                        <div class="mb-3">
+                            <label for="level" class="form-label">Level</label>
+                            <select class="form-select" id="level" name="level" required>
+                                <option value="" disabled selected>Select Level</option>
+                                @for ($i = 1; $i <= 6; $i++)
+                                    <option value="{{ $i }}">Level {{ $i }}</option>
+                                @endfor
+                            </select>
+                        </div>
+
+                        <div class="mb-3">
+                            <label for="type" class="form-label">Type</label>
+                            <select class="form-select" id="type" name="type" required>
+                                <option value="" disabled selected>Select Type</option>
+                                <option value="weekly">Weekly</option>
+                                <option value="intensive">Intensive</option>
+                            </select>
+                        </div>
+
+                        <div class="mb-3">
+                            <label for="block_name" class="form-label">Block</label>
+                            <label for="block_id" class="form-label">Block</label>
+                            <select class="form-select" id="block_id" name="block_id" required>
+                                <option value="" disabled selected>Select Block</option>
+                                @foreach($blocks as $block)
+                                    <option value="{{ $block->id }}">{{ $block->name }}</option>
+                                @endforeach
+                            </select>
+                        </div>
+
+                        <div class="mb-3">
+                            <label for="image" class="form-label">Upload Image</label>
+                            <input type="file" class="filepond" name="image" data-allow-reorder="true"
+                                   data-max-file-size="5MB" data-max-files="1">
+                        </div>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                        <button type="submit" class="btn btn-primary">Add Unit</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+    @endcan
+
+    @hasanyrole('Super Admin|Admin')
+    <!-- Assign Teacher Modal -->
+    <div class="modal fade" id="assignTeacherModal" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-scrollable">
+            <div class="modal-content">
+                <form id="assignTeacherForm">
+                    @csrf
+                    <div class="modal-header">
+                        <h5 class="modal-title" id="assignTeacherModalLabel">Assign Teacher to Unit</h5>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                    </div>
+                    <div class="modal-body">
+                        <input type="hidden" id="assignCourseId" name="course_id">
+                        <div class="mb-3">
+                            <label for="teacher_id" class="form-label">Select Teacher</label>
+                            <select class="form-select" id="teacher_id" name="teacher_id" required style="width: 100%;">
+                                <option value="" disabled selected>Select Teacher</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                        <button type="submit" class="btn btn-primary">Assign Teacher</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+    @endhasanyrole
+
+    <input type="hidden" id="delete_source" value="{{ route('admin.courses.delete') }}">
 @endsection
 
 @section('scripts')
-    <!-- Quill Editor JS -->
-    <script src="https://cdn.quilljs.com/1.3.6/quill.js"></script>
-
-    <!-- FilePond JS + Plugins -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.12.9/umd/popper.min.js"></script>
     <script src="https://unpkg.com/filepond/dist/filepond.js"></script>
-    <script src="https://unpkg.com/filepond-plugin-image-preview/dist/filepond-plugin-image-preview.js"></script>
-    <script src="https://unpkg.com/filepond-plugin-image-exif-orientation/dist/filepond-plugin-image-exif-orientation.js"></script>
-    <script src="https://unpkg.com/filepond-plugin-file-rename/dist/filepond-plugin-file-rename.js"></script>
     <script src="https://unpkg.com/filepond-plugin-file-validate-size/dist/filepond-plugin-file-validate-size.js"></script>
+    <script src="https://unpkg.com/filepond-plugin-image-preview/dist/filepond-plugin-image-preview.js"></script>
     <script src="https://unpkg.com/filepond-plugin-file-validate-type/dist/filepond-plugin-file-validate-type.js"></script>
-    <script src="https://unpkg.com/filepond-plugin-image-edit/dist/filepond-plugin-image-edit.js"></script>
-
-    <!-- Image Resize Module JS for Quill -->
-    <script src="https://cdn.jsdelivr.net/npm/quill-image-resize-module@3.0.0/image-resize.min.js"></script>
-
-    <!-- SweetAlert2 -->
-    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@10"></script>
+    <script src="{{ asset('assets/plugins/select2/js/select2.min.js') }}"></script>
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 
     <script>
-        let canvasAdd = null;
-        let canvasEdit = null;
-        let quillAdd, quillEdit;
-
-        // حساب نقاط نجمة
-        function starPolygonPoints(spines, outerR, innerR){
-            let results = [];
-            let angle = Math.PI / spines;
-            for (let i = 0; i < 2 * spines; i++) {
-                let r = (i & 1) === 0 ? outerR : innerR;
-                let currX = Math.cos(i * angle) * r;
-                let currY = Math.sin(i * angle) * r;
-                results.push({ x: currX, y: currY });
-            }
-            return results;
-        }
-        // شكل سهم (تقريبي)
-        function arrowPoints() {
-            return [
-                { x: 0,  y: 0 },
-                { x: 60, y: 0 },
-                { x: 60, y: -20 },
-                { x: 100, y: 20 },
-                { x: 60, y: 60 },
-                { x: 60, y: 40 },
-                { x: 0,  y: 40 }
-            ];
-        }
-        // شكل ماسة
-        function diamondPoints(w=80, h=80) {
-            return [
-                { x: 0,    y: -h/2},
-                { x: w/2,  y: 0},
-                { x: 0,    y: h/2},
-                { x: -w/2, y: 0}
-            ];
-        }
-        // شبه منحرف
-        function trapezoidPoints(topW=50, bottomW=100, h=60) {
-            let halfTop = topW/2, halfBottom= bottomW/2;
-            return [
-                { x: -halfTop,    y: 0 },
-                { x: halfTop,     y: 0 },
-                { x: halfBottom,  y: h },
-                { x: -halfBottom, y: h }
-            ];
-        }
-        // زكزاك
-        function zigzagPoints(steps=5, w=100, h=50) {
-            let points = [];
-            let dx = w/steps, dy = h/(steps-1);
-            for(let i=0; i<steps; i++){
-                let x = i * dx;
-                let y = i % 2===0 ? 0 : dy;
-                points.push({ x, y });
-            }
-            return points;
-        }
-
-        $(document).ready(function() {
-            // 1) Datatable
-            var table = $('#units-table').DataTable({
-                processing: true,
-                serverSide: true,
-                ajax: '{{ route('admin.getUnits', $course->id) }}',
-                columns: [
-                    { data: 'id',           name: 'id' },
-                    { data: 'title',        name: 'title' },
-                    { data: 'subtitle',     name: 'subtitle' },
-                    { data: 'content_type', name: 'content_type' },
-                    {
-                        data: 'actions',
-                        name: 'actions',
-                        orderable: false,
-                        searchable: false,
-                        width: '25%',
+    $(document).ready(function() {
+        var table = $('#courses-table').DataTable({
+            processing: true,
+            serverSide: true,
+            ajax: '{{ route('admin.getCourses') }}',
+            columns: [
+                {
+                    data: 'id',
+                    name: 'id',
+                },
+                {
+                    data: 'title',
+                    name: 'title'
+                },
+                {
+                    data: 'description',
+                    name: 'description',
+                    render: function(data) {
+                        return data.length > 100 ? data.substring(0, 50) + '...' : data;
                     }
-                ],
-                columnDefs: [
-                    { visible: false, targets: 0 }
-                ],
-                dom: 'Bfrtip',
-                buttons: [
-                    { extend: 'copy',  className: 'btn btn-outline-secondary' },
-                    { extend: 'excel', className: 'btn btn-outline-secondary' },
-                    { extend: 'pdf',   className: 'btn btn-outline-secondary' },
-                    { extend: 'print', className: 'btn btn-outline-secondary' }
-                ],
-                lengthChange: false
-            });
-            table.buttons().container().appendTo('#units-table_wrapper .col-md-6:eq(0)');
-
-            // 2) Delete (باستخدام SweetAlert2)
-            $('#units-table').on('click', '.delete-unit', function() {
-                var unitId = $(this).data('id');
-
-                // إظهار SweetAlert بدلاً من confirm الافتراضي
-                Swal.fire({
-                    title: 'Are you sure?',
-                    text: "You are about to delete this Lesson!",
-                    icon: 'warning',
-                    showCancelButton: true,
-                    confirmButtonText: 'Yes, delete it!',
-                    cancelButtonText: 'No, cancel!',
-                }).then((result) => {
-                    if (result.isConfirmed) {
-                        $.ajax({
-                            url: '/courses/units/delete/' + unitId,
-                            type: 'DELETE',
-                            data: { _token: $('meta[name="csrf-token"]').attr('content') },
-                            success: function(resp) {
-                                console.log("Delete success:", resp);
-                                table.ajax.reload(null, false);
-                                Swal.fire("Success", "Lesson deleted", "success");
-                            },
-                            error: function(xhr) {
-                                console.log("Delete error:", xhr.status, xhr.responseText, xhr.responseJSON);
-                                Swal.fire("Error", "Error: " + xhr.responseText, "error");
-                            }
-                        });
+                },
+                {
+                    data: 'category',
+                    name: 'category'
+                },
+                {
+                    data: 'level',
+                    name: 'level'
+                },
+                {
+                    data: 'type',
+                    name: 'type'
+                },
+                {
+                    data: 'teacher',
+                    name: 'teacher',
+                    defaultContent: 'N/A'
+                },
+                {
+                    data: 'block_name',
+                    name: 'block_name',
+                    defaultContent: 'No Block'
+                },
+                {
+                    data: 'completed',
+                    name: 'completed',
+                    orderable: false,
+                    searchable: false,
+                    render: function(data, type, row) {
+                        return `<div class="form-check form-switch">
+                                    <input class="form-check-input toggle-complete" type="checkbox" data-id="${row.id}" ${data ? 'checked' : ''}>
+                                </div>`;
                     }
-                });
-            });
-
-            // 3) Show Script
-            $('#units-table').on('click', '.show-script', function(){
-                var unitId = $(this).data('id');
-                $.get('/units/' + unitId + '/script')
-                  .done(function(resp){
-                      console.log("Script fetched:", resp);
-                      $('#script').val(resp.script);
-                      $('#updateScriptForm').data('unit-id', unitId);
-                      $('#showScriptModal').modal('show');
-                  })
-                  .fail(function(xhr){
-                      console.log("Script fetch error:", xhr.status, xhr.responseText, xhr.responseJSON);
-                      showAlert('danger','Error fetching script','bx-error');
-                  });
-            });
-
-            // تحديث السكربت
-            $('#updateScriptForm').on('submit',function(e){
-                e.preventDefault();
-                let submitBtn = $(this).find('button[type="submit"]');
-                submitBtn.prop('disabled', true);
-
-                let uid = $(this).data('unit-id');
-                $.post('/units/'+uid+'/script', $(this).serialize())
-                  .done(function(resp){
-                      console.log("Script updated:", resp);
-                      submitBtn.prop('disabled', false);
-                      $('#showScriptModal').modal('hide');
-                      showAlert('success', resp.success, 'bx-check');
-                      table.ajax.reload();
-                  })
-                  .fail(function(xhr){
-                      console.log("Script update error:", xhr.status, xhr.responseText, xhr.responseJSON);
-                      submitBtn.prop('disabled', false);
-                      showAlert('danger','Error updating script','bx-error');
-                  });
-            });
-
-            // 4) View Lesson
-            $('#units-table').on('click', '.view-lesson', function(){
-                var unitId = $(this).data('id');
-                $.ajax({
-                    url: '/units/'+unitId,
-                    method: 'GET',
-                    success:function(resp){
-                        console.log("View lesson success:", resp);
-                        let htmlContent = '';
-                        htmlContent += '<h4>'+resp.title+'</h4>';
-                        htmlContent += '<p><strong>Subtitle: </strong>'+ (resp.subtitle ? resp.subtitle : '') +'</p>';
-                        htmlContent += '<p><strong>Type: </strong>'+ resp.content_type +'</p>';
-                        if(resp.content_type === 'text'){
-                            htmlContent += '<hr><div>'+ resp.content +'</div>';
-                        } else if(resp.content_type === 'youtube'){
-                            htmlContent += '<hr><p>YouTube Video ID: '+ resp.content +'</p>';
-                            htmlContent += '<p>(Original Link: '+ resp.script +')</p>';
-                        } else if(resp.content_type === 'video'){
-                            htmlContent += '<hr><video width="100%" controls src="'+ (resp.content) +'">Video not supported</video>';
-                        }
-                        $('#viewLessonBody').html(htmlContent);
-                        $('#viewLessonModal').modal('show');
-                    },
-                    error:function(xhr){
-                        console.log("View lesson error:", xhr.status, xhr.responseText, xhr.responseJSON);
-                        Swal.fire("Error", "Cannot fetch lesson data", "error");
-                    }
-                });
-            });
-
-            // 5) Quill Editors
-            let advancedModules = {
-                toolbar: [
-                    [{ 'font': [] }],
-                    [{ 'size': ['small', false, 'large', 'huge'] }],
-                    [{ 'header': [1, 2, 3, 4, 5, 6, false]}],
-                    ['bold', 'italic', 'underline', 'strike'],
-                    [{ 'script': 'sub'}, { 'script': 'super' }],
-                    [{ 'list': 'ordered'}, { 'list': 'bullet'}],
-                    [{ 'indent': '-1'}, { 'indent': '+1'}],
-                    [{ 'color': [] }, { 'background': [] }],
-                    [{ 'align': [] }],
-                    ['blockquote', 'code-block'],
-                    ['link', 'image', 'video'],
-                    ['clean']
-                ],
-            };
-
-            quillAdd = new Quill('#editor', {
-                theme: 'snow',
-                modules: advancedModules
-            });
-            quillEdit = new Quill('#edit-editor', {
-                theme: 'snow',
-                modules: advancedModules
-            });
-
-            // 6) Toggle content types
-            $('#content_type').on('change', function(){
-                let val = $(this).val();
-                $('#text-and-canvas, #video-content, #youtube-content').hide();
-                if(val==='text'){
-                    $('#text-and-canvas').show();
-                } else if(val==='video'){
-                    $('#video-content').show();
-                } else if(val==='youtube'){
-                    $('#youtube-content').show();
+                },
+                {
+                    data: 'actions',
+                    name: 'actions',
+                    orderable: false,
+                    searchable: false
                 }
-            });
-            $('#edit-content_type').on('change', function(){
-                let val = $(this).val();
-                $('#edit-text-and-canvas, #edit-video-content, #edit-youtube-content').hide();
-                if(val==='text'){
-                    $('#edit-text-and-canvas').show();
-                } else if(val==='video'){
-                    $('#edit-video-content').show();
-                } else if(val==='youtube'){
-                    $('#edit-youtube-content').show();
+            ],
+            columnDefs: [{
+                visible: false,
+                targets: 0
+            }],
+            dom: 'Bfrtip',
+            buttons: [
+                {
+                    extend: 'copy',
+                    className: 'btn btn-outline-secondary buttons-copy buttons-html5'
+                },
+                {
+                    extend: 'excel',
+                    className: 'btn btn-outline-secondary buttons-excel buttons-html5'
+                },
+                {
+                    extend: 'pdf',
+                    className: 'btn btn-outline-secondary buttons-pdf buttons-html5'
+                },
+                {
+                    extend: 'print',
+                    className: 'btn btn-outline-secondary buttons-print'
                 }
-            });
+            ],
+            lengthChange: false
+        });
 
-            // 7) Fabric.js (Add)
-            let canvas = new fabric.Canvas('designCanvas',{
-                backgroundColor:'#fff',
-                preserveObjectStacking:true
-            });
-            canvasAdd = canvas;
-            // Double click => edit text
-            canvasAdd.on('mouse:dblclick', function(opt){
-                if(opt.target && opt.target.type === 'textbox'){
-                    opt.target.enterEditing();
-                }
-            });
-
-            $('#applySizeBtn').click(function(){
-                let w = parseInt($('#designWidth').val() || '800');
-                let h = parseInt($('#designHeight').val() || '400');
-                canvasAdd.setWidth(w);
-                canvasAdd.setHeight(h);
-                canvasAdd.renderAll();
-            });
-
-            $('#addShapeBtn').click(function(){
-                let shapeType = $('#shapeType').val();
-                let fill = $('#shapeFill').val();
-                let stroke = $('#shapeStroke').val();
-                let strokeW = parseInt($('#shapeStrokeWidth').val() || '1');
-
-                let obj=null;
-                switch(shapeType){
-                    case 'rect':
-                        obj = new fabric.Rect({ left:100,top:100, fill,stroke,strokeWidth:strokeW, width:100,height:80 });
-                        break;
-                    case 'circle':
-                        obj = new fabric.Circle({ left:120,top:120, fill,stroke,strokeWidth:strokeW, radius:40 });
-                        break;
-                    case 'ellipse':
-                        obj = new fabric.Ellipse({ left:140,top:140, fill,stroke,strokeWidth:strokeW, rx:60, ry:40 });
-                        break;
-                    case 'line':
-                        obj = new fabric.Line([50,50,200,50], { stroke, strokeWidth:strokeW, fill });
-                        break;
-                    case 'star':
-                        let starPts = starPolygonPoints(5, 50, 20);
-                        obj = new fabric.Polygon(starPts,{ left:150,top:150, fill,stroke,strokeWidth:strokeW });
-                        break;
-                    case 'arrow':
-                        obj = new fabric.Polygon(arrowPoints(),{ left:100,top:100, fill,stroke,strokeWidth:strokeW });
-                        break;
-                    case 'diamond':
-                        obj = new fabric.Polygon(diamondPoints(),{ left:150,top:150, fill,stroke,strokeWidth:strokeW });
-                        break;
-                    case 'trapezoid':
-                        obj = new fabric.Polygon(trapezoidPoints(),{ left:150,top:150, fill,stroke,strokeWidth:strokeW });
-                        break;
-                    case 'zigzag':
-                        obj = new fabric.Polyline(zigzagPoints(6,100,50),{ left:150,top:150, fill:'',stroke,strokeWidth:strokeW });
-                        break;
-                }
-                if(obj){
-                    canvasAdd.add(obj).setActiveObject(obj);
-                }
-            });
-            $('#removeSelectedBtn').click(function(){
-                let act = canvasAdd.getActiveObject();
-                if(act) canvasAdd.remove(act);
-            });
-            $('#bringToFrontBtn').click(function(){
-                let act = canvasAdd.getActiveObject();
-                if(act){ act.bringToFront(); canvasAdd.renderAll(); }
-            });
-            $('#sendToBackBtn').click(function(){
-                let act = canvasAdd.getActiveObject();
-                if(act){ act.sendToBack(); canvasAdd.renderAll(); }
-            });
-            $('#addTextBtn').click(function(){
-                let txt = $('#textString').val() || 'New Text';
-                let color = $('#textColor').val();
-                let fz = parseInt($('#textSize').val() || '20');
-                let textbox= new fabric.Textbox(txt,{ left:100,top:100, fill:color, fontSize: fz });
-                canvasAdd.add(textbox).setActiveObject(textbox);
-                textbox.enterEditing();
-            });
-            $('#insertDesignBtn').click(function(){
-                let dataURL = canvasAdd.toDataURL('image/png');
-                let range = quillAdd.getSelection(true);
-                $.ajax({
-                    url: '/upload-canvas-image',
-                    type: 'POST',
-                    data: { imageBase64: dataURL },
-                    headers: { 'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content') },
-                    success: function(resp){
-                        console.log("Canvas image upload success:", resp);
-                        quillAdd.insertEmbed(range.index, 'image', resp.url, Quill.sources.USER);
-                        quillAdd.setSelection(range.index+1, Quill.sources.SILENT);
-                    },
-                    error: function(xhr){
-                        console.log("Canvas image upload error:", xhr.status, xhr.responseText, xhr.responseJSON);
-                    }
-                });
-            });
-            $('#clearCanvasBtn').click(function(){
-                canvasAdd.clear();
-            });
-
-            // 8) Fabric.js (Edit)
-            let canvas2 = new fabric.Canvas('editDesignCanvas',{
-                backgroundColor:'#fff',
-                preserveObjectStacking:true
-            });
-            canvasEdit = canvas2;
-            canvasEdit.on('mouse:dblclick', function(opt){
-                if(opt.target && opt.target.type === 'textbox'){
-                    opt.target.enterEditing();
-                }
-            });
-            $('#editApplySizeBtn').click(function(){
-                let w = parseInt($('#editDesignWidth').val()||'800');
-                let h = parseInt($('#editDesignHeight').val()||'400');
-                canvasEdit.setWidth(w);
-                canvasEdit.setHeight(h);
-                canvasEdit.renderAll();
-            });
-            $('#editAddShapeBtn').click(function(){
-                let shapeType = $('#editShapeType').val();
-                let fill = $('#editShapeFill').val();
-                let stroke = $('#editShapeStroke').val();
-                let strokeW = parseInt($('#editShapeStrokeWidth').val()||'1');
-
-                let obj=null;
-                switch(shapeType){
-                    case 'rect':
-                        obj = new fabric.Rect({ left:100,top:100, fill,stroke,strokeWidth:strokeW, width:100,height:80 });
-                        break;
-                    case 'circle':
-                        obj = new fabric.Circle({ left:120,top:120, fill,stroke,strokeWidth:strokeW, radius:40 });
-                        break;
-                    case 'ellipse':
-                        obj = new fabric.Ellipse({ left:140,top:140, fill,stroke,strokeWidth:strokeW, rx:60, ry:40 });
-                        break;
-                    case 'line':
-                        obj = new fabric.Line([50,50,200,50], { stroke, strokeWidth:strokeW, fill });
-                        break;
-                    case 'star':
-                        obj = new fabric.Polygon(starPolygonPoints(5, 50, 20),{ left:150,top:150, fill,stroke,strokeWidth:strokeW });
-                        break;
-                    case 'arrow':
-                        obj = new fabric.Polygon(arrowPoints(),{ left:100,top:100, fill,stroke,strokeWidth:strokeW });
-                        break;
-                    case 'diamond':
-                        obj = new fabric.Polygon(diamondPoints(),{ left:150,top:150, fill,stroke,strokeWidth:strokeW });
-                        break;
-                    case 'trapezoid':
-                        obj = new fabric.Polygon(trapezoidPoints(),{ left:150,top:150, fill,stroke,strokeWidth:strokeW });
-                        break;
-                    case 'zigzag':
-                        obj = new fabric.Polyline(zigzagPoints(6,100,50),{ left:150,top:150, fill:'',stroke,strokeWidth:strokeW });
-                        break;
-                }
-                if(obj){
-                    canvasEdit.add(obj).setActiveObject(obj);
-                }
-            });
-            $('#editRemoveSelectedBtn').click(function(){
-                let act = canvasEdit.getActiveObject();
-                if(act) canvasEdit.remove(act);
-            });
-            $('#editBringToFrontBtn').click(function(){
-                let act = canvasEdit.getActiveObject();
-                if(act){ act.bringToFront(); canvasEdit.renderAll(); }
-            });
-            $('#editSendToBackBtn').click(function(){
-                let act = canvasEdit.getActiveObject();
-                if(act){ act.sendToBack(); canvasEdit.renderAll(); }
-            });
-            $('#editAddTextBtn').click(function(){
-                let txt = $('#editTextString').val()|| 'Edit text';
-                let color = $('#editTextColor').val();
-                let fs = parseInt($('#editTextSize').val()||'20');
-                let tbox= new fabric.Textbox(txt,{ left:100,top:100, fill:color, fontSize: fs });
-                canvasEdit.add(tbox).setActiveObject(tbox);
-                tbox.enterEditing();
-            });
-            $('#editClearCanvasBtn').click(function(){
-                canvasEdit.clear();
-            });
-            $('#editInsertDesignBtn').click(function(){
-                let dataURL = canvasEdit.toDataURL('image/png');
-                let range = quillEdit.getSelection(true);
-                $.ajax({
-                    url: '/upload-canvas-image',
-                    type: 'POST',
-                    data: { imageBase64: dataURL },
-                    headers: { 'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content') },
-                    success: function(resp){
-                        console.log("Edit canvas image upload success:", resp);
-                        quillEdit.insertEmbed(range.index, 'image', resp.url, Quill.sources.USER);
-                        quillEdit.setSelection(range.index+1, Quill.sources.SILENT);
-                    },
-                    error: function(xhr){
-                        console.log("Edit canvas image upload error:", xhr.status, xhr.responseText, xhr.responseJSON);
-                    }
-                });
-            });
-
-            // 9) FilePond
-            FilePond.registerPlugin(
-                FilePondPluginImagePreview,
-                FilePondPluginImageExifOrientation,
-                FilePondPluginFileValidateSize,
-                FilePondPluginImageEdit,
-                FilePondPluginFileValidateType,
-                FilePondPluginFileRename
-            );
-            const pondAdd = FilePond.create(document.querySelector('input[name="video"]'), {
-                allowFileTypeValidation: true,
-                acceptedFileTypes: ['video/*']
-            });
-            const pondEdit = FilePond.create(document.querySelector('#edit-video'), {
-                allowFileTypeValidation: true,
-                acceptedFileTypes: ['video/*']
-            });
-
-            // 10) Clear modals on hide
-            function clearModal(modalId){
-                $(modalId + ' input[type="text"], '+modalId+' textarea').val('');
-                if(modalId==='#addUnitModal'){
-                    pondAdd.removeFiles();
-                    quillAdd.setContents([]);
-                    canvasAdd.clear();
-                    canvasAdd.setWidth(800);
-                    canvasAdd.setHeight(400);
-                } else {
-                    pondEdit.removeFiles();
-                    quillEdit.setContents([]);
-                    canvasEdit.clear();
-                    canvasEdit.setWidth(800);
-                    canvasEdit.setHeight(400);
-                }
-            }
-            $('#addUnitModal, #editUnitModal').on('hidden.bs.modal', function(){
-                clearModal('#'+this.id);
-            });
-
-            // 11) إضافة درس
-            $('#addUnitForm').on('submit', function(e){
-                e.preventDefault();
-                const submitButton = $(this).find('button[type="submit"]');
-                submitButton.prop('disabled', true);
-
-                let originalFormData = new FormData(this);
-                let newFormData = new FormData();
-
-                // انقل بقية الحقول عدا الفيديو و content
-                for(let pair of originalFormData.entries()){
-                    if(pair[0]!=='video' && pair[0]!=='content'){
-                        newFormData.append(pair[0], pair[1]);
-                    }
-                }
-                // الفيديو
-                let file = pondAdd.getFile();
-                if(file){
-                    newFormData.append('video', file?.file || '');
-                }
-                // محتوى quill
-                newFormData.append('content', quillAdd.root.innerHTML);
+            // Handle toggle complete switch
+            $('#courses-table').on('change', '.toggle-complete', function() {
+                var courseId = $(this).data('id');
+                var completed = $(this).is(':checked') ? 1 : 0;
 
                 $.ajax({
-                    url:'{{ route('admin.storeUnit') }}',
-                    method:'POST',
-                    data:newFormData,
-                    processData:false,
-                    contentType:false,
-                    success:function(resp){
-                        console.log("Add lesson success:", resp);
-                        submitButton.prop('disabled', false);
-                        $('#addUnitModal').modal('hide');
-                        showAlert('success','Lesson added successfully','bx-check');
-                        clearModal('#addUnitModal');
-                        table.ajax.reload();
+                    url: `/courses/${courseId}/toggle-complete`,
+                    method: 'POST',
+                    data: {
+                        _token: '{{ csrf_token() }}',
+                        completed: completed
                     },
-                    error:function(xhr){
-                        console.log("Add lesson error:", xhr.status, xhr.responseText, xhr.responseJSON);
-                        submitButton.prop('disabled', false);
-
-                        if(xhr.responseJSON && xhr.responseJSON.errors){
-                            console.log("Validation errors:", xhr.responseJSON.errors);
-                            let errorMsg = "";
-                            for(let field in xhr.responseJSON.errors){
-                                errorMsg += xhr.responseJSON.errors[field].join("<br>") + "<br>";
-                            }
-                            showAlert('danger', errorMsg, 'bx-error');
+                    success: function(response) {
+                        if (response.success) {
+                            table.ajax.reload(null, false);
+                            showAlert('success', 'Unit completion status updated successfully!', 'bxs-check-circle');
                         } else {
-                            showAlert('danger','Error adding lesson','bx-error');
+                            showAlert('danger', 'Error updating Unit completion status', 'bxs-message-square-x');
                         }
+                    },
+                    error: function() {
+                        showAlert('danger', 'Error updating Unit completion status', 'bxs-message-square-x');
                     }
                 });
             });
 
-            // 12) تعديل درس
-            $('#editUnitForm').on('submit', function(e){
-                e.preventDefault();
-                const submitButton = $(this).find('button[type="submit"]');
-                submitButton.prop('disabled', true);
+            // Initialize tooltips
+            $('[data-toggle="tooltip"]').tooltip();
 
-                let originalFormData = new FormData(this);
-                let newFormData = new FormData();
+            // FilePond initialization
+            FilePond.registerPlugin(FilePondPluginFileValidateSize, FilePondPluginImagePreview, FilePondPluginFileValidateType);
 
-                for(let pair of originalFormData.entries()){
-                    if(pair[0]!=='video' && pair[0]!=='content'){
-                        newFormData.append(pair[0], pair[1]);
-                    }
+        const pond = FilePond.create(document.querySelector('input[name="image"]'), {
+            allowFileTypeValidation: true,
+            acceptedFileTypes: ['image/*'],
+            fileValidateTypeLabelExpectedTypes: 'Expected file type: Image'
+        });
+
+        // Submit form for adding course/unit
+        $('#addCourseForm').on('submit', function(e) {
+            e.preventDefault();
+            var blockValue = $('#block_id').val();
+            console.log('Selected Block:', blockValue);
+
+            var originalFormData = new FormData(this);
+            var newFormData = new FormData();
+
+            // نسخ البيانات باستثناء 'image' لإضافتها يدويًا
+            for (var pair of originalFormData.entries()) {
+                if (pair[0] !== 'image') {
+                    newFormData.append(pair[0], pair[1]);
                 }
-                let file2= pondEdit.getFile();
-                if(file2){
-                    newFormData.append('video', file2?.file || '');
-                }
-                // quill
-                newFormData.append('content', quillEdit.root.innerHTML);
+            }
 
-                let uid= $('#edit-unit-id').val();
+            // إضافة ملف الصورة من FilePond إذا وُجد
+            var file = pond.getFile();
+            if (file) {
+                newFormData.append('image', file.file);
+            }
+
                 $.ajax({
-                    url:'/units/'+uid,
-                    method:'POST',
-                    data:newFormData,
-                    processData:false,
-                    contentType:false,
-                    success:function(resp){
-                        console.log("Edit lesson success:", resp);
-                        submitButton.prop('disabled', false);
-                        $('#editUnitModal').modal('hide');
-                        showAlert('success','Lesson updated successfully','bx-check');
-                        clearModal('#editUnitModal');
+                    url: '{{ route('admin.storeCourse') }}',
+                    method: 'POST',
+                    data: newFormData,
+                    processData: false,
+                    contentType: false,
+                    success: function(response) {
+                        $('#addCourseModal').modal('hide');
                         table.ajax.reload();
-                    },
-                    error:function(xhr){
-                        console.log("Edit lesson error:", xhr.status, xhr.responseText, xhr.responseJSON);
-                        submitButton.prop('disabled', false);
+                        showAlert('success', 'Unit added successfully!', 'bxs-check-circle');
 
-                        if(xhr.responseJSON && xhr.responseJSON.errors){
-                            console.log("Validation errors:", xhr.responseJSON.errors);
-                            let errorMsg = "";
-                            for(let field in xhr.responseJSON.errors){
-                                errorMsg += xhr.responseJSON.errors[field].join("<br>") + "<br>";
-                            }
-                            showAlert('danger', errorMsg, 'bx-error');
-                        } else {
-                            showAlert('danger','Error updating lesson','bx-error');
-                        }
+                    // تفريغ الحقول
+                    $('#title').val('');
+                    $('#description').val('');
+                    $('#category_id').val('');
+                    $('#level').val('');
+                    $('#type').val('');
+
+                    // إزالة الملفات من FilePond
+                    pond.removeFiles();
+                },
+                error: function(response) {
+                    showAlert('danger', 'Error adding Unit', 'bxs-message-square-x');
+                }
+            });
+        });
+
+            // Button Assign Teacher
+            $(document).on('click', '.assign-teacher-btn', function() {
+                var courseId = $(this).data('course-id');
+                $('#assignCourseId').val(courseId);
+
+            $.ajax({
+                url: '{{ route('admin.getTeachersForAssignment') }}',
+                method: 'GET',
+                success: function(response) {
+                    var teacherSelect = $('#teacher_id');
+                    teacherSelect.empty();
+                    teacherSelect.append('<option value="" disabled selected>Select Teacher</option>');
+                    $.each(response, function(index, teacher) {
+                        teacherSelect.append('<option value="' + teacher.id + '">' +
+                            teacher.user.first_name + ' ' + teacher.user.last_name + ' - ' + teacher.user.email +
+                            '</option>');
+                    });
+                    $('#teacher_id').select2({
+                        theme: 'bootstrap4',
+                        dropdownParent: $('#assignTeacherModal'),
+                        placeholder: 'Search for a teacher',
+                        allowClear: true
+                    });
+
+                    // إذا أردت اختيار مُدرس افتراضيًا:
+                    var selectedTeacherId = $('#assignCourseId').data('teacher-id');
+                    if (selectedTeacherId) {
+                        $('#teacher_id').val(selectedTeacherId).trigger('change');
+                    }
+
+                        $('#assignTeacherModal').modal('show');
+                    },
+                    error: function(response) {
+                        showAlert('danger', 'Error fetching teachers', 'bxs-message-square-x');
                     }
                 });
             });
 
-            $(document).on('click','.edit-unit', function(){
-                let unitId= $(this).data('id');
+            // Submit form to assign teacher
+            $('#assignTeacherForm').on('submit', function(e) {
+                e.preventDefault();
+                var formData = $(this).serialize();
+
                 $.ajax({
-                    url:'/units/'+unitId+'/edit',
-                    method:'GET',
-                    success:function(data){
-                        console.log("Edit fetch success:", data);
-                        $('#edit-unit-id').val(data.id);
-                        $('#edit-title').val(data.title);
-                        $('#edit-subtitle').val(data.subtitle);
-                        $('#edit-content_type').val(data.content_type).change();
-
-                        if(data.content_type==='text'){
-                            quillEdit.root.innerHTML= data.content;
-                        } else if(data.content_type==='youtube'){
-                            $('#edit-youtube').val(data.script || '');
-                        }
-                        // اذا فيديو => رفع جديد لو أراد
-                        $('#editUnitModal').modal('show');
+                    url: '{{ route('admin.assignTeacherToCourse') }}',
+                    method: 'POST',
+                    data: formData,
+                    success: function(response) {
+                        $('#assignTeacherModal').modal('hide');
+                        table.ajax.reload();
+                        showAlert('success', 'Teacher assigned successfully!', 'bxs-check-circle');
                     },
-                    error:function(xhr){
-                        console.log("Edit fetch error:", xhr.status, xhr.responseText, xhr.responseJSON);
-                        Swal.fire("Error", "Cannot fetch lesson data", "error");
+                    error: function(response) {
+                        showAlert('danger', 'Error assigning teacher', 'bxs-message-square-x');
                     }
                 });
             });
 
-            // تنبيه (showAlert)
-            function showAlert(type, message, icon){
-                let html= `
-                <div class="alert alert-${type} border-0 bg-${type} alert-dismissible fade show py-2 position-fixed top-0 end-0 m-3" role="alert" style="z-index:9999;">
+        // عند إغلاق المودال يتم تفريغ الحقول
+        $('#addCourseModal').on('hidden.bs.modal', function() {
+            $('#title').val('');
+            $('#description').val('');
+            $('#category_id').val('');
+            $('#level').val('');
+            $('#type').val('');
+            pond.removeFiles();
+        });
+
+        function showAlert(type, message, icon) {
+            var alertHtml = `
+                <div class="alert alert-${type} border-0 bg-${type} alert-dismissible fade show py-2 position-fixed top-0 end-0 m-3" role="alert">
                     <div class="d-flex align-items-center">
                         <div class="font-35 text-white">
                             <i class="bx ${icon}"></i>
                         </div>
-                        <div class="ms-3 text-white">
-                            <h6 class="mb-0 text-white">${type.charAt(0).toUpperCase()+type.slice(1)}</h6>
-                            ${message}
+                        <div class="ms-3">
+                            <h6 class="mb-0 text-white">${type.charAt(0).toUpperCase() + type.slice(1)}</h6>
+                            <div class="text-white">${message}</div>
                         </div>
                     </div>
                     <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
                 </div>
-                `;
-                $('body').append(html);
-                setTimeout(()=>{$('.alert').alert('close');},5000);
-            }
+            `;
+            $('body').append(alertHtml);
+            setTimeout(function() {
+                $('.alert').alert('close');
+            }, 5000);
+        }
+
+            // Delete course/unit
+            $(document).on('click', '.delete-btn', function() {
+                let id = $(this).data('id');
+                let url = $('#delete_source').val() + '/' + id;
+
+            Swal.fire({
+                title: 'Are you sure?',
+                text: "You won't be able to revert this!",
+                icon: "warning",
+                showCancelButton: true,
+                confirmButtonColor: "#3085d6",
+                cancelButtonColor: "#d33",
+                confirmButtonText: "Yes, delete it!",
+                cancelButtonText: "Cancel"
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    $.ajaxSetup({
+                        headers: {
+                            'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
+                        }
+                    });
+                    $.ajax({
+                        url: url,
+                        method: 'DELETE',
+                        dataType: 'json',
+                        success: function(response) {
+                            if (response.success) {
+                                Swal.fire({
+                                    title: "Deleted!",
+                                    text: response.message,
+                                    icon: "success"
+                                }).then(() => {
+                                    $('#courses-table').DataTable().ajax.reload();
+                                });
+                            } else {
+                                Swal.fire({
+                                    title: "Error",
+                                    text: response.message,
+                                    icon: "error"
+                                });
+                            }
+                        },
+                        error: function(xhr) {
+                            Swal.fire({
+                                title: "Error",
+                                text: xhr.responseJSON?.message || "An unknown error occurred",
+                                icon: "error"
+                            });
+                        }
+                    });
+                }
+            });
         });
+    });
     </script>
 @endsection

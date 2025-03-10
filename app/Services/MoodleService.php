@@ -7,8 +7,9 @@ use Illuminate\Support\Facades\Log;
 use App\Models\User;
 use App\Models\Course;
 use App\Models\Unit;
+
 use App\Services\MoodleServices\CourseCategoryService;
-use App\Services\MoodleServices\CourseService; 
+use App\Services\MoodleServices\CoursesService;
 
 class MoodleService
 {
@@ -16,23 +17,26 @@ class MoodleService
     protected $token;
 
     protected $courseCategoryService;
-    protected $courseService;
+    protected $coursesService;
 
     /**
      * تحميل قيم URL و TOKEN من env + استقبال الخدمات المرتبطة
      */
-    public function __construct(CourseCategoryService $courseCategoryService, CourseService $courseService)
-    {
+    public function __construct(
+        CourseCategoryService $courseCategoryService,
+        CoursesService $coursesService
+    ) {
         $this->url   = config('app.moodle_url', 'https://moodle.safarai.org/webservice/rest/server.php');
         $this->token = config('app.moodle_wstoken');
+
         $this->courseCategoryService = $courseCategoryService;
-        $this->courseService = $courseService;
+        $this->coursesService        = $coursesService;
     }
 
- 
-
-    /**
-     * تمرير الطلبات المتعلقة بالتصنيفات إلى `CourseCategoryService`
+    /*
+     |---------------------------------
+     | تعامل مع تصنيفات الكورسات (Categories)
+     |---------------------------------
      */
     public function createCategory(array $data)
     {
@@ -48,16 +52,38 @@ class MoodleService
     {
         return $this->courseCategoryService->deleteCategory($category);
     }
+
     public function syncCategoriesFromMoodle()
     {
         return $this->courseCategoryService->syncCategoriesFromMoodle();
     }
-      /**
-     * تمرير الطلبات المتعلقة بالتصنيفات إلى `CourseCategoryService`
+
+    /*
+     |---------------------------------
+     | تعامل مع الكورسات (Courses)
+     |---------------------------------
      */
+    // إنشاء دورة جديدة في Moodle
+    public function createCourseInMoodle(Course $course)
+    {
+        return $this->coursesService->createCourse($course);
+    }
 
+    // تحديث دورة في Moodle
+    public function updateCourseInMoodle(Course $course)
+    {
+        return $this->coursesService->updateCourse($course);
+    }
 
+    // حذف دورة من Moodle
+    public function deleteCourseInMoodle($moodleCourseId)
+    {
+        return $this->coursesService->deleteCourse($moodleCourseId);
+    }
 
+    /**
+     * جلب الكورسات من Moodle
+     */
     public function getCourses()
     {
         $params = [
@@ -71,7 +97,48 @@ class MoodleService
     }
 
     /**
-     * مثال: mod_quiz_get_quizzes_by_courses
+     * مزامنة الكورسات من Moodle إلى Laravel
+     */
+    public function syncCoursesFromMoodle()
+    {
+        $moodleCourses = $this->getCourses();
+
+        // أحيانًا Moodle يعيد مصفوفة فيها "exception" عند الخطأ، تأكّد أنّها ليست خطأ.
+        if (!is_array($moodleCourses)) {
+            Log::error("syncCoursesFromMoodle: Unexpected response from Moodle", ['response' => $moodleCourses]);
+            return;
+        }
+
+        // نمرّ على كل كورس جلبناه من Moodle:
+        foreach ($moodleCourses as $mcourse) {
+            // أحيانًا يكون الـid = 1 هو الصفحة الرئيسية في Moodle فتجاهلها (حسب الضبط)
+            if (isset($mcourse['id']) && $mcourse['id'] == 1) {
+                continue;
+            }
+
+            // ابحث إن كان موجودًا في قاعدة بيانات Laravel:
+            $localCourse = Course::where('moodle_course_id', $mcourse['id'])->first();
+
+            if (!$localCourse) {
+                // غير موجود -> أنشئه
+                $localCourse = new Course();
+                $localCourse->moodle_course_id = $mcourse['id'];
+            }
+
+            // حدّث البيانات
+            $localCourse->title       = $mcourse['fullname'] ?? 'No Title';
+            $localCourse->description = $mcourse['summary'] ?? '';
+            // يمكنك وضع قيم إضافية حسب حاجتك
+            $localCourse->save();
+        }
+
+        Log::info("syncCoursesFromMoodle: Successfully synced courses from Moodle.");
+    }
+
+    /*
+     |---------------------------------
+     | تعامل مع الكويزات/أنشطة H5P كمثال
+     |---------------------------------
      */
     public function getQuizzesByCourse($courseId)
     {
@@ -86,9 +153,6 @@ class MoodleService
         return $response->json();
     }
 
-    /**
-     * مثال: mod_h5pactivity_get_h5pactivities_by_courses
-     */
     public function getH5PActivitiesByCourse($courseId)
     {
         $params = [
@@ -102,79 +166,10 @@ class MoodleService
         return $response->json();
     }
 
-    /**
-     * إنشاء دورة جديدة في Moodle: core_course_create_courses
-     */
-    public function createCourseInMoodle(Course $course)
-    {
-        $params = [
-            'wstoken'            => $this->token,
-            'wsfunction'         => 'core_course_create_courses',
-            'moodlewsrestformat' => 'json',
-            'courses' => [[
-                'fullname'   => $course->title,
-                'shortname'  => substr($course->title, 0, 10),
-                'categoryid' => $course->moodle_category_id ?? 1,
-                //  'summary' => $course->description,
-            ]],
-        ];
-
-        $response = Http::asForm()->post($this->url, $params);
-
-        if ($response->successful()) {
-            $data = $response->json();
-            if (!empty($data[0]['id'])) {
-                return $data[0]['id']; // رقم المقرر في Moodle
-            }
-        }
-
-        Log::error('Failed to create course in Moodle.', ['response' => $response->body()]);
-        return null;
-    }
-
-    /**
-     * تحديث بيانات دورة في Moodle: core_course_update_courses
-     */
-    public function updateCourseInMoodle(Course $course)
-    {
-        if (!$course->moodle_course_id) {
-            return;
-        }
-
-        $params = [
-            'wstoken'            => $this->token,
-            'wsfunction'         => 'core_course_update_courses',
-            'moodlewsrestformat' => 'json',
-            'courses' => [[
-                'id'        => $course->moodle_course_id,
-                'fullname'  => $course->title,
-                'shortname' => substr($course->title, 0, 10),
-                // 'summary'   => $course->description,
-            ]],
-        ];
-
-        $response = Http::asForm()->post($this->url, $params);
-        return $response->json();
-    }
-
-    /**
-     * حذف دورة من Moodle: core_course_delete_courses
-     */
-    public function deleteCourseInMoodle($moodleCourseId)
-    {
-        $params = [
-            'wstoken'            => $this->token,
-            'wsfunction'         => 'core_course_delete_courses',
-            'moodlewsrestformat' => 'json',
-            'courseids'          => [$moodleCourseId],
-        ];
-
-        $response = Http::asForm()->post($this->url, $params);
-        return $response->json();
-    }
-
-    /**
-     * تسجيل طالب في دورة Moodle: enrol_manual_enrol_users
+    /*
+     |---------------------------------
+     | تعامل مع تسجيل الطلاب في Moodle
+     |---------------------------------
      */
     public function enrollStudentInMoodle(User $user, Course $course)
     {
@@ -183,7 +178,7 @@ class MoodleService
             'wsfunction'         => 'enrol_manual_enrol_users',
             'moodlewsrestformat' => 'json',
             'enrolments' => [[
-                'roleid'   => 5, // دور الطالب في Moodle)
+                'roleid'   => 5, // Student role
                 'userid'   => $user->moodle_id,
                 'courseid' => $course->moodle_course_id,
             ]],
@@ -193,8 +188,10 @@ class MoodleService
         return $response->json();
     }
 
-    /**
-     * إنشاء مستخدم جديد في Moodle: core_user_create_users
+    /*
+     |---------------------------------
+     | تعامل مع المستخدمين
+     |---------------------------------
      */
     public function createMoodleUser(User $user)
     {
@@ -215,7 +212,7 @@ class MoodleService
         if ($response->successful()) {
             $data = $response->json();
             if (!empty($data[0]['id'])) {
-                return $data[0]['id']; // معرف المستخدم في Moodle
+                return $data[0]['id']; // moodle_user_id
             }
         }
 
@@ -223,9 +220,6 @@ class MoodleService
         return null;
     }
 
-    /**
-     * تحديث بيانات مستخدم في Moodle: core_user_update_users
-     */
     public function updateMoodleUser(User $user)
     {
         if (!$user->moodle_id) {
@@ -249,9 +243,6 @@ class MoodleService
         return $response->json();
     }
 
-    /**
-     * حذف مستخدم من Moodle: core_user_delete_users
-     */
     public function deleteMoodleUser($moodleUserId)
     {
         $params = [
@@ -269,9 +260,6 @@ class MoodleService
         return false;
     }
 
-    /**
-     * جلب درجات الطالب من Moodle: gradereport_user_get_grade_items
-     */
     public function getUserGrades($moodleUserId)
     {
         $params = [
@@ -285,8 +273,10 @@ class MoodleService
         return $response->json();
     }
 
-    /**
-     * إنشاء قسم (Section) في Moodle يطابق الـUnit: core_courseformat_update_course
+    /*
+     |---------------------------------
+     | أمثلة أخرى: إنشاء Section للوحدة (Unit)
+     |---------------------------------
      */
     public function createSectionForUnit(Unit $unit)
     {
@@ -295,15 +285,14 @@ class MoodleService
             Log::warning("لا يمكن إنشاء Section لأن الدورة ليست مرتبطة بـ moodle_course_id.");
             return null;
         }
-    
+
         $params = [
             'wstoken'            => $this->token,
             'wsfunction'         => 'core_courseformat_update_course',
             'moodlewsrestformat' => 'json',
-    
+
             'courseid' => $course->moodle_course_id,
-    
-            // نحدد الصيغة Weekly, وعدد الأقسام 5 (يمكن تغييره حسب حاجتك)
+
             'courseformatoptions' => [
                 [
                     'name'  => 'format',
@@ -315,7 +304,6 @@ class MoodleService
                 ],
             ],
             'sections' => [[
-                // القسم الثاني (General = صفر, أول قسم=1, ثاني قسم=2, ...)
                 'sectionnum'    => 2,
                 'name'          => $unit->title,
                 'summary'       => $unit->subtitle ?? '',
@@ -323,26 +311,18 @@ class MoodleService
                 'visible'       => 1
             ]],
         ];
-    
+
         $response = Http::asForm()->post($this->url, $params);
         if ($response->successful()) {
             $data = $response->json();
             Log::info("Update course format response", $data);
-    
-            // قد لا ترجع Moodle معرف القسم الجديد بشكل واضح
-            // ممكن نستعمل 'sectionnum' 2 كقيمة افتراضية
-            return 2;
+            return 2; // كمثال نفترض أنّ القسم #2
         }
-    
+
         Log::error('Failed to create section in Moodle.', ['response' => $response->body()]);
         return null;
     }
-    
-    
-    /**
-     * وضع علامة اكتمال على Section/Activity في Moodle
-     * تستخدم  core_completion_override_activity_completion_status
-     */
+
     public function markSectionCompletion($moodleUserId, $moodleCourseId, $sectionId)
     {
         $params = [
